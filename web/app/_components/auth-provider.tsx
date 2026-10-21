@@ -14,7 +14,7 @@ import {
   refresh,
   subscribe,
   type User,
-} from "../lib/auth";
+} from "../../lib/auth";
 
 const AuthContext = createContext<{
   user: User | null;

@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiFetch, responseError } from "../../lib/auth";
-import { useAuth } from "../auth-provider";
-import { useNotifications, type WalkRequest } from "../notifications-provider";
-import styles from "../dogs/dogs.module.css";
+import { AuthGate } from "../_components/auth-gate";
+import { useNotifications } from "../_components/notifications-provider";
+import type { WalkRequest } from "../../lib/types";
+import styles from "../_components/shared.module.css";
 
 const statusLabels = {
   PENDING: "대기 중",
@@ -15,17 +16,12 @@ const statusLabels = {
 };
 
 const WalkRequestsPage = () => {
-  const { user, loading } = useAuth();
   return (
     <main className={styles.main}>
       <h1>산책 요청</h1>
-      {loading ? (
-        <p role="status">로그인 상태를 확인하고 있어요.</p>
-      ) : !user ? (
-        <Link href="/login">로그인</Link>
-      ) : (
-        <RequestLists key={user.id} />
-      )}
+      <AuthGate>
+        <RequestLists />
+      </AuthGate>
       <Link href="/">홈으로</Link>
     </main>
   );

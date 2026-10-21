@@ -7,19 +7,10 @@ import {
   useEffect,
   useState,
 } from "react";
-import { apiFetch, responseError } from "../lib/auth";
-import { connectSocket } from "../lib/socket";
+import { apiFetch, responseError } from "../../lib/auth";
+import { connectSocket } from "../../lib/socket";
 import { useAuth } from "./auth-provider";
-import type { Dog } from "./dogs/dog-form";
-
-export type WalkRequest = {
-  id: number;
-  status: "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELED";
-  message: string | null;
-  createdAt: string;
-  respondedAt: string | null;
-  counterpart: { id: number; nickname: string; dogs: Dog[] };
-};
+import type { WalkRequest } from "../../lib/types";
 
 const emptyNotifications = {
   pendingCount: 0,

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useAuth } from "./auth-provider";
+import { useAuth } from "./_components/auth-provider";
 import styles from "./page.module.css";
 
 const Home = () => {

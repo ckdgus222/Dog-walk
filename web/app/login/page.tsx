@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { useAuth } from "../auth-provider";
-import styles from "../auth.module.css";
+import { useAuth } from "../_components/auth-provider";
+import styles from "../_components/shared.module.css";
 
 const LoginPage = () => {
   const { login, loading } = useAuth();
@@ -30,7 +30,7 @@ const LoginPage = () => {
   };
 
   return (
-    <main className={styles.main}>
+    <main className={`${styles.main} ${styles.narrow}`}>
       <h1>로그인</h1>
       <form className={styles.form} onSubmit={handleSubmit}>
         <label>

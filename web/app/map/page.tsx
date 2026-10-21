@@ -2,46 +2,26 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useAuth } from "../auth-provider";
+import { AuthGate } from "../_components/auth-gate";
 import { apiFetch, responseError } from "../../lib/auth";
-import type { Dog } from "../dogs/dog-form";
-import dogStyles from "../dogs/dogs.module.css";
-import styles from "./map.module.css";
+import type { MyLocation, Neighbor } from "../../lib/types";
+import styles from "../_components/shared.module.css";
 import KakaoMap from "./kakao-map";
-import { useNotifications } from "../notifications-provider";
+import { NeighborList } from "./neighbor-list";
+import { NeighborDetail } from "./neighbor-detail";
 
-type Location = {
-  consented: boolean;
-  lat: number | null;
-  lng: number | null;
-  updatedAt: string | null;
-};
-type Neighbor = {
-  userId: number;
-  nickname: string;
-  lat: number;
-  lng: number;
-  distanceM: number;
-  dogs: Dog[];
-};
-const sizeLabels = { SMALL: "소형", MEDIUM: "중형", LARGE: "대형" };
 // A stable empty list, so the map is not rebuilt on every render while loading.
 const noNeighbors: Neighbor[] = [];
 const geolocationError =
   "위치를 가져오지 못했어요. 브라우저 위치 권한을 확인해 주세요.";
 
 const MapPage = () => {
-  const { user, loading } = useAuth();
   return (
-    <main className={dogStyles.main}>
+    <main className={styles.main}>
       <h1>지도</h1>
-      {loading ? (
-        <p role="status">로그인 상태를 확인하고 있어요.</p>
-      ) : !user ? (
-        <Link href="/login">로그인</Link>
-      ) : (
-        <LocationPanel key={user.id} />
-      )}
+      <AuthGate>
+        <LocationPanel />
+      </AuthGate>
       <Link href="/">홈으로</Link>
     </main>
   );
@@ -49,7 +29,7 @@ const MapPage = () => {
 export default MapPage;
 
 const LocationPanel = () => {
-  const [location, setLocation] = useState<Location | null>(null);
+  const [location, setLocation] = useState<MyLocation | null>(null);
   const [neighbors, setNeighbors] = useState<Neighbor[] | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [pending, setPending] = useState(false);
@@ -64,7 +44,7 @@ const LocationPanel = () => {
           signal: controller.signal,
         });
         if (!response.ok) throw await responseError(response);
-        const result: Location = await response.json();
+        const result: MyLocation = await response.json();
         if (!controller.signal.aborted) setLocation(result);
       } catch (error) {
         if (!controller.signal.aborted)
@@ -155,7 +135,7 @@ const LocationPanel = () => {
         }),
       });
       if (!response.ok) throw await responseError(response);
-      const result: Omit<Location, "consented"> = await response.json();
+      const result: Omit<MyLocation, "consented"> = await response.json();
       setLocation({ ...result, consented: true });
       setNeighbors(null);
       setSelectedId(null);
@@ -172,198 +152,81 @@ const LocationPanel = () => {
   const selected = neighbors?.find(
     (neighbor) => neighbor.userId === selectedId,
   );
+  if (!location) {
+    return error ? (
+      <p role="alert">{error}</p>
+    ) : (
+      <p role="status">위치 상태를 불러오고 있어요.</p>
+    );
+  }
+
+  if (!location.consented) {
+    return (
+      <>
+        {error && <p role="alert">{error}</p>}
+        <p>
+          내 위치를 약 200m 단위로 흐려서 저장하고, 7일 동안 주변 사용자에게
+          보여 줘요. 저장된 위치는 공개를 끌 때까지 보관되고, 언제든 끌 수
+          있어요.
+        </p>
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() => void changeConsent(true)}
+        >
+          동의하고 위치 공개
+        </button>
+      </>
+    );
+  }
+
   return (
     <>
       {error && <p role="alert">{error}</p>}
-      {!location && !error && <p role="status">위치 상태를 불러오고 있어요.</p>}
-      {location &&
-        (!location.consented ? (
-          <>
-            <p>
-              내 위치를 약 200m 단위로 흐려서 저장하고, 7일 동안 주변 사용자에게
-              보여 줘요. 저장된 위치는 공개를 끌 때까지 보관되고, 언제든 끌 수
-              있어요.
-            </p>
-            <button
-              type="button"
-              disabled={pending}
-              onClick={() => void changeConsent(true)}
-            >
-              동의하고 위치 공개
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              type="button"
-              disabled={pending}
-              onClick={() => void updateLocation()}
-            >
-              내 위치 갱신
-            </button>
-            {location.updatedAt && (
-              <p>
-                마지막 갱신:{" "}
-                <time dateTime={location.updatedAt}>
-                  {new Date(location.updatedAt).toLocaleString("ko-KR")}
-                </time>
-              </p>
-            )}
-            <button
-              type="button"
-              disabled={pending}
-              onClick={() => void changeConsent(false)}
-            >
-              위치 공개 끄기
-            </button>
-            {location.lat !== null && location.lng !== null && (
-              <>
-                <KakaoMap
-                  lat={location.lat}
-                  lng={location.lng}
-                  neighbors={neighbors ?? noNeighbors}
-                  onSelect={setSelectedId}
-                />
-                {nearbyError && <p role="alert">{nearbyError}</p>}
-                {!nearbyError &&
-                  (neighbors === null ? (
-                    <p role="status">주변 사용자를 불러오고 있어요.</p>
-                  ) : (
-                    <section aria-label="주변 산책 친구">
-                      <h2>주변 산책 친구 {neighbors.length}명</h2>
-                      {neighbors.length === 0 && (
-                        <p>1km 안에 아직 아무도 없어요.</p>
-                      )}
-                      <ul className={styles.neighbors}>
-                        {neighbors.map((neighbor) => (
-                          <li key={neighbor.userId}>
-                            <button
-                              type="button"
-                              onClick={() => setSelectedId(neighbor.userId)}
-                              aria-pressed={selectedId === neighbor.userId}
-                            >
-                              <strong>{neighbor.nickname}</strong>
-                              <span>약 {neighbor.distanceM}m</span>
-                              <span>
-                                {neighbor.dogs
-                                  .map((dog) => dog.name)
-                                  .join(", ")}
-                              </span>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    </section>
-                  ))}
-                {selected && (
-                  <section
-                    className={styles.selected}
-                    aria-label={`${selected.nickname}의 반려견`}
-                  >
-                    <h2>{selected.nickname}</h2>
-                    <p>약 {selected.distanceM}m</p>
-                    <div className={dogStyles.cards}>
-                      {selected.dogs.map((dog) => (
-                        <article key={dog.id} className={dogStyles.card}>
-                          {dog.photoUrl ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              className={dogStyles.photo}
-                              src={dog.photoUrl}
-                              alt={`${dog.name} 사진`}
-                            />
-                          ) : (
-                            <p>사진 없음</p>
-                          )}
-                          <h3>{dog.name}</h3>
-                          <p>
-                            {dog.breed} · {sizeLabels[dog.size]} ·{" "}
-                            {dog.gender === "MALE" ? "수컷" : "암컷"}
-                          </p>
-                          <p>
-                            {dog.neutered
-                              ? "중성화했어요"
-                              : "중성화하지 않았어요"}{" "}
-                            · {dog.birthYear}년생
-                          </p>
-                          <p>{dog.personality}</p>
-                        </article>
-                      ))}
-                    </div>
-                    <SendWalkRequest
-                      key={selected.userId}
-                      receiverId={selected.userId}
-                    />
-                  </section>
-                )}
-              </>
-            )}
-          </>
-        ))}
-    </>
-  );
-};
-
-const SendWalkRequest = ({ receiverId }: { receiverId: number }) => {
-  const { refreshRequests } = useNotifications();
-  const [message, setMessage] = useState("");
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState("");
-  const [sent, setSent] = useState(false);
-  const [reversePending, setReversePending] = useState(false);
-
-  const send = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setPending(true);
-    setError("");
-    setSent(false);
-    setReversePending(false);
-    try {
-      const response = await apiFetch("/api/walk-requests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ receiverId, message }),
-      });
-      if (!response.ok) {
-        const body = await response
-          .clone()
-          .json()
-          .catch(() => null);
-        setReversePending(body?.code === "REVERSE_PENDING");
-        throw await responseError(response);
-      }
-      setSent(true);
-      setMessage("");
-      refreshRequests();
-    } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "요청을 보내지 못했어요.",
-      );
-    } finally {
-      setPending(false);
-    }
-  };
-
-  return (
-    <form className={dogStyles.form} onSubmit={send}>
-      <label>
-        메시지 (선택)
-        <input
-          value={message}
-          onChange={(event) => setMessage(event.target.value)}
-          maxLength={100}
-        />
-      </label>
-      <button type="submit" disabled={pending}>
-        산책 요청 보내기
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() => void updateLocation()}
+      >
+        내 위치 갱신
       </button>
-      {sent && <p role="status">산책 요청을 보냈어요.</p>}
-      {error && (
-        <p role="alert">
-          {error}{" "}
-          {reversePending && <Link href="/walk-requests">받은 요청 보기</Link>}
+      {location.updatedAt && (
+        <p>
+          마지막 갱신:{" "}
+          <time dateTime={location.updatedAt}>
+            {new Date(location.updatedAt).toLocaleString("ko-KR")}
+          </time>
         </p>
       )}
-    </form>
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() => void changeConsent(false)}
+      >
+        위치 공개 끄기
+      </button>
+      {location.lat !== null && location.lng !== null && (
+        <>
+          <KakaoMap
+            lat={location.lat}
+            lng={location.lng}
+            neighbors={neighbors ?? noNeighbors}
+            onSelect={setSelectedId}
+          />
+          {nearbyError && <p role="alert">{nearbyError}</p>}
+          {!nearbyError &&
+            (neighbors === null ? (
+              <p role="status">주변 사용자를 불러오고 있어요.</p>
+            ) : (
+              <NeighborList
+                neighbors={neighbors}
+                selectedId={selectedId}
+                onSelect={setSelectedId}
+              />
+            ))}
+          {selected && <NeighborDetail neighbor={selected} />}
+        </>
+      )}
+    </>
   );
 };

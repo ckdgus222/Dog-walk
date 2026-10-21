@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { AuthProvider } from "./auth-provider";
-import { NotificationsProvider } from "./notifications-provider";
-import { SiteHeader } from "./site-header";
-import { WalkRequestModal } from "./walk-request-modal";
+import { AuthProvider } from "./_components/auth-provider";
+import { NotificationsProvider } from "./_components/notifications-provider";
+import { SiteHeader } from "./_components/site-header";
+import { WalkRequestModal } from "./_components/walk-request-modal";
 
 export const metadata: Metadata = {
   title: "강아지 산책",

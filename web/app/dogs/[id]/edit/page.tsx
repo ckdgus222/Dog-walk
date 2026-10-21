@@ -3,19 +3,18 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import { useAuth } from "../../../auth-provider";
+import { AuthGate } from "../../../_components/auth-gate";
 import { apiFetch, responseError } from "../../../../lib/auth";
-import DogForm, { type Dog } from "../../dog-form";
-import styles from "../../dogs.module.css";
+import DogForm from "../../dog-form";
+import type { Dog } from "../../../../lib/types";
+import styles from "../../../_components/shared.module.css";
 
 const EditDog = () => {
   const { id } = useParams<{ id: string }>();
-  const { user, loading } = useAuth();
   const [dog, setDog] = useState<Dog | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!user) return;
     let cancelled = false;
     const loadDog = async () => {
       try {
@@ -39,32 +38,24 @@ const EditDog = () => {
     return () => {
       cancelled = true;
     };
-  }, [user, id]);
+  }, [id]);
 
-  return (
-    <main className={styles.main}>
-      <h1>반려견 수정</h1>
-      {loading ? (
-        <p role="status">로그인 상태를 확인하고 있어요.</p>
-      ) : !user ? (
-        <Link href="/login">로그인</Link>
-      ) : error ? (
-        <p role="alert">{error}</p>
-      ) : dog && String(dog.id) === id ? (
-        <DogForm key={dog.id} dog={dog} />
-      ) : (
-        <p role="status">반려견을 불러오고 있어요.</p>
-      )}
-      <Link href="/dogs">내 반려견</Link>
-    </main>
-  );
+  if (error) return <p role="alert">{error}</p>;
+  if (dog && String(dog.id) === id) return <DogForm key={dog.id} dog={dog} />;
+  return <p role="status">반려견을 불러오고 있어요.</p>;
 };
 
 const EditDogPage = () => {
   return (
-    <Suspense fallback={<p role="status">반려견을 불러오고 있어요.</p>}>
-      <EditDog />
-    </Suspense>
+    <main className={styles.main}>
+      <h1>반려견 수정</h1>
+      <AuthGate>
+        <Suspense fallback={<p role="status">반려견을 불러오고 있어요.</p>}>
+          <EditDog />
+        </Suspense>
+      </AuthGate>
+      <Link href="/dogs">내 반려견</Link>
+    </main>
   );
 };
 export default EditDogPage;

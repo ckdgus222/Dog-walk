@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { apiFetch, responseError } from "../lib/auth";
-import { useNotifications, type WalkRequest } from "./notifications-provider";
+import { apiFetch, responseError } from "../../lib/auth";
+import { useNotifications } from "./notifications-provider";
+import type { WalkRequest } from "../../lib/types";
+import { sizeLabels } from "./dog-card";
 import styles from "./notifications.module.css";
-
-const sizeLabels = { SMALL: "소형", MEDIUM: "중형", LARGE: "대형" };
 
 export const WalkRequestModal = () => {
   const { incoming } = useNotifications();
