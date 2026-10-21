@@ -30,7 +30,7 @@ const noNeighbors: Neighbor[] = [];
 const geolocationError =
   "위치를 가져오지 못했어요. 브라우저 위치 권한을 확인해 주세요.";
 
-export default function MapPage() {
+const MapPage = () => {
   const { user, loading } = useAuth();
   return (
     <main className={dogStyles.main}>
@@ -45,9 +45,10 @@ export default function MapPage() {
       <Link href="/">홈으로</Link>
     </main>
   );
-}
+};
+export default MapPage;
 
-function LocationPanel() {
+const LocationPanel = () => {
   const [location, setLocation] = useState<Location | null>(null);
   const [neighbors, setNeighbors] = useState<Neighbor[] | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -57,7 +58,7 @@ function LocationPanel() {
 
   useEffect(() => {
     const controller = new AbortController();
-    async function loadLocation() {
+    const loadLocation = async () => {
       try {
         const response = await apiFetch("/api/users/me/location", {
           signal: controller.signal,
@@ -71,7 +72,7 @@ function LocationPanel() {
             error instanceof Error ? error.message : "불러오지 못했습니다.",
           );
       }
-    }
+    };
     void loadLocation();
     return () => controller.abort();
   }, []);
@@ -80,7 +81,7 @@ function LocationPanel() {
     if (!location?.consented || location.lat === null || location.lng === null)
       return;
     const controller = new AbortController();
-    async function loadNearby() {
+    const loadNearby = async () => {
       try {
         const response = await apiFetch("/api/users/nearby", {
           signal: controller.signal,
@@ -96,12 +97,12 @@ function LocationPanel() {
               : "주변 사용자를 불러오지 못했어요.",
           );
       }
-    }
+    };
     void loadNearby();
     return () => controller.abort();
   }, [location]);
 
-  async function changeConsent(consented: boolean) {
+  const changeConsent = async (consented: boolean) => {
     if (
       !consented &&
       !window.confirm("위치 공개를 끌까요? 저장한 위치도 지워져요.")
@@ -125,9 +126,9 @@ function LocationPanel() {
     } finally {
       setPending(false);
     }
-  }
+  };
 
-  async function updateLocation() {
+  const updateLocation = async () => {
     setPending(true);
     setError("");
     try {
@@ -166,7 +167,7 @@ function LocationPanel() {
     } finally {
       setPending(false);
     }
-  }
+  };
 
   const selected = neighbors?.find(
     (neighbor) => neighbor.userId === selectedId,
@@ -301,9 +302,9 @@ function LocationPanel() {
         ))}
     </>
   );
-}
+};
 
-function SendWalkRequest({ receiverId }: { receiverId: number }) {
+const SendWalkRequest = ({ receiverId }: { receiverId: number }) => {
   const { refreshRequests } = useNotifications();
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
@@ -311,7 +312,7 @@ function SendWalkRequest({ receiverId }: { receiverId: number }) {
   const [sent, setSent] = useState(false);
   const [reversePending, setReversePending] = useState(false);
 
-  async function send(event: React.FormEvent<HTMLFormElement>) {
+  const send = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setPending(true);
     setError("");
@@ -341,7 +342,7 @@ function SendWalkRequest({ receiverId }: { receiverId: number }) {
     } finally {
       setPending(false);
     }
-  }
+  };
 
   return (
     <form className={dogStyles.form} onSubmit={send}>
@@ -365,4 +366,4 @@ function SendWalkRequest({ receiverId }: { receiverId: number }) {
       )}
     </form>
   );
-}
+};

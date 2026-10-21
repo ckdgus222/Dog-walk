@@ -3,9 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const accountA = { id: 1, email: "a@example.com", nickname: "보호자A" };
 const accountB = { id: 2, email: "b@example.com", nickname: "보호자B" };
 
-function authResponse(user = accountA, accessToken = "access-token") {
+const authResponse = (user = accountA, accessToken = "access-token") => {
   return Response.json({ user, accessToken });
-}
+};
 
 describe("Browser auth client", () => {
   let client: typeof import("./auth");

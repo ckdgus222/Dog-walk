@@ -8,7 +8,7 @@ import { apiFetch, responseError } from "../../../../lib/auth";
 import DogForm, { type Dog } from "../../dog-form";
 import styles from "../../dogs.module.css";
 
-function EditDog() {
+const EditDog = () => {
   const { id } = useParams<{ id: string }>();
   const { user, loading } = useAuth();
   const [dog, setDog] = useState<Dog | null>(null);
@@ -17,7 +17,7 @@ function EditDog() {
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
-    async function loadDog() {
+    const loadDog = async () => {
       try {
         const response = await apiFetch("/api/dogs/me");
         if (!response.ok) throw await responseError(response);
@@ -34,7 +34,7 @@ function EditDog() {
             error instanceof Error ? error.message : "불러오지 못했습니다.",
           );
       }
-    }
+    };
     void loadDog();
     return () => {
       cancelled = true;
@@ -58,12 +58,13 @@ function EditDog() {
       <Link href="/dogs">내 반려견</Link>
     </main>
   );
-}
+};
 
-export default function EditDogPage() {
+const EditDogPage = () => {
   return (
     <Suspense fallback={<p role="status">반려견을 불러오고 있어요.</p>}>
       <EditDog />
     </Suspense>
   );
-}
+};
+export default EditDogPage;

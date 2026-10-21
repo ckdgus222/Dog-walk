@@ -23,7 +23,7 @@ const AuthContext = createContext<{
   logout: typeof logout;
 } | null>(null);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const session = useSyncExternalStore(subscribe, getSession, getServerSession);
 
   useEffect(() => {
@@ -35,10 +35,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
-export function useAuth() {
+export const useAuth = () => {
   const auth = useContext(AuthContext);
   if (!auth) throw new Error("AuthProvider is required");
   return auth;
-}
+};

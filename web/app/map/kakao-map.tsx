@@ -30,7 +30,7 @@ declare global {
   }
 }
 
-export default function KakaoMap({
+const KakaoMap = ({
   lat,
   lng,
   neighbors,
@@ -40,7 +40,7 @@ export default function KakaoMap({
   lng: number;
   neighbors: { userId: number; nickname: string; lat: number; lng: number }[];
   onSelect: (userId: number) => void;
-}) {
+}) => {
   const key = process.env.NEXT_PUBLIC_KAKAO_MAP_KEY;
   const container = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
@@ -103,4 +103,5 @@ export default function KakaoMap({
       />
     </>
   );
-}
+};
+export default KakaoMap;

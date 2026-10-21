@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: "함께 산책할 반려인을 찾는 서비스",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+const RootLayout = ({ children }: LayoutProps<"/">) => {
   return (
     <html lang="ko">
       <body>
@@ -24,4 +24,5 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </body>
     </html>
   );
-}
+};
+export default RootLayout;

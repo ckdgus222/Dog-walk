@@ -6,13 +6,13 @@ import { useState, type FormEvent } from "react";
 import { useAuth } from "../auth-provider";
 import styles from "../auth.module.css";
 
-export default function LoginPage() {
+const LoginPage = () => {
   const { login, loading } = useAuth();
   const router = useRouter();
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     setError("");
@@ -27,7 +27,7 @@ export default function LoginPage() {
     } finally {
       setPending(false);
     }
-  }
+  };
 
   return (
     <main className={styles.main}>
@@ -56,4 +56,5 @@ export default function LoginPage() {
       <Link href="/">홈으로</Link>
     </main>
   );
-}
+};
+export default LoginPage;

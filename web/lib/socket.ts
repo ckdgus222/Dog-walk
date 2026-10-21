@@ -1,13 +1,13 @@
 import { io } from "socket.io-client";
 import { getAccessToken, refresh } from "./auth";
 
-export function connectSocket(signal: AbortSignal) {
+export const connectSocket = (signal: AbortSignal) => {
   const socket = io({
     auth: (callback) => callback({ token: getAccessToken() }),
   });
   let retried = false;
 
-  async function reconnect() {
+  const reconnect = async () => {
     if (retried || signal.aborted) return;
     retried = true;
     try {
@@ -16,7 +16,7 @@ export function connectSocket(signal: AbortSignal) {
     } catch {
       // refresh clears the login session on failure.
     }
-  }
+  };
 
   socket.on("connect", () => {
     retried = false;
@@ -30,4 +30,4 @@ export function connectSocket(signal: AbortSignal) {
   signal.addEventListener("abort", () => socket.disconnect(), { once: true });
   if (signal.aborted) socket.disconnect();
   return socket;
-}
+};

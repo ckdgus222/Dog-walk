@@ -18,12 +18,12 @@ export interface Dog {
   createdAt: string;
 }
 
-export default function DogForm({ dog }: { dog?: Dog }) {
+const DogForm = ({ dog }: { dog?: Dog }) => {
   const router = useRouter();
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const fields = new FormData(event.currentTarget);
     setError("");
@@ -62,7 +62,7 @@ export default function DogForm({ dog }: { dog?: Dog }) {
     } finally {
       setPending(false);
     }
-  }
+  };
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
@@ -156,4 +156,5 @@ export default function DogForm({ dog }: { dog?: Dog }) {
       {error && <p role="alert">{error}</p>}
     </form>
   );
-}
+};
+export default DogForm;

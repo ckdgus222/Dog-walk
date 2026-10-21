@@ -5,7 +5,7 @@ import { useAuth } from "./auth-provider";
 import { useNotifications } from "./notifications-provider";
 import styles from "./notifications.module.css";
 
-export function SiteHeader() {
+export const SiteHeader = () => {
   const { user } = useAuth();
   const { pendingCount, notice, dismissNotice } = useNotifications();
   if (!user) return null;
@@ -38,4 +38,4 @@ export function SiteHeader() {
       )}
     </header>
   );
-}
+};

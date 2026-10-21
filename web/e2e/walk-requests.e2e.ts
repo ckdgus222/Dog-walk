@@ -60,7 +60,7 @@ test("산책 요청 실시간 알림·재접속 동기화·로그아웃 정리",
     });
   });
 
-  async function login(page: Page, account: (typeof accounts)[number]) {
+  const login = async (page: Page, account: (typeof accounts)[number]) => {
     await page.goto("/login");
     const main = page.getByRole("main");
     await main.getByLabel("이메일").fill(account.email);
@@ -70,7 +70,7 @@ test("산책 요청 실시간 알림·재접속 동기화·로그아웃 정리",
     await expect(
       main.getByText(`${account.nickname}님, 안녕하세요`),
     ).toBeVisible();
-  }
+  };
 
   try {
     await test.step("두 계정을 가입시키고 약 500m 거리의 위치를 저장한다", async () => {

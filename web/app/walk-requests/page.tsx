@@ -14,7 +14,7 @@ const statusLabels = {
   CANCELED: "취소됨",
 };
 
-export default function WalkRequestsPage() {
+const WalkRequestsPage = () => {
   const { user, loading } = useAuth();
   return (
     <main className={styles.main}>
@@ -29,9 +29,10 @@ export default function WalkRequestsPage() {
       <Link href="/">홈으로</Link>
     </main>
   );
-}
+};
+export default WalkRequestsPage;
 
-function RequestLists() {
+const RequestLists = () => {
   const { requestsVersion, refreshRequests, incoming, dismissIncoming } =
     useNotifications();
   const [requests, setRequests] = useState<{
@@ -43,7 +44,7 @@ function RequestLists() {
 
   useEffect(() => {
     const controller = new AbortController();
-    async function loadRequests() {
+    const loadRequests = async () => {
       try {
         const responses = await Promise.all(
           ["received", "sent"].map((box) =>
@@ -70,12 +71,12 @@ function RequestLists() {
               : "요청을 불러오지 못했어요.",
           );
       }
-    }
+    };
     void loadRequests();
     return () => controller.abort();
   }, [requestsVersion]);
 
-  async function respond(id: number, action: "accept" | "reject" | "cancel") {
+  const respond = async (id: number, action: "accept" | "reject" | "cancel") => {
     if (action === "cancel" && !window.confirm("산책 요청을 취소할까요?"))
       return;
     setPendingId(id);
@@ -94,7 +95,7 @@ function RequestLists() {
     } finally {
       setPendingId(null);
     }
-  }
+  };
 
   return (
     <>
@@ -155,4 +156,4 @@ function RequestLists() {
       ))}
     </>
   );
-}
+};

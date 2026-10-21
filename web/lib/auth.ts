@@ -24,20 +24,20 @@ export const getSession = () => session;
 export const getAccessToken = () => accessToken;
 export const getServerSession = () => initialSession;
 
-export function subscribe(listener: () => void) {
+export const subscribe = (listener: () => void) => {
   listeners.add(listener);
   return () => {
     listeners.delete(listener);
   };
-}
+};
 
-function setSession(result: AuthResponse | null) {
+const setSession = (result: AuthResponse | null) => {
   accessToken = result?.accessToken ?? null;
   session = { user: result?.user ?? null, loading: false };
   listeners.forEach((listener) => listener());
-}
+};
 
-export async function responseError(response: Response): Promise<Error> {
+export const responseError = async (response: Response): Promise<Error> => {
   const body = await response.json().catch(() => null);
   const message = body?.message;
   return new Error(
@@ -47,9 +47,9 @@ export async function responseError(response: Response): Promise<Error> {
         ? message
         : "요청을 처리하지 못했습니다. 다시 시도해 주세요.",
   );
-}
+};
 
-export function refresh(): Promise<User> {
+export const refresh = (): Promise<User> => {
   // A refresh started during logout could answer after logout finishes and
   // restore the session, so none may start until logout is done.
   if (loggingOut) return Promise.reject(new Error("로그아웃하고 있어요."));
@@ -78,9 +78,9 @@ export function refresh(): Promise<User> {
     refreshPromise = null;
   });
   return refreshPromise;
-}
+};
 
-export function login(email: string, password: string): Promise<void> {
+export const login = (email: string, password: string): Promise<void> => {
   loginPromise = (async () => {
     const response = await fetch("/api/auth/login", {
       method: "POST",
@@ -94,9 +94,9 @@ export function login(email: string, password: string): Promise<void> {
     loginPromise = null;
   });
   return loginPromise;
-}
+};
 
-export async function logout() {
+export const logout = async () => {
   loggingOut = true;
   try {
     // Wait for in-flight login/refresh so a late response cannot revive the
@@ -113,9 +113,9 @@ export async function logout() {
     setSession(null);
     loggingOut = false;
   }
-}
+};
 
-export async function apiFetch(path: string, init: RequestInit = {}) {
+export const apiFetch = async (path: string, init: RequestInit = {}) => {
   const requestUserId = session.user?.id;
   const headers = new Headers(init.headers);
   if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
@@ -134,4 +134,4 @@ export async function apiFetch(path: string, init: RequestInit = {}) {
   if (!accessToken) throw new Error("로그인이 필요합니다.");
   headers.set("Authorization", `Bearer ${accessToken}`);
   return fetch(path, { ...init, headers });
-}
+};

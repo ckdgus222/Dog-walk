@@ -32,11 +32,11 @@ const emptyNotifications = {
 };
 const NotificationsContext = createContext(emptyNotifications);
 
-export function NotificationsProvider({
+export const NotificationsProvider = ({
   children,
 }: {
   children: React.ReactNode;
-}) {
+}) => {
   const { user } = useAuth();
   return user ? (
     <UserNotifications key={user.id}>{children}</UserNotifications>
@@ -45,9 +45,9 @@ export function NotificationsProvider({
       {children}
     </NotificationsContext.Provider>
   );
-}
+};
 
-function UserNotifications({ children }: { children: React.ReactNode }) {
+const UserNotifications = ({ children }: { children: React.ReactNode }) => {
   const [pendingCount, setPendingCount] = useState(0);
   const [incoming, setIncoming] = useState<WalkRequest | null>(null);
   const [notice, setNotice] = useState("");
@@ -88,7 +88,7 @@ function UserNotifications({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const controller = new AbortController();
-    async function loadCount() {
+    const loadCount = async () => {
       try {
         const response = await apiFetch("/api/walk-requests/pending-count", {
           signal: controller.signal,
@@ -104,7 +104,7 @@ function UserNotifications({ children }: { children: React.ReactNode }) {
               : "받은 요청 수를 불러오지 못했어요.",
           );
       }
-    }
+    };
     void loadCount();
     return () => controller.abort();
   }, [requestsVersion]);
@@ -124,8 +124,8 @@ function UserNotifications({ children }: { children: React.ReactNode }) {
       {children}
     </NotificationsContext.Provider>
   );
-}
+};
 
-export function useNotifications() {
+export const useNotifications = () => {
   return useContext(NotificationsContext);
-}
+};

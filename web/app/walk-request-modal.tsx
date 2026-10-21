@@ -7,14 +7,14 @@ import styles from "./notifications.module.css";
 
 const sizeLabels = { SMALL: "소형", MEDIUM: "중형", LARGE: "대형" };
 
-export function WalkRequestModal() {
+export const WalkRequestModal = () => {
   const { incoming } = useNotifications();
   return incoming ? (
     <IncomingRequest key={incoming.id} request={incoming} />
   ) : null;
-}
+};
 
-function IncomingRequest({ request }: { request: WalkRequest }) {
+const IncomingRequest = ({ request }: { request: WalkRequest }) => {
   const { dismissIncoming, refreshRequests } = useNotifications();
   const dialog = useRef<HTMLDialogElement>(null);
   const active = useRef(false);
@@ -31,7 +31,7 @@ function IncomingRequest({ request }: { request: WalkRequest }) {
     };
   }, []);
 
-  async function respond(action: "accept" | "reject") {
+  const respond = async (action: "accept" | "reject") => {
     setPending(true);
     setError("");
     try {
@@ -49,7 +49,7 @@ function IncomingRequest({ request }: { request: WalkRequest }) {
     } finally {
       setPending(false);
     }
-  }
+  };
 
   return (
     <dialog
@@ -91,4 +91,4 @@ function IncomingRequest({ request }: { request: WalkRequest }) {
       </div>
     </dialog>
   );
-}
+};

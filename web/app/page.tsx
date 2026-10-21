@@ -5,12 +5,12 @@ import { useState } from "react";
 import { useAuth } from "./auth-provider";
 import styles from "./page.module.css";
 
-export default function Home() {
+const Home = () => {
   const { user, loading, logout } = useAuth();
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
-  async function handleLogout() {
+  const handleLogout = async () => {
     setError("");
     setPending(true);
     try {
@@ -22,7 +22,7 @@ export default function Home() {
     } finally {
       setPending(false);
     }
-  }
+  };
 
   return (
     <main className={styles.main}>
@@ -47,4 +47,5 @@ export default function Home() {
       {error && <p role="alert">{error}</p>}
     </main>
   );
-}
+};
+export default Home;

@@ -5,7 +5,7 @@ import { useAuth } from "../../auth-provider";
 import DogForm from "../dog-form";
 import styles from "../dogs.module.css";
 
-export default function NewDogPage() {
+const NewDogPage = () => {
   const { user, loading } = useAuth();
   return (
     <main className={styles.main}>
@@ -20,4 +20,5 @@ export default function NewDogPage() {
       <Link href="/dogs">내 반려견</Link>
     </main>
   );
-}
+};
+export default NewDogPage;

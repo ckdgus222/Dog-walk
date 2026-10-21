@@ -9,7 +9,7 @@ import styles from "./dogs.module.css";
 
 const sizeLabels = { SMALL: "소형", MEDIUM: "중형", LARGE: "대형" };
 
-export default function DogsPage() {
+const DogsPage = () => {
   const { user, loading } = useAuth();
   const [dogs, setDogs] = useState<Dog[] | null>(null);
   const [error, setError] = useState("");
@@ -18,7 +18,7 @@ export default function DogsPage() {
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
-    async function loadDogs() {
+    const loadDogs = async () => {
       try {
         const response = await apiFetch("/api/dogs/me");
         if (!response.ok) throw await responseError(response);
@@ -30,14 +30,14 @@ export default function DogsPage() {
             error instanceof Error ? error.message : "불러오지 못했습니다.",
           );
       }
-    }
+    };
     void loadDogs();
     return () => {
       cancelled = true;
     };
   }, [user]);
 
-  async function removeDog(dog: Dog) {
+  const removeDog = async (dog: Dog) => {
     if (!window.confirm(`${dog.name}의 정보를 삭제할까요?`)) return;
     setDeletingId(dog.id);
     setError("");
@@ -54,7 +54,7 @@ export default function DogsPage() {
     } finally {
       setDeletingId(null);
     }
-  }
+  };
 
   return (
     <main className={styles.main}>
@@ -110,4 +110,5 @@ export default function DogsPage() {
       <Link href="/">홈으로</Link>
     </main>
   );
-}
+};
+export default DogsPage;
