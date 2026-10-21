@@ -1,11 +1,4 @@
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const accountA = { id: 1, email: "a@example.com", nickname: "보호자A" };
 const accountB = { id: 2, email: "b@example.com", nickname: "보호자B" };
@@ -18,22 +11,11 @@ describe("Browser auth client", () => {
   let client: typeof import("./auth");
   const fetchMock = vi.fn<typeof fetch>();
   const reload = vi.fn();
-  let lockRequest: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
     vi.resetModules();
     fetchMock.mockReset();
     reload.mockReset();
-    let queue = Promise.resolve();
-    lockRequest = vi.fn((_name: string, callback: () => Promise<unknown>) => {
-      const pending = queue.then(callback);
-      queue = pending.then(
-        () => {},
-        () => {},
-      );
-      return pending;
-    });
-    vi.stubGlobal("navigator", { locks: { request: lockRequest } });
     vi.stubGlobal("window", { location: { reload } });
     vi.stubGlobal("fetch", fetchMock);
     client = await import("./auth");
@@ -50,92 +32,61 @@ describe("Browser auth client", () => {
     expect(first).toBe(second);
     await expect(first).resolves.toEqual(accountA);
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(lockRequest).toHaveBeenCalledWith(
-      "auth-session",
-      expect.any(Function),
-    );
     expect(client.getSession()).toEqual({ user: accountA, loading: false });
   });
 
-  it("serializes two tabs and keeps both signed in", async () => {
-    let releaseFirst!: (response: Response) => void;
-    fetchMock.mockImplementationOnce(
-      () =>
-        new Promise((resolve) => {
-          releaseFirst = resolve;
-        }),
-    );
-    fetchMock.mockResolvedValueOnce(authResponse());
-    vi.resetModules();
-    const secondTab = await import("./auth");
-    const first = client.refresh();
-    const second = secondTab.refresh();
-    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
-    releaseFirst(authResponse());
-    await Promise.all([first, second]);
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(client.getSession().user).toEqual(accountA);
-    expect(secondTab.getSession().user).toEqual(accountA);
-  });
+  it.each([200, 401])(
+    "waits for refresh (%s) before logout and never restores the logged out session",
+    async (status) => {
+      let releaseRefresh!: (response: Response) => void;
+      fetchMock.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            releaseRefresh = resolve;
+          }),
+      );
+      fetchMock.mockResolvedValueOnce(new Response(null, { status: 204 }));
+      const refreshing = client.refresh();
+      const loggingOut = client.logout();
+      await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+      const refreshResult = expect(refreshing);
+      const refreshAssertion =
+        status === 200
+          ? refreshResult.resolves.toEqual(accountA)
+          : refreshResult.rejects.toThrow("Unauthorized");
+      releaseRefresh(
+        status === 200
+          ? authResponse()
+          : Response.json({ message: "Unauthorized" }, { status }),
+      );
+      await Promise.all([refreshAssertion, loggingOut]);
+      expect(fetchMock.mock.calls.map(([path]) => path)).toEqual([
+        "/api/auth/refresh",
+        "/api/auth/logout",
+      ]);
+      expect(client.getSession()).toEqual({ user: null, loading: false });
+    },
+  );
 
-  it("waits for refresh before logout and never restores the logged out session", async () => {
-    let releaseRefresh!: (response: Response) => void;
+  it("waits for an in-flight login before logout so the late login cannot revive the session", async () => {
+    let releaseLogin!: (response: Response) => void;
     fetchMock.mockImplementationOnce(
       () =>
         new Promise((resolve) => {
-          releaseRefresh = resolve;
+          releaseLogin = resolve;
         }),
     );
     fetchMock.mockResolvedValueOnce(new Response(null, { status: 204 }));
-    const refreshing = client.refresh();
+    const loggingIn = client.login(accountB.email, "password123");
     const loggingOut = client.logout();
     await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
-    releaseRefresh(authResponse());
-    await Promise.all([refreshing, loggingOut]);
+    releaseLogin(authResponse(accountB));
+    await Promise.all([loggingIn, loggingOut]);
     expect(fetchMock.mock.calls.map(([path]) => path)).toEqual([
-      "/api/auth/refresh",
+      "/api/auth/login",
       "/api/auth/logout",
     ]);
     expect(client.getSession()).toEqual({ user: null, loading: false });
-  });
-
-  it("keeps both tabs logged out when logout precedes the other tab refresh", async () => {
-    fetchMock.mockResolvedValueOnce(authResponse());
-    await client.login(accountA.email, "password123");
-    vi.resetModules();
-    const secondTab = await import("./auth");
-    fetchMock.mockResolvedValueOnce(new Response(null, { status: 204 }));
-    fetchMock.mockResolvedValueOnce(
-      Response.json({ message: "Unauthorized" }, { status: 401 }),
-    );
-    const results = await Promise.allSettled([
-      client.logout(),
-      secondTab.refresh(),
-    ]);
-    expect(results.map(({ status }) => status)).toEqual([
-      "fulfilled",
-      "rejected",
-    ]);
-    expect(client.getSession().user).toBeNull();
-    expect(secondTab.getSession().user).toBeNull();
-  });
-
-  it("uses the same lock for login and preserves the order with refresh", async () => {
-    fetchMock.mockResolvedValueOnce(authResponse());
-    fetchMock.mockResolvedValueOnce(authResponse());
-    await Promise.all([
-      client.login(accountA.email, "password123"),
-      client.refresh(),
-    ]);
-    expect(fetchMock.mock.calls.map(([path]) => path)).toEqual([
-      "/api/auth/login",
-      "/api/auth/refresh",
-    ]);
-    expect(lockRequest.mock.calls.map(([name]) => name)).toEqual([
-      "auth-session",
-      "auth-session",
-    ]);
-    expect(client.getSession().user).toEqual(accountA);
   });
 
   it("retries a 401 once with the new token and preserves request options", async () => {
@@ -226,7 +177,7 @@ describe("Browser auth client", () => {
     ).toHaveLength(1);
   });
 
-  it("keeps the original account token when another login follows refresh", async () => {
+  it("reloads without retrying when another login completes after refresh and before retry", async () => {
     fetchMock.mockResolvedValueOnce(authResponse(accountA, "account-a-token"));
     await client.login(accountA.email, "password123");
     const unsubscribe = client.subscribe(() => {
@@ -238,21 +189,20 @@ describe("Browser auth client", () => {
     fetchMock.mockResolvedValueOnce(new Response(null, { status: 401 }));
     fetchMock.mockResolvedValueOnce(authResponse(accountA, "account-a-token"));
     fetchMock.mockResolvedValueOnce(authResponse(accountB, "account-b-token"));
-    fetchMock.mockResolvedValueOnce(new Response(null, { status: 200 }));
-    expect(
-      (
-        await client.apiFetch("/api/example", {
-          method: "POST",
-          body: "account-A-data",
-        })
-      ).status,
-    ).toBe(200);
+    await expect(
+      client.apiFetch("/api/example", {
+        method: "POST",
+        body: "account-A-data",
+      }),
+    ).rejects.toThrow("계정이 바뀌어");
     const requests = fetchMock.mock.calls.filter(
       ([path]) => path === "/api/example",
     );
-    expect(requests).toHaveLength(2);
-    expect(new Headers(requests[1][1]?.headers).get("Authorization")).toBe(
+    expect(requests).toHaveLength(1);
+    expect(new Headers(requests[0][1]?.headers).get("Authorization")).toBe(
       "Bearer account-a-token",
     );
+    expect(reload).toHaveBeenCalledTimes(1);
+    expect(client.getSession().user).toEqual(accountB);
   });
 });

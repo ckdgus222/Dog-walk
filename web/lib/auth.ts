@@ -16,6 +16,7 @@ const initialSession: { user: User | null; loading: boolean } = {
 let session = initialSession;
 let accessToken: string | null = null;
 let refreshPromise: Promise<User> | null = null;
+let loginPromise: Promise<void> | null = null;
 const listeners = new Set<() => void>();
 
 export const getSession = () => session;
@@ -48,38 +49,34 @@ export async function responseError(response: Response): Promise<Error> {
 
 export function refresh(): Promise<User> {
   if (refreshPromise) return refreshPromise;
-  refreshPromise = navigator.locks
-    .request("auth-session", async () => {
-      const previousUserId = session.user?.id;
-      try {
-        const response = await fetch("/api/auth/refresh", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: "{}",
-        });
-        if (!response.ok) throw await responseError(response);
-        const result: AuthResponse = await response.json();
-        if (previousUserId !== undefined && previousUserId !== result.user.id) {
-          window.location.reload();
-          throw new Error("로그인 계정이 바뀌어 페이지를 새로고침합니다.");
-        }
-        setSession(result);
-        return result.user;
-      } catch (error) {
-        setSession(null);
-        throw error;
+  refreshPromise = (async () => {
+    const previousUserId = session.user?.id;
+    try {
+      const response = await fetch("/api/auth/refresh", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      });
+      if (!response.ok) throw await responseError(response);
+      const result: AuthResponse = await response.json();
+      if (previousUserId !== undefined && previousUserId !== result.user.id) {
+        window.location.reload();
+        throw new Error("로그인 계정이 바뀌어 페이지를 새로고침합니다.");
       }
-    })
-    // TypeScript types locks.request() as Promise<Promise<User>>; this unwraps it.
-    .then((user) => user)
-    .finally(() => {
-      refreshPromise = null;
-    });
+      setSession(result);
+      return result.user;
+    } catch (error) {
+      setSession(null);
+      throw error;
+    }
+  })().finally(() => {
+    refreshPromise = null;
+  });
   return refreshPromise;
 }
 
-export async function login(email: string, password: string) {
-  return navigator.locks.request("auth-session", async () => {
+export function login(email: string, password: string): Promise<void> {
+  loginPromise = (async () => {
     const response = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -88,22 +85,27 @@ export async function login(email: string, password: string) {
     if (!response.ok) throw await responseError(response);
     const result: AuthResponse = await response.json();
     setSession(result);
+  })().finally(() => {
+    loginPromise = null;
   });
+  return loginPromise;
 }
 
 export async function logout() {
-  return navigator.locks.request("auth-session", async () => {
-    try {
-      const response = await fetch("/api/auth/logout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: "{}",
-      });
-      if (!response.ok) throw await responseError(response);
-    } finally {
-      setSession(null);
-    }
-  });
+  // Wait for in-flight login/refresh so a late response cannot revive the
+  // session (or, for login, set a new cookie) after logout has finished.
+  if (loginPromise) await loginPromise.catch(() => {});
+  if (refreshPromise) await refreshPromise.catch(() => {});
+  try {
+    const response = await fetch("/api/auth/logout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    });
+    if (!response.ok) throw await responseError(response);
+  } finally {
+    setSession(null);
+  }
 }
 
 export async function apiFetch(path: string, init: RequestInit = {}) {

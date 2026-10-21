@@ -31,18 +31,18 @@ describe('AuthService', () => {
   const create = vi.fn();
   const update = vi.fn();
   const updateMany = vi.fn();
+  const findUnique = vi.fn();
   const findByEmail = vi.fn();
-  const findPublicById = vi.fn();
   const prisma = {
-    user: { create, update, updateMany },
+    user: { create, update, updateMany, findUnique },
   } as unknown as PrismaService;
-  const users = { findByEmail, findPublicById } as unknown as UsersService;
+  const users = { findByEmail } as unknown as UsersService;
 
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(bcrypt.hash).mockResolvedValue('hashed-password' as never);
     vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
-    findPublicById.mockResolvedValue(user);
+    findUnique.mockResolvedValue(user);
     updateMany.mockResolvedValue({ count: 1 });
     service = new AuthService(prisma, users, jwt);
   });
@@ -180,32 +180,40 @@ describe('AuthService', () => {
     expect(refresh.jti).toEqual(expect.any(String));
   });
 
-  it('requires the old hash in the atomic refresh update', async () => {
+  it('checks the stored hash and only issues an access token without changing it', async () => {
     const login = await service.login(user);
+    update.mockClear();
     const refreshed = await service.refresh(login.refreshToken);
-    expect(refreshed.user).toEqual(user);
-    expect(updateMany).toHaveBeenCalledExactlyOnceWith({
+    expect(refreshed).toEqual({ accessToken: expect.any(String), user });
+    const access = jwt.verify(refreshed.accessToken, {
+      secret: process.env.JWT_ACCESS_SECRET,
+    });
+    expect(access.sub).toBe(user.id);
+    expect(access.exp - access.iat).toBe(1800);
+    expect(findUnique).toHaveBeenCalledExactlyOnceWith({
       where: {
         id: user.id,
         refreshTokenHash: createHash('sha256')
           .update(login.refreshToken)
           .digest('hex'),
       },
-      data: {
-        refreshTokenHash: createHash('sha256')
-          .update(refreshed.refreshToken)
-          .digest('hex'),
-      },
+      select: { id: true, email: true, nickname: true },
     });
+    await expect(service.refresh(login.refreshToken)).resolves.toEqual({
+      accessToken: expect.any(String),
+      user,
+    });
+    expect(update).not.toHaveBeenCalled();
+    expect(updateMany).not.toHaveBeenCalled();
   });
 
   it('rejects a refresh whose hash no longer matches', async () => {
     const login = await service.login(user);
-    updateMany.mockResolvedValue({ count: 0 });
+    findUnique.mockResolvedValue(null);
     await expect(service.refresh(login.refreshToken)).rejects.toBeInstanceOf(
       UnauthorizedException,
     );
-    expect(findPublicById).not.toHaveBeenCalled();
+    expect(updateMany).not.toHaveBeenCalled();
   });
 
   it.each([undefined, 'invalid'])(
@@ -214,11 +222,11 @@ describe('AuthService', () => {
       await expect(service.refresh(token)).rejects.toBeInstanceOf(
         UnauthorizedException,
       );
-      expect(updateMany).not.toHaveBeenCalled();
+      expect(findUnique).not.toHaveBeenCalled();
     },
   );
 
-  it('rejects expired refresh tokens before updating the database', async () => {
+  it('rejects expired refresh tokens before querying the database', async () => {
     const token = jwt.sign(
       { sub: user.id },
       {
@@ -230,7 +238,7 @@ describe('AuthService', () => {
     await expect(service.refresh(token)).rejects.toBeInstanceOf(
       UnauthorizedException,
     );
-    expect(updateMany).not.toHaveBeenCalled();
+    expect(findUnique).not.toHaveBeenCalled();
   });
 
   it('only clears the hash belonging to the logout cookie', async () => {

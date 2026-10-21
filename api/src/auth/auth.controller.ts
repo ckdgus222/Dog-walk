@@ -6,7 +6,6 @@ import {
   Post,
   Req,
   Res,
-  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import type { CookieOptions, Request, Response } from 'express';
@@ -50,30 +49,14 @@ export class AuthController {
     return { accessToken, user };
   }
 
-  // JSON-only stops cross-site HTML forms from triggering cookie-clearing responses.
+  // Refresh failures leave the cookie alone: a late 401 must not clear a cookie
+  // that another tab has just replaced by logging in. Only logout clears it.
   @Post('refresh')
   @HttpCode(200)
   @UseGuards(JsonBodyGuard)
-  async refresh(
-    @Req() request: Request,
-    @Res({ passthrough: true }) response: Response,
-  ) {
+  refresh(@Req() request: Request) {
     const cookie: unknown = request.cookies?.refresh_token;
-    try {
-      const { accessToken, refreshToken, user } = await this.auth.refresh(
-        typeof cookie === 'string' ? cookie : undefined,
-      );
-      response.cookie('refresh_token', refreshToken, {
-        ...this.cookieOptions,
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
-      return { accessToken, user };
-    } catch (error) {
-      if (error instanceof UnauthorizedException) {
-        response.clearCookie('refresh_token', this.cookieOptions);
-      }
-      throw error;
-    }
+    return this.auth.refresh(typeof cookie === 'string' ? cookie : undefined);
   }
 
   @Post('logout')

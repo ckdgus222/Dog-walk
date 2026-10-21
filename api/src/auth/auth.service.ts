@@ -120,22 +120,16 @@ export class AuthService {
     ) {
       throw new UnauthorizedException();
     }
-    const tokens = await this.issueTokens(payload.sub);
-    const result = await this.prisma.user.updateMany({
+    const user = await this.prisma.user.findUnique({
       where: {
         id: payload.sub,
         refreshTokenHash: createHash('sha256').update(token).digest('hex'),
       },
-      data: {
-        refreshTokenHash: createHash('sha256')
-          .update(tokens.refreshToken)
-          .digest('hex'),
-      },
+      select: { id: true, email: true, nickname: true },
     });
-    if (result.count !== 1) throw new UnauthorizedException();
-    const user = await this.users.findPublicById(payload.sub);
     if (!user) throw new UnauthorizedException();
-    return { ...tokens, user };
+    const accessToken = await this.issueAccessToken(user.id);
+    return { accessToken, user };
   }
 
   async logout(token: string | undefined) {
@@ -149,8 +143,8 @@ export class AuthService {
     }
   }
 
-  private async issueTokens(userId: number) {
-    const accessToken = await this.jwt.signAsync(
+  private issueAccessToken(userId: number) {
+    return this.jwt.signAsync(
       { sub: userId },
       {
         secret: this.accessSecret,
@@ -158,6 +152,10 @@ export class AuthService {
         algorithm: 'HS256',
       },
     );
+  }
+
+  private async issueTokens(userId: number) {
+    const accessToken = await this.issueAccessToken(userId);
     const refreshToken = await this.jwt.signAsync(
       { sub: userId },
       {
