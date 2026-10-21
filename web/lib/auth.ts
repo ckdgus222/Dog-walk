@@ -11,27 +11,56 @@ interface AuthResponse {
   user: User;
 }
 
+type ApiError = Error & { code?: string; status?: number };
+
+type FormValue = FormDataEntryValue | null;
+
+interface SignupBody {
+  email: FormValue;
+  password: FormValue;
+  nickname: FormValue;
+  dog: {
+    name: FormValue;
+    breed: FormValue;
+    size: FormValue;
+    gender: FormValue;
+    neutered: boolean;
+    birthYear: number;
+    personality: FormValue;
+  };
+}
+
 let refreshPromise: Promise<User> | null = null;
 let loginPromise: Promise<void> | null = null;
 let loggingOut = false;
 
 export const getAccessToken = () => useAuthStore.getState().accessToken;
 
-export const responseError = async (
-  response: Response,
-): Promise<Error & { code?: string; status?: number }> => {
+export const responseError = async (response: Response): Promise<ApiError> => {
   const body = await response.json().catch(() => null);
-  const message = body?.message;
-  const error: Error & { code?: string; status?: number } = new Error(
-    Array.isArray(message)
-      ? message.join(" ")
-      : typeof message === "string"
-        ? message
-        : "요청을 처리하지 못했습니다. 다시 시도해 주세요.",
-  );
+  let message = "요청을 처리하지 못했습니다. 다시 시도해 주세요.";
+  if (Array.isArray(body?.message)) message = body.message.join(" ");
+  else if (typeof body?.message === "string") message = body.message;
+
+  const error: ApiError = new Error(message);
   error.status = response.status;
   if (typeof body?.code === "string") error.code = body.code;
   return error;
+};
+
+const postJson = async (path: string, body: unknown = {}) => {
+  const response = await fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) throw await responseError(response);
+  return response;
+};
+
+const reloadForAccountChange = (): never => {
+  window.location.reload();
+  throw new Error("로그인 계정이 바뀌어 페이지를 새로고침합니다.");
 };
 
 export const refresh = (): Promise<User> => {
@@ -39,22 +68,17 @@ export const refresh = (): Promise<User> => {
   // restore the session, so none may start until logout is done.
   if (loggingOut) return Promise.reject(new Error("로그아웃하고 있어요."));
   if (refreshPromise) return refreshPromise;
+
   refreshPromise = (async () => {
     const previousUserId = useAuthStore.getState().user?.id;
     try {
-      const response = await fetch("/api/auth/refresh", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: "{}",
-      });
-      if (!response.ok) throw await responseError(response);
-      const result: AuthResponse = await response.json();
-      if (previousUserId !== undefined && previousUserId !== result.user.id) {
-        window.location.reload();
-        throw new Error("로그인 계정이 바뀌어 페이지를 새로고침합니다.");
+      const response = await postJson("/api/auth/refresh");
+      const { user, accessToken }: AuthResponse = await response.json();
+      if (previousUserId !== undefined && previousUserId !== user.id) {
+        reloadForAccountChange();
       }
-      useAuthStore.getState().setAuth(result.user, result.accessToken);
-      return result.user;
+      useAuthStore.getState().setAuth(user, accessToken);
+      return user;
     } catch (error) {
       useAuthStore.getState().clearAuth();
       throw error;
@@ -73,34 +97,16 @@ export const login = (email: string, password: string): Promise<void> => {
       body: JSON.stringify({ email, password }),
     });
     if (!response.ok) throw await responseError(response);
-    const result: AuthResponse = await response.json();
-    useAuthStore.getState().setAuth(result.user, result.accessToken);
+    const { user, accessToken }: AuthResponse = await response.json();
+    useAuthStore.getState().setAuth(user, accessToken);
   })().finally(() => {
     loginPromise = null;
   });
   return loginPromise;
 };
 
-export const signup = async (body: {
-  email: FormDataEntryValue | null;
-  password: FormDataEntryValue | null;
-  nickname: FormDataEntryValue | null;
-  dog: {
-    name: FormDataEntryValue | null;
-    breed: FormDataEntryValue | null;
-    size: FormDataEntryValue | null;
-    gender: FormDataEntryValue | null;
-    neutered: boolean;
-    birthYear: number;
-    personality: FormDataEntryValue | null;
-  };
-}): Promise<void> => {
-  const response = await fetch("/api/auth/signup", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!response.ok) throw await responseError(response);
+export const signup = async (body: SignupBody): Promise<void> => {
+  await postJson("/api/auth/signup", body);
 };
 
 export const logout = async () => {
@@ -110,12 +116,7 @@ export const logout = async () => {
     // session (or, for login, set a new cookie) after logout has finished.
     if (loginPromise) await loginPromise.catch(() => {});
     if (refreshPromise) await refreshPromise.catch(() => {});
-    const response = await fetch("/api/auth/logout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: "{}",
-    });
-    if (!response.ok) throw await responseError(response);
+    await postJson("/api/auth/logout");
   } finally {
     useAuthStore.getState().clearAuth();
     loggingOut = false;
@@ -132,14 +133,12 @@ export const apiFetch = async (path: string, init: RequestInit = {}) => {
 
   const user = await refresh();
   // The original request must never run under another account.
-  if (
+  const accountChanged =
     requestUserId !== undefined &&
     (requestUserId !== user.id ||
-      requestUserId !== useAuthStore.getState().user?.id)
-  ) {
-    window.location.reload();
-    throw new Error("로그인 계정이 바뀌어 페이지를 새로고침합니다.");
-  }
+      requestUserId !== useAuthStore.getState().user?.id);
+  if (accountChanged) reloadForAccountChange();
+
   const refreshedToken = getAccessToken();
   if (!refreshedToken) throw new Error("로그인이 필요합니다.");
   headers.set("Authorization", `Bearer ${refreshedToken}`);

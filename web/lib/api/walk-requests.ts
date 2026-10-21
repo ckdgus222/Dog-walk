@@ -7,16 +7,26 @@ import {
 import { apiRequest } from "../auth";
 import type { WalkRequest } from "../types";
 
+type NewWalkRequest = { receiverId: number; message: string };
+type WalkRequestAnswer = {
+  id: number;
+  action: "accept" | "reject" | "cancel";
+};
+// Callers read the server's `code` to explain why a request was refused.
+type WalkRequestError = Error & { code?: string };
+
+const walkRequestsKey = ["walk-requests"];
+
 export const useWalkRequests = (box: "received" | "sent") =>
   useQuery({
-    queryKey: ["walk-requests", box],
+    queryKey: [...walkRequestsKey, box],
     queryFn: ({ signal }) =>
       apiRequest<WalkRequest[]>(`/api/walk-requests?box=${box}`, { signal }),
   });
 
 export const usePendingCount = () =>
   useQuery({
-    queryKey: ["walk-requests", "pending-count"],
+    queryKey: [...walkRequestsKey, "pending-count"],
     queryFn: ({ signal }) =>
       apiRequest<{ count: number }>("/api/walk-requests/pending-count", {
         signal,
@@ -24,20 +34,13 @@ export const usePendingCount = () =>
   });
 
 export const refreshWalkRequests = async (queryClient: QueryClient) => {
-  await queryClient.cancelQueries({ queryKey: ["walk-requests"] });
-  void queryClient.invalidateQueries({ queryKey: ["walk-requests"] });
+  await queryClient.cancelQueries({ queryKey: walkRequestsKey });
+  void queryClient.invalidateQueries({ queryKey: walkRequestsKey });
 };
 
 export const useSendWalkRequest = () => {
   const queryClient = useQueryClient();
-  return useMutation<
-    WalkRequest,
-    Error & { code?: string },
-    {
-      receiverId: number;
-      message: string;
-    }
-  >({
+  return useMutation<WalkRequest, WalkRequestError, NewWalkRequest>({
     mutationFn: (body) =>
       apiRequest<WalkRequest>("/api/walk-requests", {
         method: "POST",
@@ -51,13 +54,7 @@ export const useSendWalkRequest = () => {
 export const useRespondToWalkRequest = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      id,
-      action,
-    }: {
-      id: number;
-      action: "accept" | "reject" | "cancel";
-    }) =>
+    mutationFn: ({ id, action }: WalkRequestAnswer) =>
       apiRequest<WalkRequest>(`/api/walk-requests/${id}/${action}`, {
         method: "PATCH",
       }),

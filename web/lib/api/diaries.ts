@@ -2,19 +2,22 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiFetch, apiRequest, responseError } from "../auth";
 import type { Diary } from "../types";
 
-export const useDiaries = (dogId?: number) =>
-  useQuery({
-    queryKey: ["diaries", "list", dogId ?? "all"],
+const allDiariesKey = ["diaries"];
+const diaryListKey = ["diaries", "list"];
+const diaryDetailKey = (id: number) => ["diaries", "detail", id];
+
+export const useDiaries = (dogId?: number) => {
+  const query = dogId === undefined ? "" : `?dogId=${dogId}`;
+  return useQuery({
+    queryKey: [...diaryListKey, dogId ?? "all"],
     queryFn: ({ signal }) =>
-      apiRequest<Diary[]>(
-        `/api/diaries${dogId === undefined ? "" : `?dogId=${dogId}`}`,
-        { signal },
-      ),
+      apiRequest<Diary[]>(`/api/diaries${query}`, { signal }),
   });
+};
 
 export const useDiary = (id: number, forEdit = false) =>
   useQuery({
-    queryKey: ["diaries", "detail", id],
+    queryKey: diaryDetailKey(id),
     queryFn: ({ signal }) =>
       apiRequest<Diary>(`/api/diaries/${id}`, { signal }),
     // Editing needs a fresh read; detail can use the saved response immediately.
@@ -37,23 +40,21 @@ export const useDiaryImage = (diaryId: number, imageId: number) =>
 
 export const useSaveDiary = (id?: number) => {
   const queryClient = useQueryClient();
+  const isNew = id === undefined;
   return useMutation({
     mutationFn: (body: FormData) =>
-      apiRequest<Diary>(
-        id === undefined ? "/api/diaries" : `/api/diaries/${id}`,
-        {
-          method: id === undefined ? "POST" : "PATCH",
-          body,
-        },
-      ),
+      apiRequest<Diary>(isNew ? "/api/diaries" : `/api/diaries/${id}`, {
+        method: isNew ? "POST" : "PATCH",
+        body,
+      }),
     onSuccess: async (diary) => {
-      await queryClient.cancelQueries({
-        queryKey: ["diaries", "detail", diary.id],
-      });
-      queryClient.setQueryData(["diaries", "detail", diary.id], diary);
-      await queryClient.cancelQueries({ queryKey: ["diaries", "list"] });
+      const detailKey = diaryDetailKey(diary.id);
+      await queryClient.cancelQueries({ queryKey: detailKey });
+      queryClient.setQueryData(detailKey, diary);
+
+      await queryClient.cancelQueries({ queryKey: diaryListKey });
       // Refetching the list must not delay navigation or unmount the edit form.
-      void queryClient.invalidateQueries({ queryKey: ["diaries", "list"] });
+      void queryClient.invalidateQueries({ queryKey: diaryListKey });
     },
   });
 };
@@ -64,8 +65,8 @@ export const useDeleteDiary = () => {
     mutationFn: (id: number) =>
       apiRequest<null>(`/api/diaries/${id}`, { method: "DELETE" }),
     onSuccess: async () => {
-      await queryClient.cancelQueries({ queryKey: ["diaries"] });
-      void queryClient.invalidateQueries({ queryKey: ["diaries"] });
+      await queryClient.cancelQueries({ queryKey: allDiariesKey });
+      void queryClient.invalidateQueries({ queryKey: allDiariesKey });
     },
   });
 };

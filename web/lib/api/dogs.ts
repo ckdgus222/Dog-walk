@@ -2,17 +2,22 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "../auth";
 import type { Dog } from "../types";
 
+const myDogsKey = ["dogs", "me"];
+
+const fetchMyDogs = (signal: AbortSignal) =>
+  apiRequest<Dog[]>("/api/dogs/me", { signal });
+
 export const useMyDogs = () =>
   useQuery({
-    queryKey: ["dogs", "me"],
-    queryFn: ({ signal }) => apiRequest<Dog[]>("/api/dogs/me", { signal }),
+    queryKey: myDogsKey,
+    queryFn: ({ signal }) => fetchMyDogs(signal),
   });
 
 export const useDogForEdit = (id: string) =>
   useQuery({
     queryKey: ["dogs", "edit", id],
     queryFn: async ({ signal }) => {
-      const dogs = await apiRequest<Dog[]>("/api/dogs/me", { signal });
+      const dogs = await fetchMyDogs(signal);
       const dog = dogs.find((dog) => String(dog.id) === id);
       if (!dog) throw new Error("반려견을 찾을 수 없어요.");
       return dog;
@@ -21,19 +26,17 @@ export const useDogForEdit = (id: string) =>
 
 export const useSaveDog = (dogId?: number) => {
   const queryClient = useQueryClient();
+  const isNew = dogId === undefined;
   return useMutation({
     mutationFn: (body: FormData) =>
-      apiRequest<Dog>(
-        dogId === undefined ? "/api/dogs" : `/api/dogs/${dogId}`,
-        {
-          method: dogId === undefined ? "POST" : "PATCH",
-          body,
-        },
-      ),
+      apiRequest<Dog>(isNew ? "/api/dogs" : `/api/dogs/${dogId}`, {
+        method: isNew ? "POST" : "PATCH",
+        body,
+      }),
     onSuccess: async () => {
-      await queryClient.cancelQueries({ queryKey: ["dogs", "me"] });
+      await queryClient.cancelQueries({ queryKey: myDogsKey });
       // Navigation must not wait for the list or refetch the mounted edit form.
-      void queryClient.invalidateQueries({ queryKey: ["dogs", "me"] });
+      void queryClient.invalidateQueries({ queryKey: myDogsKey });
     },
   });
 };
@@ -44,8 +47,8 @@ export const useDeleteDog = () => {
     mutationFn: (id: number) =>
       apiRequest<null>(`/api/dogs/${id}`, { method: "DELETE" }),
     onSuccess: async (_, id) => {
-      await queryClient.cancelQueries({ queryKey: ["dogs", "me"] });
-      queryClient.setQueryData<Dog[]>(["dogs", "me"], (dogs) =>
+      await queryClient.cancelQueries({ queryKey: myDogsKey });
+      queryClient.setQueryData<Dog[]>(myDogsKey, (dogs) =>
         dogs?.filter((dog) => dog.id !== id),
       );
     },
