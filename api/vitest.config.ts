@@ -6,6 +6,11 @@ export default defineConfig({
   resolve: { tsconfigPaths: true },
   test: {
     globals: true,
+    env: {
+      JWT_ACCESS_SECRET: 'test-only-access-secret',
+      JWT_REFRESH_SECRET: 'test-only-refresh-secret',
+      COOKIE_SECURE: 'false',
+    },
     root: './',
     include: ['**/*.spec.ts'],
   },

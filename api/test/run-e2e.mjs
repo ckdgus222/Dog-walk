@@ -2,6 +2,9 @@ import { spawnSync } from 'node:child_process';
 
 const env = {
   ...process.env,
+  JWT_ACCESS_SECRET: 'test-only-access-secret',
+  JWT_REFRESH_SECRET: 'test-only-refresh-secret',
+  COOKIE_SECURE: 'false',
   DATABASE_URL:
     process.env.DATABASE_URL ||
     'postgresql://dogwalk:dogwalk_local_only@localhost:5433/dogwalk_test',

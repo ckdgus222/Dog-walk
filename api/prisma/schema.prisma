@@ -8,3 +8,45 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model User {
+  id               Int      @id @default(autoincrement())
+  email            String   @unique
+  passwordHash     String   @map("password_hash")
+  nickname         String   @unique
+  refreshTokenHash String?  @map("refresh_token_hash")
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  dogs             Dog[]
+
+  @@map("users")
+}
+
+model Dog {
+  id          Int       @id @default(autoincrement())
+  ownerId     Int       @map("owner_id")
+  owner       User      @relation(fields: [ownerId], references: [id])
+  name        String
+  breed       String
+  size        DogSize
+  gender      DogGender
+  neutered    Boolean
+  birthYear   Int       @map("birth_year")
+  personality String
+  photoUrl    String?   @map("photo_url")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([ownerId])
+  @@map("dogs")
+}
+
+enum DogSize {
+  SMALL
+  MEDIUM
+  LARGE
+}
+
+enum DogGender {
+  MALE
+  FEMALE
+}
