@@ -76,7 +76,7 @@ test("위치 공개 동의·갱신과 주변 반려견 조회·동의 철회", a
       await expect(page).toHaveURL("/map");
       await expect(
         main.getByText(
-          "내 위치를 약 200m 단위로 흐려서 저장하고, 7일 동안 주변 사용자에게 보여 줘요. 언제든 끌 수 있어요.",
+          "내 위치를 약 200m 단위로 흐려서 저장하고, 7일 동안 주변 사용자에게 보여 줘요. 저장된 위치는 공개를 끌 때까지 보관되고, 언제든 끌 수 있어요.",
         ),
       ).toBeVisible();
       await main
