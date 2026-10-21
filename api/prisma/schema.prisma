@@ -18,6 +18,8 @@ model User {
   createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
   diaries          Diary[]
+  posts            Post[]
+  comments         Comment[]
   dogs             Dog[]
   chatMessages     ChatMessage[]
   sentWalkRequests WalkRequest[] @relation("SentWalkRequests")
@@ -124,4 +126,32 @@ model DiaryImage {
 
   @@index([diaryId])
   @@map("diary_images")
+}
+
+model Post {
+  id        Int       @id @default(autoincrement())
+  authorId  Int       @map("author_id")
+  author    User      @relation(fields: [authorId], references: [id])
+  title     String    @db.VarChar(50)
+  content   String    @db.VarChar(2000)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  comments  Comment[]
+
+  @@index([createdAt, id])
+  @@map("posts")
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  postId    Int      @map("post_id")
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  Int      @map("author_id")
+  author    User     @relation(fields: [authorId], references: [id])
+  content   String   @db.VarChar(300)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([postId, createdAt])
+  @@map("comments")
 }

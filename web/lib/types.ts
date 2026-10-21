@@ -58,3 +58,27 @@ export type Diary = {
   updatedAt: string;
   images: { id: number }[];
 };
+
+export type Post = {
+  id: number;
+  title: string;
+  content: string;
+  author: { id: number; nickname: string };
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PostList = {
+  posts: (Omit<Post, "content"> & { commentCount: number })[];
+  page: number;
+  totalPages: number;
+};
+
+export type Comment = {
+  id: number;
+  postId: number;
+  author: { id: number; nickname: string };
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+};

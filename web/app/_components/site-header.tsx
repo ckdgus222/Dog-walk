@@ -17,6 +17,7 @@ export const SiteHeader = () => {
         <Link href="/map">지도</Link>
         <Link href="/dogs">내 반려견</Link>
         <Link href="/diaries">일기</Link>
+        <Link href="/posts">게시판</Link>
         <Link href="/walk-requests">
           산책 요청{" "}
           {pendingCount > 0 && (

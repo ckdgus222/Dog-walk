@@ -47,6 +47,8 @@ describe('Walk requests and Socket.IO (e2e)', () => {
   });
 
   beforeEach(async () => {
+    await prisma.comment.deleteMany();
+    await prisma.post.deleteMany();
     await prisma.diaryImage.deleteMany();
     await prisma.diary.deleteMany();
     await prisma.chatMessage.deleteMany();

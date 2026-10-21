@@ -8,6 +8,7 @@ import { LocationModule } from './location/location.module.js';
 import { EventsModule } from './events/events.module.js';
 import { WalkRequestsModule } from './walk-requests/walk-requests.module.js';
 import { ChatModule } from './chat/chat.module.js';
+import { PostsModule } from './posts/posts.module.js';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ChatModule } from './chat/chat.module.js';
     WalkRequestsModule,
     ChatModule,
     DiariesModule,
+    PostsModule,
   ],
 })
 export class AppModule {}
