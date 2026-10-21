@@ -31,8 +31,10 @@ export const SiteHeader = () => {
       {pendingCountError && <p role="alert">{pendingCountError}</p>}
       {notice && (
         <div role="status" className={styles.notice}>
-          <p>{notice}</p>
-          <Link href="/walk-requests">산책 요청 보기</Link>
+          <p>{notice.text}</p>
+          <Link href={notice.href}>
+            {notice.href === "/walk-requests" ? "산책 요청 보기" : "채팅 보기"}
+          </Link>
           <button type="button" onClick={dismissNotice}>
             닫기
           </button>

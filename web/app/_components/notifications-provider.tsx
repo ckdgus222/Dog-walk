@@ -5,21 +5,28 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useEffectEvent,
   useState,
 } from "react";
+import { usePathname } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import type { Socket } from "socket.io-client";
+import { addChatMessage } from "../../lib/api/chat";
 import {
   refreshWalkRequests,
   usePendingCount,
 } from "../../lib/api/walk-requests";
 import { connectSocket } from "../../lib/socket";
 import { useAuth } from "./auth-provider";
-import type { WalkRequest } from "../../lib/types";
+import type { ChatMessage, WalkRequest } from "../../lib/types";
+
+type Notice = { text: string; href: string };
 
 const emptyNotifications = {
   pendingCount: 0,
   incoming: null as WalkRequest | null,
-  notice: "",
+  notice: null as Notice | null,
+  socket: null as Socket | null,
   pendingCountError: "",
   dismissIncoming: () => {},
   dismissNotice: () => {},
@@ -42,17 +49,33 @@ export const NotificationsProvider = ({
 };
 
 const UserNotifications = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuth();
+  const pathname = usePathname();
   const queryClient = useQueryClient();
   const count = usePendingCount();
   const [incoming, setIncoming] = useState<WalkRequest | null>(null);
-  const [notice, setNotice] = useState("");
+  const [notice, setNotice] = useState<Notice | null>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
   const dismissIncoming = useCallback(() => setIncoming(null), []);
-  const dismissNotice = useCallback(() => setNotice(""), []);
+  const dismissNotice = useCallback(() => setNotice(null), []);
+  const receiveChatMessage = useEffectEvent((message: ChatMessage) => {
+    void addChatMessage(queryClient, message);
+    const href = `/chat/${message.walkRequestId}`;
+    if (message.senderId !== user?.id && pathname !== href) {
+      setNotice({ text: `${message.senderNickname}님의 새 메시지`, href });
+    }
+  });
 
   useEffect(() => {
     const controller = new AbortController();
     const socket = connectSocket(controller.signal);
+    // The shared socket is created after mounting, then published to consumers.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSocket(socket);
     socket.on("connect", () => void refreshWalkRequests(queryClient));
+    socket.on("chat:message", (message: ChatMessage) =>
+      receiveChatMessage(message),
+    );
     socket.on("walk-request:received", (request: WalkRequest) => {
       setIncoming(request);
       void refreshWalkRequests(queryClient);
@@ -60,10 +83,21 @@ const UserNotifications = ({ children }: { children: React.ReactNode }) => {
     socket.on(
       "walk-request:changed",
       ({ id, status }: Pick<WalkRequest, "id" | "status">) => {
-        if (status === "ACCEPTED") setNotice("보낸 산책 요청이 수락됐어요.");
-        if (status === "REJECTED") setNotice("보낸 산책 요청이 거절됐어요.");
+        if (status === "ACCEPTED")
+          setNotice({
+            text: "보낸 산책 요청이 수락됐어요.",
+            href: "/walk-requests",
+          });
+        if (status === "REJECTED")
+          setNotice({
+            text: "보낸 산책 요청이 거절됐어요.",
+            href: "/walk-requests",
+          });
         if (status === "CANCELED") {
-          setNotice("받은 산책 요청이 취소됐어요.");
+          setNotice({
+            text: "받은 산책 요청이 취소됐어요.",
+            href: "/walk-requests",
+          });
           setIncoming((previous) => (previous?.id === id ? null : previous));
         }
         void refreshWalkRequests(queryClient);
@@ -82,6 +116,7 @@ const UserNotifications = ({ children }: { children: React.ReactNode }) => {
         pendingCountError: count.error?.message ?? "",
         incoming,
         notice,
+        socket,
         dismissIncoming,
         dismissNotice,
       }}

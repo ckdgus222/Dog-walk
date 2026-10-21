@@ -20,6 +20,20 @@ export type WalkRequest = {
   counterpart: { id: number; nickname: string; dogs: Dog[] };
 };
 
+export type ChatMessage = {
+  id: number;
+  walkRequestId: number;
+  senderId: number;
+  senderNickname: string;
+  content: string;
+  createdAt: string;
+};
+
+export type ChatHistory = {
+  counterpart: { id: number; nickname: string };
+  messages: ChatMessage[];
+};
+
 export type MyLocation = {
   consented: boolean;
   lat: number | null;

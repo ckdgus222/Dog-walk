@@ -78,6 +78,9 @@ const RequestLists = () => {
               <time dateTime={request.createdAt}>
                 {new Date(request.createdAt).toLocaleString("ko-KR")}
               </time>
+              {request.status === "ACCEPTED" && (
+                <Link href={`/chat/${request.id}`}>채팅하기</Link>
+              )}
               {request.status === "PENDING" && (
                 <div className={styles.actions}>
                   {box === "received" ? (
