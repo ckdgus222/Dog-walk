@@ -1,8 +1,8 @@
 import { Transform } from 'class-transformer';
 import { IsByteLength, IsNotEmpty, IsString } from 'class-validator';
 
-// Empty values must be rejected: passport-local falls back to the URL query
-// string when a body field is empty, which would skip the 72-byte check.
+// The global ValidationPipe normalizes the email and rejects invalid body
+// credentials before the controller calls AuthService.validateUser.
 export class LoginDto {
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim().toLowerCase() : value,

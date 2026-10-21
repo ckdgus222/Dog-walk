@@ -343,6 +343,8 @@ describe('Auth (e2e)', () => {
   it.each([
     { password: 123 },
     { email: 123 },
+    { email: undefined },
+    { password: undefined },
     { password: null },
     { extra: true },
   ])('rejects invalid login input %j', async (changes) => {

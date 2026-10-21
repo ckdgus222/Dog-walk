@@ -9,11 +9,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { CookieOptions, Request, Response } from 'express';
-import type { PublicUser } from '../users/users.service.js';
 import { AuthService } from './auth.service.js';
+import { LoginDto } from './dto/login.dto.js';
 import { SignupDto } from './dto/signup.dto.js';
 import { JsonBodyGuard } from './guards/json-body.guard.js';
-import { LocalAuthGuard } from './guards/local-auth.guard.js';
 
 @Controller('auth')
 export class AuthController {
@@ -34,13 +33,17 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(200)
-  @UseGuards(JsonBodyGuard, LocalAuthGuard)
+  @UseGuards(JsonBodyGuard)
   async login(
-    @Req() request: Request & { user: PublicUser },
+    @Body() input: LoginDto,
     @Res({ passthrough: true }) response: Response,
   ) {
+    const authenticatedUser = await this.auth.validateUser(
+      input.email,
+      input.password,
+    );
     const { accessToken, refreshToken, user } = await this.auth.login(
-      request.user,
+      authenticatedUser,
     );
     response.cookie('refresh_token', refreshToken, {
       ...this.cookieOptions,

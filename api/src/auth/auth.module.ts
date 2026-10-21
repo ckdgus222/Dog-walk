@@ -6,11 +6,10 @@ import { UsersModule } from '../users/users.module.js';
 import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';
 import { JwtStrategy } from './strategies/jwt.strategy.js';
-import { LocalStrategy } from './strategies/local.strategy.js';
 
 @Module({
   imports: [PrismaModule, UsersModule, PassportModule, JwtModule.register({})],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [AuthService, JwtStrategy],
 })
 export class AuthModule {}
