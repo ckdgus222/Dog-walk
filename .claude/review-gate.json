@@ -1,4 +1,4 @@
 {
-  "testCommand": "npm --prefix api test && npm --prefix api run test:e2e && npm --prefix api run lint && npm --prefix web run lint",
+  "testCommand": "npm --prefix api test && npm --prefix api run test:e2e && npm --prefix api run lint && npm --prefix web run lint && npm --prefix web test",
   "securityPaths": ["api/", "nginx/", "docker-compose.yml", "db/"]
 }
