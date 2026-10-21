@@ -1,3 +1,5 @@
+import { useAuthStore } from "./auth-store";
+
 export interface User {
   id: number;
   email: string;
@@ -9,33 +11,11 @@ interface AuthResponse {
   user: User;
 }
 
-const initialSession: { user: User | null; loading: boolean } = {
-  user: null,
-  loading: true,
-};
-let session = initialSession;
-let accessToken: string | null = null;
 let refreshPromise: Promise<User> | null = null;
 let loginPromise: Promise<void> | null = null;
 let loggingOut = false;
-const listeners = new Set<() => void>();
 
-export const getSession = () => session;
-export const getAccessToken = () => accessToken;
-export const getServerSession = () => initialSession;
-
-export const subscribe = (listener: () => void) => {
-  listeners.add(listener);
-  return () => {
-    listeners.delete(listener);
-  };
-};
-
-const setSession = (result: AuthResponse | null) => {
-  accessToken = result?.accessToken ?? null;
-  session = { user: result?.user ?? null, loading: false };
-  listeners.forEach((listener) => listener());
-};
+export const getAccessToken = () => useAuthStore.getState().accessToken;
 
 export const responseError = async (
   response: Response,
@@ -60,7 +40,7 @@ export const refresh = (): Promise<User> => {
   if (loggingOut) return Promise.reject(new Error("로그아웃하고 있어요."));
   if (refreshPromise) return refreshPromise;
   refreshPromise = (async () => {
-    const previousUserId = session.user?.id;
+    const previousUserId = useAuthStore.getState().user?.id;
     try {
       const response = await fetch("/api/auth/refresh", {
         method: "POST",
@@ -73,10 +53,10 @@ export const refresh = (): Promise<User> => {
         window.location.reload();
         throw new Error("로그인 계정이 바뀌어 페이지를 새로고침합니다.");
       }
-      setSession(result);
+      useAuthStore.getState().setAuth(result.user, result.accessToken);
       return result.user;
     } catch (error) {
-      setSession(null);
+      useAuthStore.getState().clearAuth();
       throw error;
     }
   })().finally(() => {
@@ -94,7 +74,7 @@ export const login = (email: string, password: string): Promise<void> => {
     });
     if (!response.ok) throw await responseError(response);
     const result: AuthResponse = await response.json();
-    setSession(result);
+    useAuthStore.getState().setAuth(result.user, result.accessToken);
   })().finally(() => {
     loginPromise = null;
   });
@@ -137,14 +117,15 @@ export const logout = async () => {
     });
     if (!response.ok) throw await responseError(response);
   } finally {
-    setSession(null);
+    useAuthStore.getState().clearAuth();
     loggingOut = false;
   }
 };
 
 export const apiFetch = async (path: string, init: RequestInit = {}) => {
-  const requestUserId = session.user?.id;
+  const requestUserId = useAuthStore.getState().user?.id;
   const headers = new Headers(init.headers);
+  const accessToken = getAccessToken();
   if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
   const response = await fetch(path, { ...init, headers });
   if (response.status !== 401) return response;
@@ -153,13 +134,15 @@ export const apiFetch = async (path: string, init: RequestInit = {}) => {
   // The original request must never run under another account.
   if (
     requestUserId !== undefined &&
-    (requestUserId !== user.id || requestUserId !== session.user?.id)
+    (requestUserId !== user.id ||
+      requestUserId !== useAuthStore.getState().user?.id)
   ) {
     window.location.reload();
     throw new Error("로그인 계정이 바뀌어 페이지를 새로고침합니다.");
   }
-  if (!accessToken) throw new Error("로그인이 필요합니다.");
-  headers.set("Authorization", `Bearer ${accessToken}`);
+  const refreshedToken = getAccessToken();
+  if (!refreshedToken) throw new Error("로그인이 필요합니다.");
+  headers.set("Authorization", `Bearer ${refreshedToken}`);
   return fetch(path, { ...init, headers });
 };
 

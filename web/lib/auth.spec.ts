@@ -9,6 +9,7 @@ const authResponse = (user = accountA, accessToken = "access-token") => {
 
 describe("Browser auth client", () => {
   let client: typeof import("./auth");
+  let useAuthStore: typeof import("./auth-store")["useAuthStore"];
   const fetchMock = vi.fn<typeof fetch>();
   const reload = vi.fn();
 
@@ -19,10 +20,20 @@ describe("Browser auth client", () => {
     vi.stubGlobal("window", { location: { reload } });
     vi.stubGlobal("fetch", fetchMock);
     client = await import("./auth");
+    ({ useAuthStore } = await import("./auth-store"));
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
+  });
+
+  it("starts without a user or token while loading the session", () => {
+    const { user, accessToken, loading } = useAuthStore.getState();
+    expect({ user, accessToken, loading }).toEqual({
+      user: null,
+      accessToken: null,
+      loading: true,
+    });
   });
 
   it("retries multipart data without setting Content-Type", async () => {
@@ -63,7 +74,8 @@ describe("Browser auth client", () => {
     expect(first).toBe(second);
     await expect(first).resolves.toEqual(accountA);
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(client.getSession()).toEqual({ user: accountA, loading: false });
+    const { user, loading } = useAuthStore.getState();
+    expect({ user, loading }).toEqual({ user: accountA, loading: false });
   });
 
   it.each([200, 401])(
@@ -95,7 +107,8 @@ describe("Browser auth client", () => {
         "/api/auth/refresh",
         "/api/auth/logout",
       ]);
-      expect(client.getSession()).toEqual({ user: null, loading: false });
+      const { user, loading } = useAuthStore.getState();
+      expect({ user, loading }).toEqual({ user: null, loading: false });
     },
   );
 
@@ -117,7 +130,8 @@ describe("Browser auth client", () => {
       "/api/auth/login",
       "/api/auth/logout",
     ]);
-    expect(client.getSession()).toEqual({ user: null, loading: false });
+    const { user, loading } = useAuthStore.getState();
+    expect({ user, loading }).toEqual({ user: null, loading: false });
   });
 
   it("does not start a refresh while logout is running, so a late answer cannot revive the session", async () => {
@@ -139,7 +153,8 @@ describe("Browser auth client", () => {
       "/api/auth/login",
       "/api/auth/logout",
     ]);
-    expect(client.getSession()).toEqual({ user: null, loading: false });
+    const { user, loading } = useAuthStore.getState();
+    expect({ user, loading }).toEqual({ user: null, loading: false });
     expect(client.getAccessToken()).toBeNull();
   });
 
@@ -188,7 +203,7 @@ describe("Browser auth client", () => {
       "Unauthorized",
     );
     expect(fetchMock).toHaveBeenCalledTimes(3);
-    expect(client.getSession().user).toBeNull();
+    expect(useAuthStore.getState().user).toBeNull();
   });
 
   it("reloads without retrying when another tab has changed accounts", async () => {
@@ -234,8 +249,8 @@ describe("Browser auth client", () => {
   it("reloads without retrying when another login completes after refresh and before retry", async () => {
     fetchMock.mockResolvedValueOnce(authResponse(accountA, "account-a-token"));
     await client.login(accountA.email, "password123");
-    const unsubscribe = client.subscribe(() => {
-      if (client.getSession().user?.id === accountA.id) {
+    const unsubscribe = useAuthStore.subscribe(() => {
+      if (useAuthStore.getState().user?.id === accountA.id) {
         unsubscribe();
         void client.login(accountB.email, "password123");
       }
@@ -257,7 +272,7 @@ describe("Browser auth client", () => {
       "Bearer account-a-token",
     );
     expect(reload).toHaveBeenCalledTimes(1);
-    expect(client.getSession().user).toEqual(accountB);
+    expect(useAuthStore.getState().user).toEqual(accountB);
   });
 
   it("preserves a string error code and joins validation messages", async () => {
@@ -383,7 +398,7 @@ describe("Browser auth client", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      expect(client.getSession().user).toBeNull();
+      expect(useAuthStore.getState().user).toBeNull();
       expect(client.getAccessToken()).toBeNull();
     },
   );
