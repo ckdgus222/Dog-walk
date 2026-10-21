@@ -1,13 +1,17 @@
 import { EventEmitter } from 'node:events';
 import type { Server, Socket } from 'socket.io';
 import type { AuthService } from '../auth/auth.service.js';
+import type { ChatService } from '../chat/chat.service.js';
+import { HttpException } from '@nestjs/common';
 import { EventsGateway } from './events.gateway.js';
 
 describe('EventsGateway', () => {
   const verifyAccessToken = vi.fn();
-  const gateway = new EventsGateway({
-    verifyAccessToken,
-  } as unknown as AuthService);
+  const send = vi.fn();
+  const gateway = new EventsGateway(
+    { verifyAccessToken } as unknown as AuthService,
+    { send } as unknown as ChatService,
+  );
   let middleware: (
     socket: Socket,
     next: (error?: Error) => void,
@@ -83,6 +87,44 @@ describe('EventsGateway', () => {
     expect(disconnected).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(1);
     expect(disconnected).toHaveBeenCalledExactlyOnceWith(true);
+  });
+
+  it.each([
+    [
+      new HttpException('산책 요청을 찾을 수 없어요.', 404),
+      '산책 요청을 찾을 수 없어요.',
+    ],
+    [new Error('private database details'), '메시지를 보내지 못했어요.'],
+    [
+      new HttpException('private server details', 500),
+      '메시지를 보내지 못했어요.',
+    ],
+  ])(
+    'returns an error ack without broadcasting when saving fails',
+    async (error, message) => {
+      const to = vi.fn();
+      Object.assign(gateway, { server: { to } });
+      socket.data.userId = 7;
+      send.mockRejectedValue(error);
+      expect(
+        await gateway.sendChat(socket, { walkRequestId: 1, content: 'hello' }),
+      ).toEqual({ ok: false, message });
+      expect(to).not.toHaveBeenCalled();
+    },
+  );
+
+  it('broadcasts the saved message to the union of participant rooms before acknowledging', async () => {
+    const emit = vi.fn();
+    const to = vi.fn().mockReturnThis();
+    Object.assign(gateway, { server: { to, emit } });
+    const message = { id: 1, content: 'hello' };
+    const payload = { walkRequestId: 10, content: ' hello ' };
+    socket.data.userId = 7;
+    send.mockResolvedValue({ message, participantIds: [7, 8] });
+    expect(await gateway.sendChat(socket, payload)).toEqual({ ok: true });
+    expect(send).toHaveBeenCalledExactlyOnceWith(7, payload);
+    expect(to.mock.calls).toEqual([['user:7'], ['user:8']]);
+    expect(emit).toHaveBeenCalledExactlyOnceWith('chat:message', message);
   });
 
   it('clears the expiry timer when the connection closes early', async () => {

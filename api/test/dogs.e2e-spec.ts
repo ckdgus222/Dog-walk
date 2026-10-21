@@ -60,6 +60,7 @@ describe('Dogs (e2e)', () => {
   });
 
   beforeEach(async () => {
+    await prisma.chatMessage.deleteMany();
     await prisma.walkRequest.deleteMany();
     await prisma.dog.deleteMany();
     await prisma.user.deleteMany();

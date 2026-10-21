@@ -1,5 +1,8 @@
-import { Inject } from '@nestjs/common';
+import { HttpException, Inject } from '@nestjs/common';
 import {
+  ConnectedSocket,
+  MessageBody,
+  SubscribeMessage,
   type OnGatewayConnection,
   type OnGatewayInit,
   WebSocketGateway,
@@ -7,13 +10,17 @@ import {
 } from '@nestjs/websockets';
 import { Server, type Socket } from 'socket.io';
 import { AuthService } from '../auth/auth.service.js';
+import { ChatService } from '../chat/chat.service.js';
 
 @WebSocketGateway()
 export class EventsGateway implements OnGatewayInit, OnGatewayConnection {
   @WebSocketServer()
   private server!: Server;
 
-  constructor(@Inject(AuthService) private readonly auth: AuthService) {}
+  constructor(
+    @Inject(AuthService) private readonly auth: AuthService,
+    @Inject(ChatService) private readonly chat: ChatService,
+  ) {}
 
   afterInit(server: Server) {
     server.use(async (socket, next) => {
@@ -43,5 +50,31 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection {
 
   sendToUser(userId: number, event: string, payload: unknown) {
     this.server.to(`user:${userId}`).emit(event, payload);
+  }
+
+  @SubscribeMessage('chat:send')
+  async sendChat(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() payload: unknown,
+  ) {
+    try {
+      const { message, participantIds } = await this.chat.send(
+        socket.data.userId,
+        payload,
+      );
+      this.server
+        .to(`user:${participantIds[0]}`)
+        .to(`user:${participantIds[1]}`)
+        .emit('chat:message', message);
+      return { ok: true };
+    } catch (error) {
+      return {
+        ok: false,
+        message:
+          error instanceof HttpException && error.getStatus() < 500
+            ? error.message
+            : '메시지를 보내지 못했어요.',
+      };
+    }
   }
 }

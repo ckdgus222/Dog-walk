@@ -6,6 +6,7 @@ import { DogsModule } from './dogs/dogs.module.js';
 import { LocationModule } from './location/location.module.js';
 import { EventsModule } from './events/events.module.js';
 import { WalkRequestsModule } from './walk-requests/walk-requests.module.js';
+import { ChatModule } from './chat/chat.module.js';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { WalkRequestsModule } from './walk-requests/walk-requests.module.js';
     LocationModule,
     EventsModule,
     WalkRequestsModule,
+    ChatModule,
   ],
 })
 export class AppModule {}
