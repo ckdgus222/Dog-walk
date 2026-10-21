@@ -402,7 +402,9 @@ for (const moved of [true, false]) {
       await expect(
         neighbors.getByRole("button").filter({ hasText: neighbor.nickname }),
       ).toBeVisible();
-      await page.unroute("**/api/users/nearby", holdNearby);
+      // A poll may still be inside holdNearby; do not let it fail the test
+      // when the page closes.
+      await page.unrouteAll({ behavior: "ignoreErrors" });
       if (moved) await expect(detail).toHaveCount(0);
       else await expect(detail).toBeVisible();
     } finally {
