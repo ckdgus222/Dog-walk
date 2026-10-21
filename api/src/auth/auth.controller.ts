@@ -13,8 +13,8 @@ import type { CookieOptions, Request, Response } from 'express';
 import type { PublicUser } from '../users/users.service.js';
 import { AuthService } from './auth.service.js';
 import { SignupDto } from './dto/signup.dto.js';
-import { JsonBodyGuard } from './json-body.guard.js';
-import { LocalAuthGuard } from './local-auth.guard.js';
+import { JsonBodyGuard } from './guards/json-body.guard.js';
+import { LocalAuthGuard } from './guards/local-auth.guard.js';
 
 @Controller('auth')
 export class AuthController {

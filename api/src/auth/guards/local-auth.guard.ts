@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import type { Request } from 'express';
-import { LoginDto } from './dto/login.dto.js';
+import { LoginDto } from '../dto/login.dto.js';
 
 @Injectable()
 export class LocalAuthGuard extends AuthGuard('local') {

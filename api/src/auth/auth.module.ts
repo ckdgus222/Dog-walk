@@ -5,8 +5,8 @@ import { PrismaModule } from '../prisma/prisma.module.js';
 import { UsersModule } from '../users/users.module.js';
 import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';
-import { JwtStrategy } from './jwt.strategy.js';
-import { LocalStrategy } from './local.strategy.js';
+import { JwtStrategy } from './strategies/jwt.strategy.js';
+import { LocalStrategy } from './strategies/local.strategy.js';
 
 @Module({
   imports: [PrismaModule, UsersModule, PassportModule, JwtModule.register({})],
