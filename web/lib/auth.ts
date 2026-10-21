@@ -37,16 +37,20 @@ const setSession = (result: AuthResponse | null) => {
   listeners.forEach((listener) => listener());
 };
 
-export const responseError = async (response: Response): Promise<Error> => {
+export const responseError = async (
+  response: Response,
+): Promise<Error & { code?: string }> => {
   const body = await response.json().catch(() => null);
   const message = body?.message;
-  return new Error(
+  const error: Error & { code?: string } = new Error(
     Array.isArray(message)
       ? message.join(" ")
       : typeof message === "string"
         ? message
         : "요청을 처리하지 못했습니다. 다시 시도해 주세요.",
   );
+  if (typeof body?.code === "string") error.code = body.code;
+  return error;
 };
 
 export const refresh = (): Promise<User> => {
@@ -96,6 +100,28 @@ export const login = (email: string, password: string): Promise<void> => {
   return loginPromise;
 };
 
+export const signup = async (body: {
+  email: FormDataEntryValue | null;
+  password: FormDataEntryValue | null;
+  nickname: FormDataEntryValue | null;
+  dog: {
+    name: FormDataEntryValue | null;
+    breed: FormDataEntryValue | null;
+    size: FormDataEntryValue | null;
+    gender: FormDataEntryValue | null;
+    neutered: boolean;
+    birthYear: number;
+    personality: FormDataEntryValue | null;
+  };
+}): Promise<void> => {
+  const response = await fetch("/api/auth/signup", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) throw await responseError(response);
+};
+
 export const logout = async () => {
   loggingOut = true;
   try {
@@ -134,4 +160,14 @@ export const apiFetch = async (path: string, init: RequestInit = {}) => {
   if (!accessToken) throw new Error("로그인이 필요합니다.");
   headers.set("Authorization", `Bearer ${accessToken}`);
   return fetch(path, { ...init, headers });
+};
+
+export const apiRequest = async <T>(
+  path: string,
+  init?: RequestInit,
+): Promise<T> => {
+  const response = await apiFetch(path, init);
+  if (!response.ok) throw await responseError(response);
+  if (response.status === 204) return null as T;
+  return response.json();
 };

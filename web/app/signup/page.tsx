@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { responseError } from "../../lib/auth";
+import { signup } from "../../lib/auth";
 import { DogFields, readDogFields } from "../_components/dog-fields";
 import styles from "../_components/shared.module.css";
 
@@ -18,17 +18,12 @@ const SignupPage = () => {
     setError("");
     setPending(true);
     try {
-      const response = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: form.get("email"),
-          password: form.get("password"),
-          nickname: form.get("nickname"),
-          dog: readDogFields(form),
-        }),
+      await signup({
+        email: form.get("email"),
+        password: form.get("password"),
+        nickname: form.get("nickname"),
+        dog: readDogFields(form),
       });
-      if (!response.ok) throw await responseError(response);
       router.push("/login");
     } catch (error) {
       setError(error instanceof Error ? error.message : "가입하지 못했습니다.");

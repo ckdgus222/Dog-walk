@@ -7,7 +7,8 @@ import styles from "./notifications.module.css";
 
 export const SiteHeader = () => {
   const { user } = useAuth();
-  const { pendingCount, notice, dismissNotice } = useNotifications();
+  const { pendingCount, pendingCountError, notice, dismissNotice } =
+    useNotifications();
   if (!user) return null;
   return (
     <header className={styles.header}>
@@ -27,6 +28,7 @@ export const SiteHeader = () => {
           )}
         </Link>
       </nav>
+      {pendingCountError && <p role="alert">{pendingCountError}</p>}
       {notice && (
         <div role="status" className={styles.notice}>
           <p>{notice}</p>

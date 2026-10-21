@@ -1,10 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AuthGate } from "../_components/auth-gate";
-import { apiFetch, responseError } from "../../lib/auth";
-import type { MyLocation, Neighbor } from "../../lib/types";
+import {
+  useChangeLocationConsent,
+  useMyLocation,
+  useNearby,
+  useUpdateMyLocation,
+} from "../../lib/api/location";
+import type { Neighbor } from "../../lib/types";
 import styles from "../_components/shared.module.css";
 import KakaoMap from "./kakao-map";
 import { NeighborList } from "./neighbor-list";
@@ -12,8 +17,6 @@ import { NeighborDetail } from "./neighbor-detail";
 
 // A stable empty list, so the map is not rebuilt on every render while loading.
 const noNeighbors: Neighbor[] = [];
-const geolocationError =
-  "위치를 가져오지 못했어요. 브라우저 위치 권한을 확인해 주세요.";
 
 const MapPage = () => {
   return (
@@ -29,124 +32,35 @@ const MapPage = () => {
 export default MapPage;
 
 const LocationPanel = () => {
-  const [location, setLocation] = useState<MyLocation | null>(null);
-  const [neighbors, setNeighbors] = useState<Neighbor[] | null>(null);
+  const locationQuery = useMyLocation();
+  const location = locationQuery.data;
+  const nearby = useNearby(
+    !!location?.consented && location.lat !== null && location.lng !== null,
+  );
+  const neighbors = nearby.data;
+  const consent = useChangeLocationConsent();
+  const update = useUpdateMyLocation();
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState("");
-  const [nearbyError, setNearbyError] = useState("");
+  const pending = consent.isPending || update.isPending;
+  const error =
+    consent.error?.message ??
+    update.error?.message ??
+    locationQuery.error?.message;
+  const nearbyError = nearby.error?.message;
 
-  useEffect(() => {
-    const controller = new AbortController();
-    const loadLocation = async () => {
-      try {
-        const response = await apiFetch("/api/users/me/location", {
-          signal: controller.signal,
-        });
-        if (!response.ok) throw await responseError(response);
-        const result: MyLocation = await response.json();
-        if (!controller.signal.aborted) setLocation(result);
-      } catch (error) {
-        if (!controller.signal.aborted)
-          setError(
-            error instanceof Error ? error.message : "불러오지 못했습니다.",
-          );
-      }
-    };
-    void loadLocation();
-    return () => controller.abort();
-  }, []);
-
-  useEffect(() => {
-    if (!location?.consented || location.lat === null || location.lng === null)
-      return;
-    const controller = new AbortController();
-    const loadNearby = async () => {
-      try {
-        const response = await apiFetch("/api/users/nearby", {
-          signal: controller.signal,
-        });
-        if (!response.ok) throw await responseError(response);
-        const result: Neighbor[] = await response.json();
-        if (!controller.signal.aborted) setNeighbors(result);
-      } catch (error) {
-        if (!controller.signal.aborted)
-          setNearbyError(
-            error instanceof Error
-              ? error.message
-              : "주변 사용자를 불러오지 못했어요.",
-          );
-      }
-    };
-    void loadNearby();
-    return () => controller.abort();
-  }, [location]);
-
-  const changeConsent = async (consented: boolean) => {
+  const changeConsent = (consented: boolean) => {
     if (
       !consented &&
       !window.confirm("위치 공개를 끌까요? 저장한 위치도 지워져요.")
     )
       return;
-    setPending(true);
-    setError("");
-    try {
-      const response = await apiFetch("/api/users/me/location-consent", {
-        method: consented ? "POST" : "DELETE",
-      });
-      if (!response.ok) throw await responseError(response);
-      setLocation({ consented, lat: null, lng: null, updatedAt: null });
-      setNeighbors(null);
-      setSelectedId(null);
-      setNearbyError("");
-    } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "동의 상태를 바꾸지 못했어요.",
-      );
-    } finally {
-      setPending(false);
-    }
+    update.reset();
+    consent.mutate(consented, { onSuccess: () => setSelectedId(null) });
   };
 
-  const updateLocation = async () => {
-    setPending(true);
-    setError("");
-    try {
-      const position = await new Promise<GeolocationPosition>(
-        (resolve, reject) => {
-          if (!navigator.geolocation)
-            return reject(new Error(geolocationError));
-          navigator.geolocation.getCurrentPosition(
-            resolve,
-            () => reject(new Error(geolocationError)),
-            {
-              timeout: 10_000,
-              maximumAge: 0,
-            },
-          );
-        },
-      );
-      const response = await apiFetch("/api/users/me/location", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        }),
-      });
-      if (!response.ok) throw await responseError(response);
-      const result: Omit<MyLocation, "consented"> = await response.json();
-      setLocation({ ...result, consented: true });
-      setNeighbors(null);
-      setSelectedId(null);
-      setNearbyError("");
-    } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "위치를 저장하지 못했어요.",
-      );
-    } finally {
-      setPending(false);
-    }
+  const updateLocation = () => {
+    consent.reset();
+    update.mutate(undefined, { onSuccess: () => setSelectedId(null) });
   };
 
   const selected = neighbors?.find(
@@ -172,7 +86,7 @@ const LocationPanel = () => {
         <button
           type="button"
           disabled={pending}
-          onClick={() => void changeConsent(true)}
+          onClick={() => changeConsent(true)}
         >
           동의하고 위치 공개
         </button>
@@ -186,7 +100,7 @@ const LocationPanel = () => {
       <button
         type="button"
         disabled={pending}
-        onClick={() => void updateLocation()}
+        onClick={() => updateLocation()}
       >
         내 위치 갱신
       </button>
@@ -201,7 +115,7 @@ const LocationPanel = () => {
       <button
         type="button"
         disabled={pending}
-        onClick={() => void changeConsent(false)}
+        onClick={() => changeConsent(false)}
       >
         위치 공개 끄기
       </button>
@@ -215,7 +129,7 @@ const LocationPanel = () => {
           />
           {nearbyError && <p role="alert">{nearbyError}</p>}
           {!nearbyError &&
-            (neighbors === null ? (
+            (neighbors === undefined ? (
               <p role="status">주변 사용자를 불러오고 있어요.</p>
             ) : (
               <NeighborList

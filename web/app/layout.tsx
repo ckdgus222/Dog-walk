@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "./_components/auth-provider";
+import { QueryProvider } from "./_components/query-provider";
 import { NotificationsProvider } from "./_components/notifications-provider";
 import { SiteHeader } from "./_components/site-header";
 import { WalkRequestModal } from "./_components/walk-request-modal";
@@ -15,11 +16,13 @@ const RootLayout = ({ children }: LayoutProps<"/">) => {
     <html lang="ko">
       <body>
         <AuthProvider>
-          <NotificationsProvider>
-            <SiteHeader />
-            {children}
-            <WalkRequestModal />
-          </NotificationsProvider>
+          <QueryProvider>
+            <NotificationsProvider>
+              <SiteHeader />
+              {children}
+              <WalkRequestModal />
+            </NotificationsProvider>
+          </QueryProvider>
         </AuthProvider>
       </body>
     </html>

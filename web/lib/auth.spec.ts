@@ -259,4 +259,119 @@ describe("Browser auth client", () => {
     expect(reload).toHaveBeenCalledTimes(1);
     expect(client.getSession().user).toEqual(accountB);
   });
+
+  it("preserves a string error code and joins validation messages", async () => {
+    const error = await client.responseError(
+      Response.json({
+        message: ["첫 번째 오류", "두 번째 오류"],
+        code: "REVERSE_PENDING",
+      }),
+    );
+    expect(error).toBeInstanceOf(Error);
+    expect(error.message).toBe("첫 번째 오류 두 번째 오류");
+    expect(error.code).toBe("REVERSE_PENDING");
+  });
+
+  it.each([undefined, null, 123, {}])(
+    "ignores a non-string error code (%j)",
+    async (code) => {
+      const error = await client.responseError(
+        Response.json({ message: "오류", code }),
+      );
+      expect(error.message).toBe("오류");
+      expect(error).not.toHaveProperty("code");
+    },
+  );
+
+  it("uses the fallback message for a non-JSON error response", async () => {
+    const error = await client.responseError(
+      new Response("Bad Gateway", { status: 502 }),
+    );
+    expect(error.message).toBe(
+      "요청을 처리하지 못했습니다. 다시 시도해 주세요.",
+    );
+  });
+
+  it("returns null for a 204 without parsing an empty body", async () => {
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 204 }));
+    await expect(
+      client.apiRequest("/api/dogs/2", { method: "DELETE" }),
+    ).resolves.toBeNull();
+  });
+
+  it("throws the response message and code for a failed API request", async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json(
+        {
+          message: "이미 받은 요청이 있어요.",
+          code: "REVERSE_PENDING",
+        },
+        { status: 409 },
+      ),
+    );
+    await expect(client.apiRequest("/api/walk-requests")).rejects.toMatchObject(
+      {
+        message: "이미 받은 요청이 있어요.",
+        code: "REVERSE_PENDING",
+      },
+    );
+  });
+
+  it("returns JSON and forwards the abort signal and request options", async () => {
+    const controller = new AbortController();
+    fetchMock.mockResolvedValueOnce(Response.json({ id: 2 }));
+    await expect(
+      client.apiRequest("/api/example", {
+        signal: controller.signal,
+        method: "PATCH",
+        body: "body",
+        headers: { "Content-Type": "application/json" },
+      }),
+    ).resolves.toEqual({ id: 2 });
+    expect(fetchMock.mock.calls[0][0]).toBe("/api/example");
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({
+      signal: controller.signal,
+      method: "PATCH",
+      body: "body",
+    });
+    expect(
+      new Headers(fetchMock.mock.calls[0][1]?.headers).get("Content-Type"),
+    ).toBe("application/json");
+  });
+
+  it.each([201, 400])(
+    "signs up outside the session cache and handles status %s",
+    async (status) => {
+      const body = {
+        email: accountA.email,
+        password: "password123",
+        nickname: accountA.nickname,
+        dog: {
+          name: "보리",
+          breed: "푸들",
+          size: "SMALL",
+          gender: "FEMALE",
+          neutered: true,
+          birthYear: 2021,
+          personality: "같이 걸어요.",
+        },
+      };
+      fetchMock.mockResolvedValueOnce(
+        Response.json(
+          status === 201 ? { id: 1 } : { message: "가입할 수 없어요." },
+          { status },
+        ),
+      );
+      const result = client.signup(body);
+      if (status === 201) await expect(result).resolves.toBeUndefined();
+      else await expect(result).rejects.toThrow("가입할 수 없어요.");
+      expect(fetchMock).toHaveBeenCalledExactlyOnceWith("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      expect(client.getSession().user).toBeNull();
+      expect(client.getAccessToken()).toBeNull();
+    },
+  );
 });

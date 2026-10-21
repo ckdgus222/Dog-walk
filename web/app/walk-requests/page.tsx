@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { apiFetch, responseError } from "../../lib/auth";
+import {
+  useRespondToWalkRequest,
+  useWalkRequests,
+} from "../../lib/api/walk-requests";
 import { AuthGate } from "../_components/auth-gate";
 import { useNotifications } from "../_components/notifications-provider";
-import type { WalkRequest } from "../../lib/types";
 import styles from "../_components/shared.module.css";
 
 const statusLabels = {
@@ -29,74 +30,35 @@ const WalkRequestsPage = () => {
 export default WalkRequestsPage;
 
 const RequestLists = () => {
-  const { requestsVersion, refreshRequests, incoming, dismissIncoming } =
-    useNotifications();
-  const [requests, setRequests] = useState<{
-    received: WalkRequest[];
-    sent: WalkRequest[];
-  } | null>(null);
-  const [error, setError] = useState("");
-  const [pendingId, setPendingId] = useState<number | null>(null);
+  const { incoming, dismissIncoming } = useNotifications();
+  const received = useWalkRequests("received");
+  const sent = useWalkRequests("sent");
+  const respondMutation = useRespondToWalkRequest();
+  const requests = { received: received.data, sent: sent.data };
+  const error =
+    respondMutation.error?.message ??
+    received.error?.message ??
+    sent.error?.message;
 
-  useEffect(() => {
-    const controller = new AbortController();
-    const loadRequests = async () => {
-      try {
-        const responses = await Promise.all(
-          ["received", "sent"].map((box) =>
-            apiFetch(`/api/walk-requests?box=${box}`, {
-              signal: controller.signal,
-            }),
-          ),
-        );
-        for (const response of responses) {
-          if (!response.ok) throw await responseError(response);
-        }
-        const [received, sent]: WalkRequest[][] = await Promise.all(
-          responses.map((response) => response.json()),
-        );
-        if (!controller.signal.aborted) {
-          setRequests({ received, sent });
-          setError("");
-        }
-      } catch (error) {
-        if (!controller.signal.aborted)
-          setError(
-            error instanceof Error
-              ? error.message
-              : "요청을 불러오지 못했어요.",
-          );
-      }
-    };
-    void loadRequests();
-    return () => controller.abort();
-  }, [requestsVersion]);
-
-  const respond = async (id: number, action: "accept" | "reject" | "cancel") => {
+  const respond = (id: number, action: "accept" | "reject" | "cancel") => {
     if (action === "cancel" && !window.confirm("산책 요청을 취소할까요?"))
       return;
-    setPendingId(id);
-    setError("");
-    try {
-      const response = await apiFetch(`/api/walk-requests/${id}/${action}`, {
-        method: "PATCH",
-      });
-      if (!response.ok) throw await responseError(response);
-      if (incoming?.id === id) dismissIncoming();
-      refreshRequests();
-    } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "요청을 처리하지 못했어요.",
-      );
-    } finally {
-      setPendingId(null);
-    }
+    respondMutation.mutate(
+      { id, action },
+      {
+        onSuccess: () => {
+          if (incoming?.id === id) dismissIncoming();
+        },
+      },
+    );
   };
 
   return (
     <>
       {error && <p role="alert">{error}</p>}
-      {!requests && !error && <p role="status">요청을 불러오고 있어요.</p>}
+      {(received.isPending || sent.isPending) && !error && (
+        <p role="status">요청을 불러오고 있어요.</p>
+      )}
       {(["received", "sent"] as const).map((box) => (
         <section
           key={box}
@@ -104,8 +66,8 @@ const RequestLists = () => {
           className={styles.cards}
         >
           <h2>{box === "received" ? "받은 요청" : "보낸 요청"}</h2>
-          {requests?.[box].length === 0 && <p>아직 요청이 없어요.</p>}
-          {requests?.[box].map((request) => (
+          {requests[box]?.length === 0 && <p>아직 요청이 없어요.</p>}
+          {requests[box]?.map((request) => (
             <article key={request.id} className={styles.card}>
               <h3>{request.counterpart.nickname}</h3>
               <p>
@@ -122,15 +84,15 @@ const RequestLists = () => {
                     <>
                       <button
                         type="button"
-                        disabled={pendingId !== null}
-                        onClick={() => void respond(request.id, "accept")}
+                        disabled={respondMutation.isPending}
+                        onClick={() => respond(request.id, "accept")}
                       >
                         수락
                       </button>
                       <button
                         type="button"
-                        disabled={pendingId !== null}
-                        onClick={() => void respond(request.id, "reject")}
+                        disabled={respondMutation.isPending}
+                        onClick={() => respond(request.id, "reject")}
                       >
                         거절
                       </button>
@@ -138,8 +100,8 @@ const RequestLists = () => {
                   ) : (
                     <button
                       type="button"
-                      disabled={pendingId !== null}
-                      onClick={() => void respond(request.id, "cancel")}
+                      disabled={respondMutation.isPending}
+                      onClick={() => respond(request.id, "cancel")}
                     >
                       취소
                     </button>
