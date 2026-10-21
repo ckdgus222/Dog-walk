@@ -27,6 +27,8 @@ const commentSelect = {
   updatedAt: true,
 } satisfies Prisma.CommentSelect;
 
+const PAGE_SIZE = 20;
+
 @Injectable()
 export class PostsService {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
@@ -43,8 +45,8 @@ export class PostsService {
       [
         this.prisma.post.findMany({
           // The integer primary key bounds the number of possible rows.
-          skip: Math.min((page - 1) * 20, 2147483647),
-          take: 20,
+          skip: Math.min((page - 1) * PAGE_SIZE, 2147483647),
+          take: PAGE_SIZE,
           orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
           select: {
             ...postSelect,
@@ -62,7 +64,7 @@ export class PostsService {
         commentCount: _count.comments,
       })),
       page,
-      totalPages: Math.max(1, Math.ceil(total / 20)),
+      totalPages: Math.max(1, Math.ceil(total / PAGE_SIZE)),
     };
   }
 
@@ -107,7 +109,8 @@ export class PostsService {
   }
 
   async addComment(authorId: number, postId: number, body: CommentDto) {
-    await this.findOne(postId);
+    // No existence check first: the foreign key rejects a missing post, and
+    // that also covers a post deleted while this request is running.
     try {
       return await this.prisma.comment.create({
         data: { content: body.content, postId, authorId },

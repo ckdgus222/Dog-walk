@@ -179,19 +179,15 @@ describe('PostsService', () => {
     });
   });
 
-  it('does not read or create comments for a missing post', async () => {
+  it('does not read comments for a missing post', async () => {
     prisma.post.findUnique.mockResolvedValue(null);
     await expect(service.findComments(3)).rejects.toMatchObject({
       status: 404,
     });
-    await expect(
-      service.addComment(2, 3, { content: '댓글' }),
-    ).rejects.toMatchObject({ status: 404 });
     expect(prisma.comment.findMany).not.toHaveBeenCalled();
-    expect(prisma.comment.create).not.toHaveBeenCalled();
   });
 
-  it('converts a concurrent post deletion into the same 404', async () => {
+  it('converts a missing or concurrently deleted post into a 404', async () => {
     prisma.comment.create.mockRejectedValue(
       new Prisma.PrismaClientKnownRequestError('Foreign key', {
         code: 'P2003',

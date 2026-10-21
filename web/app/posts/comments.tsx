@@ -12,11 +12,15 @@ import type { Comment } from "../../lib/types";
 import styles from "../_components/shared.module.css";
 import postStyles from "./posts.module.css";
 
-const CommentItem = ({ comment }: { comment: Comment }) => {
-  const userId = useAuthStore((state) => state.user?.id);
+// Mounted only while editing, so closing it drops the draft and any error.
+const CommentEditForm = ({
+  comment,
+  onDone,
+}: {
+  comment: Comment;
+  onDone: () => void;
+}) => {
   const update = useUpdateComment(comment.postId);
-  const remove = useDeleteComment(comment.postId);
-  const [editing, setEditing] = useState(false);
   const [content, setContent] = useState(comment.content);
   const [error, setError] = useState("");
 
@@ -30,11 +34,39 @@ const CommentItem = ({ comment }: { comment: Comment }) => {
     }
     update.mutate(
       { id: comment.id, content: content.trim() },
-      {
-        onSuccess: () => setEditing(false),
-      },
+      { onSuccess: onDone },
     );
   };
+
+  return (
+    <form className={styles.form} onSubmit={handleSubmit}>
+      <label>
+        댓글 수정
+        <textarea
+          required
+          maxLength={300}
+          value={content}
+          disabled={update.isPending}
+          onChange={(event) => setContent(event.target.value)}
+        />
+      </label>
+      <div className={styles.actions}>
+        <button disabled={update.isPending}>저장</button>
+        <button type="button" disabled={update.isPending} onClick={onDone}>
+          취소
+        </button>
+      </div>
+      {(error || update.error) && (
+        <p role="alert">{error || update.error?.message}</p>
+      )}
+    </form>
+  );
+};
+
+const CommentItem = ({ comment }: { comment: Comment }) => {
+  const userId = useAuthStore((state) => state.user?.id);
+  const remove = useDeleteComment(comment.postId);
+  const [editing, setEditing] = useState(false);
 
   return (
     <article className={styles.card}>
@@ -43,32 +75,7 @@ const CommentItem = ({ comment }: { comment: Comment }) => {
         {new Date(comment.createdAt).toLocaleString("ko-KR")}
       </time>
       {editing ? (
-        <form className={styles.form} onSubmit={handleSubmit}>
-          <label>
-            댓글 수정
-            <textarea
-              required
-              maxLength={300}
-              value={content}
-              disabled={update.isPending}
-              onChange={(event) => setContent(event.target.value)}
-            />
-          </label>
-          <div className={styles.actions}>
-            <button disabled={update.isPending}>저장</button>
-            <button
-              type="button"
-              disabled={update.isPending}
-              onClick={() => {
-                setEditing(false);
-                setError("");
-                update.reset();
-              }}
-            >
-              취소
-            </button>
-          </div>
-        </form>
+        <CommentEditForm comment={comment} onDone={() => setEditing(false)} />
       ) : (
         <>
           <p className={postStyles.content}>{comment.content}</p>
@@ -77,11 +84,8 @@ const CommentItem = ({ comment }: { comment: Comment }) => {
               <button
                 disabled={remove.isPending}
                 onClick={() => {
-                  setContent(comment.content);
-                  setEditing(true);
-                  setError("");
-                  update.reset();
                   remove.reset();
+                  setEditing(true);
                 }}
               >
                 수정
@@ -99,11 +103,7 @@ const CommentItem = ({ comment }: { comment: Comment }) => {
           )}
         </>
       )}
-      {(error || update.error || remove.error) && (
-        <p role="alert">
-          {error || update.error?.message || remove.error?.message}
-        </p>
-      )}
+      {remove.error && <p role="alert">{remove.error.message}</p>}
     </article>
   );
 };
