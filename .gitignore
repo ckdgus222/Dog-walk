@@ -12,3 +12,4 @@ api/src/generated/
 api/uploads/
 web/test-results/
 web/playwright-report/
+api/private-uploads/

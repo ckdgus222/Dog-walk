@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ConflictException,
   Inject,
   Injectable,
@@ -9,7 +8,8 @@ import {
 import { randomUUID } from 'node:crypto';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
-import sharp from 'sharp';
+import { Prisma } from '../generated/prisma/client.js';
+import { convertPhoto } from '../photos/convert-photo.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { DogDto } from './dto/dog.dto.js';
 
@@ -114,26 +114,23 @@ export class DogsService {
       if ((await tx.dog.count({ where: { ownerId: userId } })) <= 1) {
         throw new ConflictException('반려견은 최소 한 마리 있어야 해요.');
       }
-      return tx.dog.delete({ where: { id } });
+      try {
+        return await tx.dog.delete({ where: { id } });
+      } catch (error) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === 'P2003'
+        ) {
+          throw new ConflictException('일기를 먼저 삭제해 주세요.');
+        }
+        throw error;
+      }
     });
     if (deleted.photoUrl) await this.removePhoto(deleted.photoUrl);
   }
 
   private async savePhoto(buffer: Buffer) {
-    let converted: Buffer;
-    try {
-      const metadata = await sharp(buffer).metadata();
-      if (!['jpeg', 'png', 'webp'].includes(metadata.format ?? '')) {
-        throw new Error('Unsupported image format');
-      }
-      converted = await sharp(buffer)
-        .rotate()
-        .resize(1080, 1080, { fit: 'inside', withoutEnlargement: true })
-        .webp()
-        .toBuffer();
-    } catch {
-      throw new BadRequestException('jpg, png, webp 사진만 올릴 수 있어요.');
-    }
+    const converted = await convertPhoto(buffer);
 
     const filename = `${randomUUID()}.webp`;
     const photoUrl = `/uploads/dogs/${filename}`;

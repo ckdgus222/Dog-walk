@@ -33,6 +33,8 @@ describe('Location (e2e)', () => {
   });
 
   beforeEach(async () => {
+    await prisma.diaryImage.deleteMany();
+    await prisma.diary.deleteMany();
     await prisma.chatMessage.deleteMany();
     await prisma.walkRequest.deleteMany();
     await prisma.dog.deleteMany();

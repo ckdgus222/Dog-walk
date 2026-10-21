@@ -9,3 +9,4 @@ src/generated
 *.tsbuildinfo
 .git
 uploads
+private-uploads

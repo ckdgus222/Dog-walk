@@ -1,3 +1,4 @@
+import { DiariesModule } from './diaries/diaries.module.js';
 import { Module } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module.js';
 import { UsersModule } from './users/users.module.js';
@@ -18,6 +19,7 @@ import { ChatModule } from './chat/chat.module.js';
     EventsModule,
     WalkRequestsModule,
     ChatModule,
+    DiariesModule,
   ],
 })
 export class AppModule {}

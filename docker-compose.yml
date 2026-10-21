@@ -29,8 +29,10 @@ services:
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?Set JWT_REFRESH_SECRET in .env}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
       PUBLIC_UPLOAD_DIR: /app/uploads
+      PRIVATE_UPLOAD_DIR: /app/private-uploads
     volumes:
       - public-uploads:/app/uploads
+      - private-uploads:/app/private-uploads
     depends_on:
       db:
         condition: service_healthy
@@ -55,3 +57,4 @@ services:
 volumes:
   db-data:
   public-uploads:
+  private-uploads:

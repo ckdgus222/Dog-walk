@@ -12,6 +12,7 @@ export default defineConfig({
       JWT_ACCESS_SECRET: 'test-only-access-secret',
       JWT_REFRESH_SECRET: 'test-only-refresh-secret',
       COOKIE_SECURE: 'false',
+      PRIVATE_UPLOAD_DIR: join(tmpdir(), 'dogwalk-unit-private-uploads'),
       PUBLIC_UPLOAD_DIR: join(tmpdir(), 'dogwalk-unit-uploads'),
     },
     root: './',

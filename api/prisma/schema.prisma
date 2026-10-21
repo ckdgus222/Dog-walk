@@ -17,6 +17,7 @@ model User {
   refreshTokenHash String?  @map("refresh_token_hash")
   createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  diaries          Diary[]
   dogs             Dog[]
   chatMessages     ChatMessage[]
   sentWalkRequests WalkRequest[] @relation("SentWalkRequests")
@@ -41,6 +42,7 @@ model Dog {
   birthYear   Int       @map("birth_year")
   personality String
   photoUrl    String?   @map("photo_url")
+  diaries     Diary[]
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
 
   @@index([ownerId])
@@ -94,4 +96,32 @@ model ChatMessage {
 
   @@index([walkRequestId, createdAt])
   @@map("chat_messages")
+}
+
+model Diary {
+  id        Int       @id @default(autoincrement())
+  authorId  Int       @map("author_id")
+  author    User      @relation(fields: [authorId], references: [id])
+  dogId     Int       @map("dog_id")
+  dog       Dog       @relation(fields: [dogId], references: [id], onDelete: Restrict)
+  walkedOn  DateTime  @map("walked_on") @db.Date
+  content   String    @db.VarChar(2000)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  images    DiaryImage[]
+
+  @@index([authorId, walkedOn])
+  @@index([dogId])
+  @@map("diaries")
+}
+
+model DiaryImage {
+  id        Int    @id @default(autoincrement())
+  diaryId   Int    @map("diary_id")
+  diary     Diary  @relation(fields: [diaryId], references: [id], onDelete: Cascade)
+  fileName  String @map("file_name") @db.VarChar
+  sortOrder Int    @map("sort_order")
+
+  @@index([diaryId])
+  @@map("diary_images")
 }

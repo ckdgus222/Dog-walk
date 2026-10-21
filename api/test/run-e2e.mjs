@@ -7,6 +7,7 @@ const env = {
   JWT_ACCESS_SECRET: 'test-only-access-secret',
   JWT_REFRESH_SECRET: 'test-only-refresh-secret',
   COOKIE_SECURE: 'false',
+  PRIVATE_UPLOAD_DIR: join(tmpdir(), 'dogwalk-e2e-private-uploads'),
   PUBLIC_UPLOAD_DIR: join(tmpdir(), 'dogwalk-e2e-uploads'),
   DATABASE_URL:
     process.env.DATABASE_URL ||

@@ -48,3 +48,13 @@ export type Neighbor = {
   distanceM: number;
   dogs: Dog[];
 };
+
+export type Diary = {
+  id: number;
+  dog: { id: number; name: string };
+  walkedOn: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  images: { id: number }[];
+};
