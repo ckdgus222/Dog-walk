@@ -8,7 +8,7 @@ import {
   MaxLength,
   ValidateNested,
 } from 'class-validator';
-import { SignupDogDto } from './signup-dog.dto.js';
+import { DogDto } from '../../dogs/dto/dog.dto.js';
 
 export class SignupDto {
   @Transform(({ value }: { value: unknown }) =>
@@ -32,6 +32,6 @@ export class SignupDto {
 
   @IsObject()
   @ValidateNested()
-  @Type(() => SignupDogDto)
-  dog: SignupDogDto;
+  @Type(() => DogDto)
+  dog: DogDto;
 }

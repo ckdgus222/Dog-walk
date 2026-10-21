@@ -10,7 +10,7 @@ import {
 } from 'class-validator';
 import { DogGender, DogSize } from '../../generated/prisma/enums.js';
 
-export class SignupDogDto {
+export class DogDto {
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim() : value,
   )

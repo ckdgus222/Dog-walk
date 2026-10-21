@@ -26,6 +26,7 @@ npm --prefix web run dev
 
 화면은 <http://localhost:3001>, API는 <http://localhost:4000/api/health>에서 확인한다.
 개발 화면의 `/api/*` 요청은 API로 전달한다. 대상은 `API_URL` 환경 변수이며 기본값은 `http://localhost:4000`이다.
+로컬 개발 서버에는 `/uploads/` 제공 경로가 없으므로, 반려견 사진 화면은 Docker 실행 후 <http://localhost>에서 확인한다.
 
 ```sh
 curl http://localhost:3001/api/health

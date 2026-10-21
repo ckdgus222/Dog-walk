@@ -8,3 +8,4 @@ coverage
 src/generated
 *.tsbuildinfo
 .git
+uploads

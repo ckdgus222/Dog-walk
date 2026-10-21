@@ -32,6 +32,7 @@ export default function Home() {
       ) : user ? (
         <>
           <p>{user.nickname}님, 안녕하세요</p>
+          <Link href="/dogs">내 반려견</Link>
           <button type="button" disabled={pending} onClick={handleLogout}>
             로그아웃
           </button>

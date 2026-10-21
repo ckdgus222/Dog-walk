@@ -25,6 +25,37 @@ describe("Browser auth client", () => {
     vi.unstubAllGlobals();
   });
 
+  it("retries multipart data without setting Content-Type", async () => {
+    fetchMock.mockResolvedValueOnce(authResponse(accountA, "old-token"));
+    await client.login(accountA.email, "password123");
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 401 }));
+    fetchMock.mockResolvedValueOnce(authResponse(accountA, "new-token"));
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 201 }));
+    const body = new FormData();
+    body.set("dog", JSON.stringify({ name: "보리" }));
+    body.set(
+      "photo",
+      new Blob(["image bytes"], { type: "image/webp" }),
+      "dog.webp",
+    );
+    const response = await client.apiFetch("/api/dogs", {
+      method: "POST",
+      body,
+    });
+    expect(response.status).toBe(201);
+    const uploads = fetchMock.mock.calls.filter(
+      ([path]) => path === "/api/dogs",
+    );
+    expect(uploads).toHaveLength(2);
+    for (const [, options] of uploads) {
+      expect(options?.body).toBe(body);
+      expect(new Headers(options?.headers).has("Content-Type")).toBe(false);
+    }
+    expect(new Headers(uploads[1][1]?.headers).get("Authorization")).toBe(
+      "Bearer new-token",
+    );
+  });
+
   it("shares one refresh promise within a tab", async () => {
     fetchMock.mockResolvedValue(authResponse());
     const first = client.refresh();
