@@ -65,7 +65,7 @@ test("반려견 사진 추가·교체와 마지막 한 마리 삭제 제한", as
     await page.getByRole("button", { name: "로그인", exact: true }).click();
     await expect(page).toHaveURL("/");
     await expect(page.getByText(`${nickname}님, 안녕하세요`)).toBeVisible();
-    await page.getByRole("link", { name: "내 반려견", exact: true }).click();
+    await main.getByRole("link", { name: "내 반려견", exact: true }).click();
     await expect(page).toHaveURL("/dogs");
     await expect(cards).toHaveCount(1);
     await expect(

@@ -1,0 +1,64 @@
+.header {
+  padding: 16px 24px;
+  border-bottom: 1px solid #888;
+}
+
+.header nav,
+.notice,
+.actions {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.header a {
+  text-decoration: underline;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 5px;
+  border-radius: 50%;
+  background: #b91c1c;
+  color: white;
+  font-size: 14px;
+}
+
+.notice {
+  margin-top: 16px;
+}
+
+.dialog {
+  margin: auto;
+  padding: 24px;
+  width: min(90vw, 480px);
+  max-height: 85vh;
+  border: 1px solid #888;
+  border-radius: 8px;
+  color: var(--foreground);
+  background: var(--background);
+  overflow-wrap: anywhere;
+}
+
+.dialog::backdrop {
+  background: #0008;
+}
+
+.dialog > * + * {
+  margin-top: 16px;
+}
+
+.dialog ul {
+  padding-left: 20px;
+}
+
+.dialog button,
+.header button {
+  padding: 8px 12px;
+  font: inherit;
+}

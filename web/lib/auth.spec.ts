@@ -120,6 +120,29 @@ describe("Browser auth client", () => {
     expect(client.getSession()).toEqual({ user: null, loading: false });
   });
 
+  it("does not start a refresh while logout is running, so a late answer cannot revive the session", async () => {
+    fetchMock.mockResolvedValueOnce(authResponse());
+    await client.login(accountA.email, "password123");
+    let releaseLogout!: (response: Response) => void;
+    fetchMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          releaseLogout = resolve;
+        }),
+    );
+    const loggingOut = client.logout();
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    await expect(client.refresh()).rejects.toThrow("로그아웃하고 있어요.");
+    releaseLogout(new Response(null, { status: 204 }));
+    await loggingOut;
+    expect(fetchMock.mock.calls.map(([path]) => path)).toEqual([
+      "/api/auth/login",
+      "/api/auth/logout",
+    ]);
+    expect(client.getSession()).toEqual({ user: null, loading: false });
+    expect(client.getAccessToken()).toBeNull();
+  });
+
   it("retries a 401 once with the new token and preserves request options", async () => {
     fetchMock.mockResolvedValueOnce(authResponse(accountA, "old-token"));
     await client.login(accountA.email, "password123");

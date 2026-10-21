@@ -60,6 +60,7 @@ describe('Dogs (e2e)', () => {
   });
 
   beforeEach(async () => {
+    await prisma.walkRequest.deleteMany();
     await prisma.dog.deleteMany();
     await prisma.user.deleteMany();
     await rm(uploadDirectory, { recursive: true, force: true });

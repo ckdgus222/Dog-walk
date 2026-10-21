@@ -18,6 +18,8 @@ model User {
   createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
   dogs             Dog[]
+  sentWalkRequests WalkRequest[] @relation("SentWalkRequests")
+  receivedWalkRequests WalkRequest[] @relation("ReceivedWalkRequests")
   location         Unsupported("geography(Point, 4326)")?
   locationConsentedAt DateTime? @map("location_consented_at") @db.Timestamptz(3)
   locationUpdatedAt DateTime? @map("location_updated_at") @db.Timestamptz(3)
@@ -53,4 +55,28 @@ enum DogSize {
 enum DogGender {
   MALE
   FEMALE
+}
+
+model WalkRequest {
+  id          Int               @id @default(autoincrement())
+  requesterId Int               @map("requester_id")
+  receiverId  Int               @map("receiver_id")
+  requester   User              @relation("SentWalkRequests", fields: [requesterId], references: [id])
+  receiver    User              @relation("ReceivedWalkRequests", fields: [receiverId], references: [id])
+  status      WalkRequestStatus @default(PENDING)
+  message     String?           @db.VarChar(100)
+  createdAt   DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  respondedAt DateTime?         @map("responded_at") @db.Timestamptz(3)
+
+  // The pending pair expression index is maintained in migration SQL.
+  @@index([receiverId, status])
+  @@index([requesterId, status])
+  @@map("walk_requests")
+}
+
+enum WalkRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELED
 }

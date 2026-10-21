@@ -132,6 +132,34 @@ export class AuthService {
     return { accessToken, user };
   }
 
+  async verifyAccessToken(token: string) {
+    let payload: { sub?: unknown; exp?: unknown };
+    try {
+      payload = await this.jwt.verifyAsync(token, {
+        secret: this.accessSecret,
+        algorithms: ['HS256'],
+      });
+    } catch {
+      throw new UnauthorizedException();
+    }
+    if (
+      typeof payload.sub !== 'number' ||
+      !Number.isSafeInteger(payload.sub) ||
+      payload.sub <= 0 ||
+      typeof payload.exp !== 'number' ||
+      !Number.isSafeInteger(payload.exp) ||
+      payload.exp * 1000 <= Date.now()
+    ) {
+      throw new UnauthorizedException();
+    }
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.sub },
+      select: { id: true, email: true, nickname: true },
+    });
+    if (!user) throw new UnauthorizedException();
+    return { user, exp: payload.exp };
+  }
+
   async logout(token: string | undefined) {
     if (token) {
       await this.prisma.user.updateMany({

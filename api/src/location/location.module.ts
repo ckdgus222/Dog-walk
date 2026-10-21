@@ -7,5 +7,6 @@ import { LocationService } from './location.service.js';
   imports: [PrismaModule],
   controllers: [LocationController],
   providers: [LocationService],
+  exports: [LocationService],
 })
 export class LocationModule {}

@@ -241,6 +241,69 @@ describe('AuthService', () => {
     expect(findUnique).not.toHaveBeenCalled();
   });
 
+  it('verifies an access token and looks up the current user', async () => {
+    const { accessToken } = await service.login(user);
+    await expect(service.verifyAccessToken(accessToken)).resolves.toEqual({
+      user,
+      exp: expect.any(Number),
+    });
+    expect(findUnique).toHaveBeenCalledExactlyOnceWith({
+      where: { id: user.id },
+      select: { id: true, email: true, nickname: true },
+    });
+  });
+
+  it.each([
+    { sub: '1', exp: Math.floor(Date.now() / 1000) + 60 },
+    { sub: 0, exp: Math.floor(Date.now() / 1000) + 60 },
+    { sub: -1, exp: Math.floor(Date.now() / 1000) + 60 },
+    { sub: 1.5, exp: Math.floor(Date.now() / 1000) + 60 },
+    {
+      sub: Number.MAX_SAFE_INTEGER + 1,
+      exp: Math.floor(Date.now() / 1000) + 60,
+    },
+    { sub: 1 },
+    { sub: 1, exp: Math.floor(Date.now() / 1000) - 1 },
+  ])(
+    'rejects invalid socket access claims before querying users: %j',
+    async (payload) => {
+      const token = jwt.sign(payload, {
+        secret: process.env.JWT_ACCESS_SECRET,
+        algorithm: 'HS256',
+      });
+      await expect(service.verifyAccessToken(token)).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
+      expect(findUnique).not.toHaveBeenCalled();
+    },
+  );
+
+  it('rejects malformed, refresh, and wrong-algorithm tokens', async () => {
+    const { refreshToken } = await service.login(user);
+    const wrongAlgorithm = jwt.sign(
+      { sub: user.id },
+      {
+        secret: process.env.JWT_ACCESS_SECRET,
+        algorithm: 'HS384',
+        expiresIn: '1m',
+      },
+    );
+    for (const token of ['invalid', refreshToken, wrongAlgorithm]) {
+      await expect(service.verifyAccessToken(token)).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
+    }
+    expect(findUnique).not.toHaveBeenCalled();
+  });
+
+  it('rejects an access token for a deleted user', async () => {
+    const { accessToken } = await service.login(user);
+    findUnique.mockResolvedValue(null);
+    await expect(service.verifyAccessToken(accessToken)).rejects.toBeInstanceOf(
+      UnauthorizedException,
+    );
+  });
+
   it('only clears the hash belonging to the logout cookie', async () => {
     await service.logout('old-device-token');
     expect(updateMany).toHaveBeenCalledExactlyOnceWith({

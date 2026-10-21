@@ -69,6 +69,21 @@ export class LocationService {
     return location;
   }
 
+  async isNearby(userId: number, otherId: number): Promise<boolean> {
+    const [result] = await this.prisma.$queryRaw<{ nearby: boolean }[]>`
+      SELECT EXISTS (
+        SELECT 1 FROM users u, users me
+        WHERE me.id = ${userId} AND u.id = ${otherId} AND u.id <> me.id
+          AND me.location IS NOT NULL
+          AND me.location_updated_at > now() - interval '7 days'
+          AND u.location_consented_at IS NOT NULL AND u.location IS NOT NULL
+          AND u.location_updated_at > now() - interval '7 days'
+          AND ST_DWithin(u.location, me.location, 1000)
+      ) AS nearby
+    `;
+    return result.nearby;
+  }
+
   async findNearby(userId: number) {
     const me = await this.findMine(userId);
     if (me.lat === null || me.updatedAt === null) {

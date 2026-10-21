@@ -17,9 +17,11 @@ let session = initialSession;
 let accessToken: string | null = null;
 let refreshPromise: Promise<User> | null = null;
 let loginPromise: Promise<void> | null = null;
+let loggingOut = false;
 const listeners = new Set<() => void>();
 
 export const getSession = () => session;
+export const getAccessToken = () => accessToken;
 export const getServerSession = () => initialSession;
 
 export function subscribe(listener: () => void) {
@@ -48,6 +50,9 @@ export async function responseError(response: Response): Promise<Error> {
 }
 
 export function refresh(): Promise<User> {
+  // A refresh started during logout could answer after logout finishes and
+  // restore the session, so none may start until logout is done.
+  if (loggingOut) return Promise.reject(new Error("로그아웃하고 있어요."));
   if (refreshPromise) return refreshPromise;
   refreshPromise = (async () => {
     const previousUserId = session.user?.id;
@@ -92,11 +97,12 @@ export function login(email: string, password: string): Promise<void> {
 }
 
 export async function logout() {
-  // Wait for in-flight login/refresh so a late response cannot revive the
-  // session (or, for login, set a new cookie) after logout has finished.
-  if (loginPromise) await loginPromise.catch(() => {});
-  if (refreshPromise) await refreshPromise.catch(() => {});
+  loggingOut = true;
   try {
+    // Wait for in-flight login/refresh so a late response cannot revive the
+    // session (or, for login, set a new cookie) after logout has finished.
+    if (loginPromise) await loginPromise.catch(() => {});
+    if (refreshPromise) await refreshPromise.catch(() => {});
     const response = await fetch("/api/auth/logout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -105,6 +111,7 @@ export async function logout() {
     if (!response.ok) throw await responseError(response);
   } finally {
     setSession(null);
+    loggingOut = false;
   }
 }
 
