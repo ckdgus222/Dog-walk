@@ -33,6 +33,7 @@ export default function Home() {
         <>
           <p>{user.nickname}님, 안녕하세요</p>
           <Link href="/dogs">내 반려견</Link>
+          <Link href="/map">지도</Link>
           <button type="button" disabled={pending} onClick={handleLogout}>
             로그아웃
           </button>

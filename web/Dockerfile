@@ -4,6 +4,8 @@ COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+ARG NEXT_PUBLIC_KAKAO_MAP_KEY
+ENV NEXT_PUBLIC_KAKAO_MAP_KEY=$NEXT_PUBLIC_KAKAO_MAP_KEY
 RUN npm run build
 
 FROM node:24-bookworm AS runtime

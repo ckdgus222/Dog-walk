@@ -18,7 +18,11 @@ model User {
   createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
   dogs             Dog[]
+  location         Unsupported("geography(Point, 4326)")?
+  locationConsentedAt DateTime? @map("location_consented_at") @db.Timestamptz(3)
+  locationUpdatedAt DateTime? @map("location_updated_at") @db.Timestamptz(3)
 
+  @@index([location(ops: raw("gist_geography_ops"))], type: Gist)
   @@map("users")
 }
 

@@ -13,7 +13,7 @@ import sharp from 'sharp';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { DogDto } from './dto/dog.dto.js';
 
-const publicDogSelect = {
+export const publicDogSelect = {
   id: true,
   name: true,
   breed: true,
