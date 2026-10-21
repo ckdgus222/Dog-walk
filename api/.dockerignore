@@ -1,0 +1,10 @@
+node_modules
+dist
+.next
+coverage
+.env
+.env.*
+!.env.example
+src/generated
+*.tsbuildinfo
+.git
