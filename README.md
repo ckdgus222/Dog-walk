@@ -61,10 +61,31 @@ npm --prefix api run test:e2e
 npm --prefix api run lint
 npm --prefix api run build
 npm --prefix web run lint
+npm --prefix web test
 npm --prefix web run build
 ```
 
-e2e 실행은 `DATABASE_URL`을 한 번 정하고 같은 주소로 마이그레이션과 테스트를 실행한다.
+브라우저 테스트는 화면을 바꾼 단계가 끝날 때 직접 실행한다. 처음 한 번은 Chromium을 설치한다.
+
+```sh
+npx --prefix web playwright install chromium
+```
+
+Docker를 최신 코드로 다시 빌드하고, nginx를 거친 API와 로그인 화면의 응답 코드가 모두 `200`인지 확인한다.
+API는 시작할 때 마이그레이션을 적용하므로 준비될 때까지 기다린 뒤 다시 확인한다.
+
+```sh
+docker compose up --build -d
+curl -s -o /dev/null -w '%{http_code}\n' http://localhost/api/health
+curl -s -o /dev/null -w '%{http_code}\n' http://localhost/login
+npm --prefix web run test:browser
+```
+
+기본 주소는 `http://localhost`이며, 다른 nginx 주소는 `BROWSER_TEST_URL`로 지정한다.
+사진은 nginx가 제공하므로 로컬 개발 서버(3001)에서는 이 테스트를 실행하지 않는다.
+매 실행마다 새 계정과 반려견을 등록하며 개발 DB에 남는다. 실패 시 스크린샷과 trace는 `web/test-results/`에 저장된다.
+
+API e2e 실행은 `DATABASE_URL`을 한 번 정하고 같은 주소로 마이그레이션과 테스트를 실행한다.
 환경 변수가 없으면 예제 계정으로 `localhost:5433/dogwalk_test`를 사용하며, `api/.env`나 `.env.test`의 주소로 바꾸지 않는다.
 계정을 변경했다면 테스트 DB를 가리키는 `DATABASE_URL`을 명시해서 실행한다.
 

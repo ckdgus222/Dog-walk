@@ -10,3 +10,5 @@ coverage/
 !.env.example
 api/src/generated/
 api/uploads/
+web/test-results/
+web/playwright-report/
