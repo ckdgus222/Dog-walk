@@ -63,6 +63,9 @@ describe('Location (e2e)', () => {
       .expect(200);
     return {
       id: signup.body.id as number,
+      cookie: login.headers['set-cookie'] as unknown as string[],
+      email,
+      password,
       authorization: `Bearer ${login.body.accessToken}`,
     };
   }
@@ -208,13 +211,13 @@ describe('Location (e2e)', () => {
       .expect(409);
     expect(missing.body.message).toBe('먼저 내 위치를 저장해 주세요.');
     await locate(user);
-    await prisma.$executeRaw`UPDATE users SET location_updated_at = now() - interval '8 days' WHERE id = ${user.id}`;
+    await prisma.$executeRaw`UPDATE users SET location_updated_at = now() - interval '6 minutes' WHERE id = ${user.id}`;
     const stale = await request(app.getHttpServer())
       .get('/api/users/nearby')
       .set('Authorization', user.authorization)
       .expect(409);
     expect(stale.body.message).toBe(
-      '위치를 저장한 지 7일이 지났어요. 위치를 갱신해 주세요.',
+      '내 위치가 5분 넘게 갱신되지 않았어요. 브라우저 위치 권한을 확인해 주세요.',
     );
     await locate(user);
     const fresh = await request(app.getHttpServer())
@@ -243,7 +246,8 @@ describe('Location (e2e)', () => {
       .delete('/api/users/me/location-consent')
       .set('Authorization', d.authorization)
       .expect(204);
-    await prisma.$executeRaw`UPDATE users SET location_updated_at = now() - interval '8 days' WHERE id = ${e.id}`;
+    await prisma.$executeRaw`UPDATE users SET location_updated_at = now() - interval '6 minutes' WHERE id = ${e.id}`;
+    await prisma.$executeRaw`UPDATE users SET location_updated_at = now() - interval '4 minutes' WHERE id = ${b.id}`;
     // Inserting in reverse time order checks registration ordering, not insertion order.
     await prisma.dog.create({
       data: {
@@ -319,6 +323,62 @@ describe('Location (e2e)', () => {
       .set('Authorization', b.authorization)
       .send(coordinates)
       .expect(403);
+  });
+
+  it('withdraws location on logout and requires consent after logging in again', async () => {
+    const a = await createUser('A');
+    const b = await createUser('B');
+    await locate(a);
+    await locate(b);
+    await request(app.getHttpServer())
+      .post('/api/auth/logout')
+      .send({})
+      .set('Cookie', b.cookie)
+      .expect(204);
+    expect(await stored(b.id)).toEqual({
+      lat: null,
+      lng: null,
+      consentedAt: null,
+      updatedAt: null,
+    });
+    const nearby = await request(app.getHttpServer())
+      .get('/api/users/nearby')
+      .set('Authorization', a.authorization)
+      .expect(200);
+    expect(nearby.body).toEqual([]);
+    const login = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({ email: b.email, password: b.password })
+      .expect(200);
+    await request(app.getHttpServer())
+      .patch('/api/users/me/location')
+      .set('Authorization', `Bearer ${login.body.accessToken}`)
+      .send(coordinates)
+      .expect(403);
+  });
+
+  it('preserves the new device location when an old device logs out', async () => {
+    const user = await createUser('A');
+    const login = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({ email: user.email, password: user.password })
+      .expect(200);
+    await locate({
+      ...user,
+      authorization: `Bearer ${login.body.accessToken}`,
+    });
+    const before = await stored(user.id);
+    await request(app.getHttpServer())
+      .post('/api/auth/logout')
+      .send({})
+      .set('Cookie', user.cookie)
+      .expect(204);
+    expect(await stored(user.id)).toEqual(before);
+    await request(app.getHttpServer())
+      .post('/api/auth/refresh')
+      .send({})
+      .set('Cookie', login.headers['set-cookie'])
+      .expect(200);
   });
 
   it('does not retain a location when saving races with withdrawal', async () => {

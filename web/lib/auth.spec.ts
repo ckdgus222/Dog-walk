@@ -287,9 +287,22 @@ describe("Browser auth client", () => {
     const error = await client.responseError(
       new Response("Bad Gateway", { status: 502 }),
     );
+    expect(error.status).toBe(502);
     expect(error.message).toBe(
       "요청을 처리하지 못했습니다. 다시 시도해 주세요.",
     );
+  });
+
+  it("preserves the HTTP status for consent failures", async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ message: "위치 수집에 동의해 주세요." }, { status: 403 }),
+    );
+    await expect(
+      client.apiRequest("/api/users/me/location"),
+    ).rejects.toMatchObject({
+      status: 403,
+      message: "위치 수집에 동의해 주세요.",
+    });
   });
 
   it("returns null for a 204 without parsing an empty body", async () => {

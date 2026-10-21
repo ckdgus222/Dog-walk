@@ -228,7 +228,7 @@ describe('Walk requests and Socket.IO (e2e)', () => {
           .expect(204);
       if (condition === 'stale receiver' || condition === 'stale requester') {
         const id = condition === 'stale receiver' ? b.id : a.id;
-        await prisma.$executeRaw`UPDATE users SET location_updated_at = now() - interval '8 days' WHERE id = ${id}`;
+        await prisma.$executeRaw`UPDATE users SET location_updated_at = now() - interval '6 minutes' WHERE id = ${id}`;
       }
       const response = await create(
         a,

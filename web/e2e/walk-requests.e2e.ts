@@ -33,7 +33,11 @@ test("산책 요청 실시간 알림·재접속 동기화·로그아웃 정리",
     personality: "같이 산책해요.",
   };
   const contextA = await browser.newContext({ baseURL });
-  const contextB = await browser.newContext({ baseURL });
+  const contextB = await browser.newContext({
+    baseURL,
+    geolocation: { latitude: 37.57, longitude: 126.978 },
+    permissions: ["geolocation"],
+  });
   const a = await contextA.newPage();
   const b = await contextB.newPage();
   const badge = a.getByLabel("받은 산책 요청 1개", { exact: true });
@@ -283,19 +287,11 @@ test("산책 요청 실시간 알림·재접속 동기화·로그아웃 정리",
       await expect(
         a.getByRole("main").getByRole("link", { name: "로그인", exact: true }),
       ).toBeVisible();
-      expect(
-        (
-          await request.patch(
-            `/api/walk-requests/${(await pending.json()).id}/cancel`,
-            { headers: headersB },
-          )
-        ).status(),
-      ).toBe(200);
       const offline = await request.post("/api/walk-requests", {
         headers: headersB,
         data: { receiverId: userIds[0], message: "다시 로그인한 뒤 거절" },
       });
-      expect(offline.status()).toBe(201);
+      expect(offline.status()).toBe(403);
       await login(a, accounts[0]);
       await expect(badge).toHaveText("1");
       await expect(modal).toHaveCount(0);
@@ -307,7 +303,7 @@ test("산책 요청 실시간 알림·재접속 동기화·로그아웃 정리",
         .getByRole("main")
         .getByRole("region", { name: "받은 요청", exact: true })
         .getByRole("article")
-        .filter({ hasText: "다시 로그인한 뒤 거절" });
+        .filter({ hasText: "로그아웃 확인" });
       await received.getByRole("button", { name: "거절", exact: true }).click();
       await expect(received.getByText("거절됨", { exact: true })).toBeVisible();
       await expect(badge).toHaveCount(0);

@@ -162,12 +162,14 @@ export class AuthService {
 
   async logout(token: string | undefined) {
     if (token) {
-      await this.prisma.user.updateMany({
-        where: {
-          refreshTokenHash: createHash('sha256').update(token).digest('hex'),
-        },
-        data: { refreshTokenHash: null },
-      });
+      const hash = createHash('sha256').update(token).digest('hex');
+      // Logging out also withdraws location consent. One statement, so a login
+      // on another device cannot slip in between and lose its new location.
+      await this.prisma.$executeRaw`
+        UPDATE users SET refresh_token_hash = NULL, location = NULL,
+          location_consented_at = NULL, location_updated_at = NULL
+        WHERE refresh_token_hash = ${hash}
+      `;
     }
   }
 

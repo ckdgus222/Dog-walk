@@ -39,16 +39,17 @@ const setSession = (result: AuthResponse | null) => {
 
 export const responseError = async (
   response: Response,
-): Promise<Error & { code?: string }> => {
+): Promise<Error & { code?: string; status?: number }> => {
   const body = await response.json().catch(() => null);
   const message = body?.message;
-  const error: Error & { code?: string } = new Error(
+  const error: Error & { code?: string; status?: number } = new Error(
     Array.isArray(message)
       ? message.join(" ")
       : typeof message === "string"
         ? message
         : "요청을 처리하지 못했습니다. 다시 시도해 주세요.",
   );
+  error.status = response.status;
   if (typeof body?.code === "string") error.code = body.code;
   return error;
 };

@@ -31,9 +31,11 @@ describe('AuthService', () => {
   const create = vi.fn();
   const update = vi.fn();
   const updateMany = vi.fn();
+  const execute = vi.fn();
   const findUnique = vi.fn();
   const findByEmail = vi.fn();
   const prisma = {
+    $executeRaw: execute,
     user: { create, update, updateMany, findUnique },
   } as unknown as PrismaService;
   const users = { findByEmail } as unknown as UsersService;
@@ -304,20 +306,22 @@ describe('AuthService', () => {
     );
   });
 
-  it('only clears the hash belonging to the logout cookie', async () => {
+  it('clears the matching cookie hash and location in one parameterized update', async () => {
     await service.logout('old-device-token');
-    expect(updateMany).toHaveBeenCalledExactlyOnceWith({
-      where: {
-        refreshTokenHash: createHash('sha256')
-          .update('old-device-token')
-          .digest('hex'),
-      },
-      data: { refreshTokenHash: null },
-    });
+    expect(execute).toHaveBeenCalledTimes(1);
+    const [query, ...values] = execute.mock.calls[0];
+    expect(query.join('?').replace(/\s+/g, ' ').trim()).toBe(
+      'UPDATE users SET refresh_token_hash = NULL, location = NULL, location_consented_at = NULL, location_updated_at = NULL WHERE refresh_token_hash = ?',
+    );
+    expect(values).toEqual([
+      createHash('sha256').update('old-device-token').digest('hex'),
+    ]);
+    expect(updateMany).not.toHaveBeenCalled();
   });
 
   it('accepts logout with no cookie without touching the database', async () => {
     await service.logout(undefined);
+    expect(execute).not.toHaveBeenCalled();
     expect(updateMany).not.toHaveBeenCalled();
   });
 });

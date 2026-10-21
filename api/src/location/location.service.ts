@@ -17,7 +17,7 @@ type NeighborRow = {
   distanceM: number;
 };
 
-const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+const FIVE_MINUTES_MS = 5 * 60 * 1000;
 
 @Injectable()
 export class LocationService {
@@ -75,9 +75,9 @@ export class LocationService {
         SELECT 1 FROM users u, users me
         WHERE me.id = ${userId} AND u.id = ${otherId} AND u.id <> me.id
           AND me.location IS NOT NULL
-          AND me.location_updated_at > now() - interval '7 days'
+          AND me.location_updated_at > now() - interval '5 minutes'
           AND u.location_consented_at IS NOT NULL AND u.location IS NOT NULL
-          AND u.location_updated_at > now() - interval '7 days'
+          AND u.location_updated_at > now() - interval '5 minutes'
           AND ST_DWithin(u.location, me.location, 1000)
       ) AS nearby
     `;
@@ -89,9 +89,9 @@ export class LocationService {
     if (me.lat === null || me.updatedAt === null) {
       throw new ConflictException('먼저 내 위치를 저장해 주세요.');
     }
-    if (me.updatedAt.getTime() < Date.now() - SEVEN_DAYS_MS) {
+    if (me.updatedAt.getTime() < Date.now() - FIVE_MINUTES_MS) {
       throw new ConflictException(
-        '위치를 저장한 지 7일이 지났어요. 위치를 갱신해 주세요.',
+        '내 위치가 5분 넘게 갱신되지 않았어요. 브라우저 위치 권한을 확인해 주세요.',
       );
     }
 
@@ -102,7 +102,7 @@ export class LocationService {
       FROM users u, users me
       WHERE me.id = ${userId} AND u.id <> me.id
         AND u.location_consented_at IS NOT NULL AND u.location IS NOT NULL
-        AND u.location_updated_at > now() - interval '7 days'
+        AND u.location_updated_at > now() - interval '5 minutes'
         AND ST_DWithin(u.location, me.location, 1000)
       ORDER BY ST_Distance(u.location, me.location), u.id
     `;

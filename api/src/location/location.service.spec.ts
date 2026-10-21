@@ -47,7 +47,7 @@ describe('LocationService', () => {
     );
   });
 
-  const eightDaysAgo = () => new Date(Date.now() - 8 * 24 * 60 * 60 * 1000);
+  const sixMinutesAgo = () => new Date(Date.now() - 6 * 60 * 1000);
 
   it.each([
     [
@@ -55,8 +55,13 @@ describe('LocationService', () => {
       '먼저 내 위치를 저장해 주세요.',
     ],
     [
-      { consented: true, lat: 37.566, lng: 126.978, updatedAt: eightDaysAgo() },
-      '위치를 저장한 지 7일이 지났어요. 위치를 갱신해 주세요.',
+      {
+        consented: true,
+        lat: 37.566,
+        lng: 126.978,
+        updatedAt: sixMinutesAgo(),
+      },
+      '내 위치가 5분 넘게 갱신되지 않았어요. 브라우저 위치 권한을 확인해 주세요.',
     ],
   ])('rejects searches without a usable location', async (me, message) => {
     query.mockResolvedValueOnce([me]);

@@ -290,8 +290,11 @@ test("수정 조회가 실패하면 첫 진입과 재진입 모두 캐시로 폼
 
 test("위치 동의를 철회한 뒤 늦은 조회가 공개 상태를 되살리지 않는다", async ({
   page,
+  context,
   request,
 }) => {
+  await context.grantPermissions(["geolocation"]);
+  await context.setGeolocation({ latitude: 37.56651, longitude: 126.97801 });
   const account = await createAccount(request);
   const main = page.getByRole("main");
   try {
@@ -324,55 +327,90 @@ test("위치 동의를 철회한 뒤 늦은 조회가 공개 상태를 되살리
   }
 });
 
-test("위치 갱신 뒤 새 주변 조회가 늦으면 이전 목록과 상세를 비운다", async ({
-  page,
-  context,
-  request,
-}) => {
-  await context.grantPermissions(["geolocation"]);
-  await context.setGeolocation({ latitude: 37.56651, longitude: 126.97801 });
-  const account = await createAccount(request);
-  const neighbor = await createAccount(request, "주변두부");
-  const main = page.getByRole("main");
-  try {
-    await publishLocation(request, account.headers);
-    await publishLocation(request, neighbor.headers, 37.57);
-    await page.goto("/login");
-    await login(page, account);
-    await main.getByRole("link", { name: "지도", exact: true }).click();
-    const neighbors = main.getByRole("region", {
-      name: "주변 산책 친구",
-      exact: true,
-    });
-    await neighbors
-      .getByRole("button")
-      .filter({ hasText: neighbor.nickname })
-      .click();
-    const detail = main.getByRole("region", {
-      name: `${neighbor.nickname}의 반려견`,
-      exact: true,
-    });
-    await expect(detail).toBeVisible();
-    const held = await holdNextResponse(page, "**/api/users/nearby");
-    await main
-      .getByRole("button", { name: "내 위치 갱신", exact: true })
-      .click();
-    await held.captured;
-    await expect(neighbors).toHaveCount(0);
-    await expect(detail).toHaveCount(0);
-    await expect(main.getByRole("status")).toHaveText(
-      "주변 사용자를 불러오고 있어요.",
-    );
-    await held.release();
-    await expect(
-      neighbors.getByRole("button").filter({ hasText: neighbor.nickname }),
-    ).toBeVisible();
-    await expect(detail).toHaveCount(0);
-  } finally {
-    await revokeLocation(request, account.headers);
-    await revokeLocation(request, neighbor.headers);
-  }
-});
+for (const moved of [true, false]) {
+  test(`주기 보내기 뒤 ${moved ? "다른 칸은 목록과 상세를 비운다" : "같은 칸은 목록과 상세를 유지한다"}`, async ({
+    page,
+    context,
+    request,
+  }) => {
+    await page.clock.install();
+    await context.grantPermissions(["geolocation"]);
+    await context.setGeolocation({ latitude: 37.56651, longitude: 126.97801 });
+    const account = await createAccount(request);
+    const neighbor = await createAccount(request, "주변두부");
+    const main = page.getByRole("main");
+    try {
+      await publishLocation(request, account.headers);
+      await publishLocation(request, neighbor.headers, 37.57);
+      await page.goto("/login");
+      await login(page, account);
+      await main.getByRole("link", { name: "지도", exact: true }).click();
+      const neighbors = main.getByRole("region", {
+        name: "주변 산책 친구",
+        exact: true,
+      });
+      await neighbors
+        .getByRole("button")
+        .filter({ hasText: neighbor.nickname })
+        .click();
+      const detail = main.getByRole("region", {
+        name: `${neighbor.nickname}의 반려견`,
+        exact: true,
+      });
+      await expect(detail).toBeVisible();
+      let release!: () => void;
+      const released = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      let capture!: () => void;
+      const captured = new Promise<void>((resolve) => {
+        capture = resolve;
+      });
+      // The 30-second poll and the save can both start a nearby query.
+      const holdNearby = async (route: Route) => {
+        const response = await route.fetch();
+        capture();
+        await released;
+        await route.fulfill({ response }).catch(() => {});
+      };
+      await page.route("**/api/users/nearby", holdNearby);
+      if (moved) {
+        await context.setGeolocation({
+          latitude: 37.56851,
+          longitude: 126.97801,
+        });
+      }
+      const saved = page.waitForResponse(
+        (response) =>
+          response.url().endsWith("/api/users/me/location") &&
+          response.request().method() === "PATCH",
+      );
+      await page.clock.fastForward(60_000);
+      await saved;
+      await captured;
+      if (moved) {
+        await expect(neighbors).toHaveCount(0);
+        await expect(detail).toHaveCount(0);
+        await expect(main.getByRole("status")).toHaveText(
+          "주변 사용자를 불러오고 있어요.",
+        );
+      } else {
+        await expect(neighbors).toBeVisible();
+        await expect(detail).toBeVisible();
+      }
+      release();
+      await expect(
+        neighbors.getByRole("button").filter({ hasText: neighbor.nickname }),
+      ).toBeVisible();
+      await page.unroute("**/api/users/nearby", holdNearby);
+      if (moved) await expect(detail).toHaveCount(0);
+      else await expect(detail).toBeVisible();
+    } finally {
+      await revokeLocation(request, account.headers);
+      await revokeLocation(request, neighbor.headers);
+    }
+  });
+}
 
 test("첫 대기 수 조회보다 늦게 온 산책 알림의 배지 수를 유지한다", async ({
   page,

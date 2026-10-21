@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { AuthGate } from "../_components/auth-gate";
 import {
   useChangeLocationConsent,
@@ -9,13 +10,13 @@ import {
   useNearby,
   useUpdateMyLocation,
 } from "../../lib/api/location";
-import type { Neighbor } from "../../lib/types";
+import type { MyLocation, Neighbor } from "../../lib/types";
 import styles from "../_components/shared.module.css";
 import KakaoMap from "./kakao-map";
 import { NeighborList } from "./neighbor-list";
 import { NeighborDetail } from "./neighbor-detail";
 
-// A stable empty list, so the map is not rebuilt on every render while loading.
+// Keep marker inputs stable while the nearby list is unavailable.
 const noNeighbors: Neighbor[] = [];
 
 const MapPage = () => {
@@ -34,19 +35,82 @@ export default MapPage;
 const LocationPanel = () => {
   const locationQuery = useMyLocation();
   const location = locationQuery.data;
-  const nearby = useNearby(
-    !!location?.consented && location.lat !== null && location.lng !== null,
-  );
-  const neighbors = nearby.data;
+  const queryClient = useQueryClient();
   const consent = useChangeLocationConsent();
-  const update = useUpdateMyLocation();
+  const { mutateAsync: sendLocation } = useUpdateMyLocation();
+  const sending = useRef<AbortController | null>(null);
+  const [sentWhileVisible, setSentWhileVisible] = useState(false);
+  const [mapStarted, setMapStarted] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const pending = consent.isPending || update.isPending;
+  const canSend = !!location?.consented && !consent.isPending;
+  const nearby = useNearby(canSend && sentWhileVisible);
+  const neighbors =
+    canSend && sentWhileVisible && !nearby.isError ? nearby.data : undefined;
   const error =
-    consent.error?.message ??
-    update.error?.message ??
-    locationQuery.error?.message;
+    consent.error?.message ?? sendError ?? locationQuery.error?.message;
   const nearbyError = nearby.error?.message;
+
+  // A layout effect, because Next.js hides this page with Activity when
+  // navigating away. Only a layout cleanup resets the list before it is
+  // hidden; a passive one lets the old list flash when the page comes back.
+  useLayoutEffect(() => {
+    let timer: ReturnType<typeof setInterval> | undefined;
+    let active = true;
+    const stop = () => {
+      clearInterval(timer);
+      sending.current?.abort();
+      sending.current = null;
+      setSentWhileVisible(false);
+      setSelectedId(null);
+      void queryClient.cancelQueries({ queryKey: ["location", "nearby"] });
+      queryClient.removeQueries({ queryKey: ["location", "nearby"] });
+    };
+    const send = async () => {
+      if (
+        !active ||
+        !canSend ||
+        document.visibilityState === "hidden" ||
+        sending.current
+      )
+        return;
+      const controller = new AbortController();
+      sending.current = controller;
+      const previous = queryClient.getQueryData<MyLocation>(["location", "me"]);
+      try {
+        const saved = await sendLocation(controller.signal);
+        if (!saved || controller.signal.aborted || !active) return;
+        if (previous?.lat !== saved.lat || previous?.lng !== saved.lng) {
+          setSelectedId(null);
+        }
+        setSendError(null);
+        setMapStarted(true);
+        setSentWhileVisible(true);
+      } catch (error) {
+        if (!controller.signal.aborted && active) {
+          setSendError(
+            error instanceof Error ? error.message : "위치를 보내지 못했어요.",
+          );
+        }
+      } finally {
+        if (sending.current === controller) sending.current = null;
+      }
+    };
+    const visibilityChanged = () => {
+      stop();
+      if (canSend && document.visibilityState !== "hidden") {
+        void send();
+        timer = setInterval(() => void send(), 60_000);
+      }
+    };
+    visibilityChanged();
+    document.addEventListener("visibilitychange", visibilityChanged);
+    return () => {
+      active = false;
+      document.removeEventListener("visibilitychange", visibilityChanged);
+      stop();
+    };
+  }, [canSend, queryClient, sendLocation]);
 
   const changeConsent = (consented: boolean) => {
     if (
@@ -54,13 +118,11 @@ const LocationPanel = () => {
       !window.confirm("위치 공개를 끌까요? 저장한 위치도 지워져요.")
     )
       return;
-    update.reset();
-    consent.mutate(consented, { onSuccess: () => setSelectedId(null) });
-  };
-
-  const updateLocation = () => {
-    consent.reset();
-    update.mutate(undefined, { onSuccess: () => setSelectedId(null) });
+    sending.current?.abort();
+    setSendError(null);
+    setSentWhileVisible(false);
+    setSelectedId(null);
+    consent.mutate(consented);
   };
 
   const selected = neighbors?.find(
@@ -79,13 +141,14 @@ const LocationPanel = () => {
       <>
         {error && <p role="alert">{error}</p>}
         <p>
-          내 위치를 약 200m 단위로 흐려서 저장하고, 7일 동안 주변 사용자에게
-          보여 줘요. 저장된 위치는 공개를 끌 때까지 보관되고, 언제든 끌 수
-          있어요.
+          지도 화면을 보고 있는 동안 내 위치를 약 200m 단위로 흐려서 1분마다
+          저장하고, 주변 사용자에게 보여 줘요. 화면을 닫거나 다른 탭으로 가면
+          5분 뒤 보이지 않아요. 마지막 위치는 공개를 끄거나 로그아웃할 때까지
+          보관돼요. 공개는 언제든 끌 수 있고, 로그아웃하면 함께 꺼져요.
         </p>
         <button
           type="button"
-          disabled={pending}
+          disabled={consent.isPending}
           onClick={() => changeConsent(true)}
         >
           동의하고 위치 공개
@@ -97,13 +160,6 @@ const LocationPanel = () => {
   return (
     <>
       {error && <p role="alert">{error}</p>}
-      <button
-        type="button"
-        disabled={pending}
-        onClick={() => updateLocation()}
-      >
-        내 위치 갱신
-      </button>
       {location.updatedAt && (
         <p>
           마지막 갱신:{" "}
@@ -114,33 +170,33 @@ const LocationPanel = () => {
       )}
       <button
         type="button"
-        disabled={pending}
+        disabled={consent.isPending}
         onClick={() => changeConsent(false)}
       >
         위치 공개 끄기
       </button>
-      {location.lat !== null && location.lng !== null && (
-        <>
-          <KakaoMap
-            lat={location.lat}
-            lng={location.lng}
-            neighbors={neighbors ?? noNeighbors}
-            onSelect={setSelectedId}
-          />
-          {nearbyError && <p role="alert">{nearbyError}</p>}
-          {!nearbyError &&
-            (neighbors === undefined ? (
-              <p role="status">주변 사용자를 불러오고 있어요.</p>
-            ) : (
-              <NeighborList
-                neighbors={neighbors}
-                selectedId={selectedId}
-                onSelect={setSelectedId}
-              />
-            ))}
-          {selected && <NeighborDetail neighbor={selected} />}
-        </>
+      {mapStarted && location.lat !== null && location.lng !== null && (
+        <KakaoMap
+          lat={location.lat}
+          lng={location.lng}
+          neighbors={neighbors ?? noNeighbors}
+          onSelect={setSelectedId}
+        />
       )}
+      {!sentWhileVisible ? (
+        <p role="status">내 위치를 받아 오고 있어요.</p>
+      ) : nearbyError ? (
+        <p role="alert">{nearbyError}</p>
+      ) : neighbors === undefined ? (
+        <p role="status">주변 사용자를 불러오고 있어요.</p>
+      ) : (
+        <NeighborList
+          neighbors={neighbors}
+          selectedId={selectedId}
+          onSelect={setSelectedId}
+        />
+      )}
+      {selected && <NeighborDetail neighbor={selected} />}
     </>
   );
 };
