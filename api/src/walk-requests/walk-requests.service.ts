@@ -47,9 +47,8 @@ export class WalkRequestsService {
         '주변 사용자에게만 산책 요청을 보낼 수 있어요.',
       );
     }
-    let request;
-    try {
-      request = await this.prisma.walkRequest.create({
+    const { requester, receiver, ...fields } = await this.prisma.walkRequest
+      .create({
         data: {
           requesterId: userId,
           receiverId,
@@ -60,35 +59,18 @@ export class WalkRequestsService {
           requester: { select: counterpartSelect },
           receiver: { select: counterpartSelect },
         },
-      });
-    } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2002'
-      ) {
-        const pending = await this.prisma.walkRequest.findFirst({
-          where: {
-            status: 'PENDING',
-            OR: [
-              { requesterId: userId, receiverId },
-              { requesterId: receiverId, receiverId: userId },
-            ],
-          },
-        });
-        if (pending?.requesterId === receiverId) {
-          throw new ConflictException({
-            message: '상대가 보낸 요청이 있어요. 받은 요청에서 수락해 주세요.',
-            code: 'REVERSE_PENDING',
-          });
+      })
+      .catch(async (error) => {
+        // 두 사람 사이에 PENDING 요청이 있으면 마이그레이션의
+        // walk_requests_pending_pair_key가 저장을 막고, 이 경우 409로 돌려준다.
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === 'P2002'
+        ) {
+          throw await this.pendingConflictError(userId, receiverId);
         }
-        throw new ConflictException({
-          message: '이미 보낸 요청이 있어요.',
-          code: 'ALREADY_PENDING',
-        });
-      }
-      throw error;
-    }
-    const { requester, receiver, ...fields } = request;
+        throw error;
+      });
     this.events.sendToUser(receiverId, 'walk-request:received', {
       ...fields,
       counterpart: requester,
@@ -96,20 +78,47 @@ export class WalkRequestsService {
     return { ...fields, counterpart: receiver };
   }
 
+  private async pendingConflictError(
+    userId: number,
+    receiverId: number,
+  ): Promise<ConflictException> {
+    const pending = await this.prisma.walkRequest.findFirst({
+      where: {
+        status: 'PENDING',
+        OR: [
+          { requesterId: userId, receiverId },
+          { requesterId: receiverId, receiverId: userId },
+        ],
+      },
+    });
+    if (pending?.requesterId === receiverId) {
+      return new ConflictException({
+        message: '상대가 보낸 요청이 있어요. 받은 요청에서 수락해 주세요.',
+        code: 'REVERSE_PENDING',
+      });
+    }
+    // 내가 이미 보냈거나, 그 사이 처리되어 찾지 못한(null) 경우다.
+    return new ConflictException({
+      message: '이미 보낸 요청이 있어요.',
+      code: 'ALREADY_PENDING',
+    });
+  }
+
   async findAll(userId: number, box: 'received' | 'sent') {
+    const received = box === 'received';
     const requests = await this.prisma.walkRequest.findMany({
-      where:
-        box === 'received' ? { receiverId: userId } : { requesterId: userId },
+      where: received ? { receiverId: userId } : { requesterId: userId },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       select: {
         ...publicRequestSelect,
-        requester: box === 'received' ? { select: counterpartSelect } : false,
-        receiver: box === 'sent' ? { select: counterpartSelect } : false,
+        requester: received ? { select: counterpartSelect } : false,
+        receiver: received ? false : { select: counterpartSelect },
       },
     });
     return requests.map(({ requester, receiver, ...fields }) => ({
       ...fields,
-      counterpart: box === 'received' ? requester : receiver,
+      // 받은 요청이면 보낸 사람, 보낸 요청이면 받는 사람이 상대다.
+      counterpart: received ? requester : receiver,
     }));
   }
 
@@ -126,32 +135,35 @@ export class WalkRequestsService {
     status: 'ACCEPTED' | 'REJECTED' | 'CANCELED',
   ) {
     const canceling = status === 'CANCELED';
+    // 권한·PENDING 확인과 변경을 한 쿼리로 해야 수락과 취소가 동시에 와도 하나만 성공한다.
     const result = await this.prisma.walkRequest.updateMany({
       where: {
         id,
         status: 'PENDING',
+        // 취소는 보낸 사람만, 수락·거절은 받은 사람만 한다.
         ...(canceling ? { requesterId: userId } : { receiverId: userId }),
       },
+      // 취소 시각은 기록하지 않는다.
       data: { status, respondedAt: canceling ? null : new Date() },
     });
-    if (result.count === 0) {
-      const request = await this.prisma.walkRequest.findFirst({
-        where: { id, OR: [{ requesterId: userId }, { receiverId: userId }] },
-      });
-      if (!request) throw new NotFoundException('산책 요청을 찾을 수 없어요.');
-      if (request.status === 'PENDING')
-        throw new ForbiddenException('이 요청을 처리할 권한이 없어요.');
-      throw new ConflictException('이미 처리된 요청이에요.');
-    }
+    if (result.count === 0) throw await this.changeStatusError(userId, id);
     const request = await this.prisma.walkRequest.findUniqueOrThrow({
       where: { id },
     });
+    const counterpartId = canceling ? request.receiverId : request.requesterId;
     const payload = { id, status };
-    this.events.sendToUser(
-      canceling ? request.receiverId : request.requesterId,
-      'walk-request:changed',
-      payload,
-    );
+    this.events.sendToUser(counterpartId, 'walk-request:changed', payload);
     return payload;
+  }
+
+  private async changeStatusError(userId: number, id: number) {
+    const request = await this.prisma.walkRequest.findFirst({
+      where: { id, OR: [{ requesterId: userId }, { receiverId: userId }] },
+    });
+    // 남의 요청도 없는 요청처럼 답해 요청이 있는지 알려 주지 않는다.
+    if (!request) return new NotFoundException('산책 요청을 찾을 수 없어요.');
+    if (request.status === 'PENDING')
+      return new ForbiddenException('이 요청을 처리할 권한이 없어요.');
+    return new ConflictException('이미 처리된 요청이에요.');
   }
 }
