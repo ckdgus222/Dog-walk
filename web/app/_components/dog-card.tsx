@@ -103,8 +103,8 @@ export const DogCard = ({
       <Image
         src={defaultDogFace(dog, order)}
         alt="사진 없음"
-        width={200}
-        height={200}
+        width={132}
+        height={132}
       />
     )}
     <Heading>{dog.name}</Heading>

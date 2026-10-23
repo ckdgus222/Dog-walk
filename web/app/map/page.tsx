@@ -3,9 +3,11 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { AuthGate } from "../_components/auth-gate";
+import { dangerButton } from "../_components/buttons";
 import { PinIcon } from "../_components/icons";
 import headingStyles from "../_components/heading.module.css";
 import layoutStyles from "../_components/layout.module.css";
+import uiStyles from "../_components/ui.module.css";
 import { useMyDogs } from "../../lib/api/dogs";
 import {
   useChangeLocationConsent,
@@ -147,7 +149,7 @@ const LocationPanel = () => {
 
   if (!location.consented) {
     return (
-      <div className={styles.consent}>
+      <div className={`${uiStyles.card} ${styles.consent}`}>
         {error && <p role="alert">{error}</p>}
         <p>
           지도 화면을 보고 있는 동안 내 위치를 약 200m 단위로 흐려서 1분마다
@@ -157,6 +159,7 @@ const LocationPanel = () => {
         </p>
         <button
           type="button"
+          className={`${uiStyles.button} ${uiStyles.primary}`}
           disabled={consent.isPending}
           onClick={() => changeConsent(true)}
         >
@@ -170,19 +173,20 @@ const LocationPanel = () => {
     <>
       {error && <p role="alert">{error}</p>}
       <div className={styles.status}>
-        <span className={styles.live}>
-          <PinIcon />
+        <span className={`${uiStyles.badge} ${uiStyles.accepted}`}>
+          <PinIcon size={16} />
           위치 공개 중
         </span>
         <button
           type="button"
+          className={dangerButton}
           disabled={consent.isPending}
           onClick={() => changeConsent(false)}
         >
           위치 공개 끄기
         </button>
         {location.updatedAt && (
-          <p>
+          <p className={uiStyles.meta}>
             마지막 업데이트{" "}
             <time dateTime={location.updatedAt}>
               {new Date(location.updatedAt).toLocaleString("ko-KR", {
@@ -193,36 +197,39 @@ const LocationPanel = () => {
           </p>
         )}
       </div>
-      {mapStarted && location.lat !== null && location.lng !== null && (
-        <KakaoMap
-          lat={location.lat}
-          lng={location.lng}
-          myDog={myDog}
-          neighbors={neighbors ?? noNeighbors}
-          selectedId={selectedId}
-          onSelect={setSelectedId}
-        />
-      )}
-      <div className={styles.columns}>
-        {!sentWhileVisible ? (
-          <p role="status">내 위치를 받아 오고 있어요.</p>
-        ) : nearbyError ? (
-          <p role="alert">{nearbyError}</p>
-        ) : neighbors === undefined ? (
-          <p role="status">주변 사용자를 불러오고 있어요.</p>
-        ) : (
-          <NeighborList
-            neighbors={neighbors}
+      {/* The map with the neighbor list and the chosen neighbor beside it. */}
+      <div className={styles.mapRow}>
+        {mapStarted && location.lat !== null && location.lng !== null && (
+          <KakaoMap
+            lat={location.lat}
+            lng={location.lng}
+            myDog={myDog}
+            neighbors={neighbors ?? noNeighbors}
             selectedId={selectedId}
             onSelect={setSelectedId}
           />
         )}
-        {selected && <NeighborDetail neighbor={selected} />}
-        {!selected && !!neighbors?.length && (
-          <p className={styles.pickHint}>
-            이웃을 고르면 반려견 정보와 산책 요청이 여기에 보여요.
-          </p>
-        )}
+        <div className={styles.columns}>
+          {!sentWhileVisible ? (
+            <p role="status">내 위치를 받아 오고 있어요.</p>
+          ) : nearbyError ? (
+            <p role="alert">{nearbyError}</p>
+          ) : neighbors === undefined ? (
+            <p role="status">주변 사용자를 불러오고 있어요.</p>
+          ) : (
+            <NeighborList
+              neighbors={neighbors}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+            />
+          )}
+          {selected && <NeighborDetail neighbor={selected} />}
+          {!selected && !!neighbors?.length && (
+            <p className={styles.pickHint}>
+              이웃을 고르면 반려견 정보와 산책 요청이 여기에 보여요.
+            </p>
+          )}
+        </div>
       </div>
     </>
   );

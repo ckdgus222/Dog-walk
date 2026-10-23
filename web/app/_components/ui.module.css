@@ -135,9 +135,28 @@
   padding: var(--space-4) var(--space-5);
 }
 
-/* A row that opens something lights up under the pointer. */
+/* The end rows follow the box's corners, so a row background stays
+   inside it. */
+.listRow:first-child {
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+}
+
+.listRow:last-child {
+  border-bottom-left-radius: inherit;
+  border-bottom-right-radius: inherit;
+}
+
+/* A row that opens something lights up under the pointer; a chosen row
+   stays sage. */
 .listRow:has(a, button):hover {
   background: var(--card);
+}
+
+/* As specific as the hover rule above, so the chosen color wins under the
+   pointer too. */
+.listRow:has(button[aria-pressed="true"]) {
+  background: var(--sage-soft);
 }
 
 .listRow + .listRow::after {
@@ -155,6 +174,7 @@
   align-items: center;
   height: 28px;
   padding: 0 var(--space-3);
+  gap: var(--space-1);
   border-radius: var(--radius-full);
   color: var(--ink);
   font-size: var(--text-sm);
