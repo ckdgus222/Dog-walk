@@ -170,6 +170,14 @@
   color: var(--muted);
 }
 
+/* The title line of a card. */
+.cardTitle {
+  color: var(--ink);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: 1.4;
+}
+
 /* A short note with an icon, e.g. the one-dog rule. */
 .notice {
   display: flex;

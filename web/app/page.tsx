@@ -1,10 +1,12 @@
 "use client";
 
-import Image from "next/image";
+import Image, { type StaticImageData } from "next/image";
 import Link from "next/link";
 import { useMyDogs } from "../lib/api/dogs";
 import communityChat from "../public/illustrations/walking-drawing/community-chat.svg";
 import diaryBook from "../public/illustrations/walking-drawing/diary-book.svg";
+import homeSceneMobile from "../public/illustrations/walking-drawing/home-scene-mobile.png";
+import homeScene from "../public/illustrations/walking-drawing/home-scene.png";
 import { useAuth } from "./_components/auth-provider";
 import { DogFace, sizeLabels } from "./_components/dog-card";
 import { useFieldSceneDogs } from "./_components/field-scene";
@@ -17,6 +19,9 @@ import {
 } from "./_components/icons";
 import layoutStyles from "./_components/layout.module.css";
 import { LoginForm } from "./_components/login-form";
+import { useNotifications } from "./_components/notifications-provider";
+import uiStyles from "./_components/ui.module.css";
+import { SceneImage } from "./_components/walk-scene";
 import styles from "./page.module.css";
 
 const Home = () => {
@@ -94,48 +99,87 @@ const GuestHome = () => (
 
 const Dashboard = ({ nickname }: { nickname: string }) => (
   <>
-    <p className={styles.greeting}>{nickname}님, 안녕하세요</p>
-    <Title />
-    <div className={styles.actions}>
-      <Link href="/map" className={styles.primaryAction}>
-        주변 친구 찾기
-        <ArrowRight />
-      </Link>
-      <Link href="/walk-requests" className={styles.textAction}>
-        산책 요청
-        <ArrowRight />
-      </Link>
+    <div className={styles.hero}>
+      <div>
+        <p className={styles.greeting}>{nickname}님, 안녕하세요</p>
+        <Title />
+        <div className={styles.actions}>
+          <Link
+            href="/map"
+            className={`${uiStyles.button} ${uiStyles.primary}`}
+          >
+            주변 친구 찾기
+            <ArrowRight />
+          </Link>
+          <Link href="/walk-requests" className={uiStyles.button}>
+            산책 요청 보기
+          </Link>
+        </div>
+      </div>
+      {/* The drawing takes 7 of the hero's 12 columns above phone widths. */}
+      <SceneImage
+        wide={homeScene}
+        narrow={homeSceneMobile}
+        narrowMedia="(max-width: 720px)"
+        wideSizes="(max-width: 1679px) 47vw, 810px"
+      />
     </div>
     <div className={styles.cards}>
-      <section className={styles.card}>
+      <section className={`${uiStyles.card} ${styles.card}`}>
         <CardTitle href="/dogs">내 반려견</CardTitle>
         <MyDogs />
       </section>
-      <section className={`${styles.card} ${styles.linkCard}`}>
-        <CardTitle href="/diaries">산책 일기</CardTitle>
-        <Image
-          className={styles.icon}
-          src={diaryBook}
-          alt=""
-          width={96}
-          height={96}
-        />
-        <p className={styles.description}>우리의 소중한 산책을 기록해요</p>
+      <section className={linkCardClass}>
+        <CardTitle href="/walk-requests">산책 요청</CardTitle>
+        <PendingCount />
       </section>
-      <section className={`${styles.card} ${styles.linkCard}`}>
-        <CardTitle href="/posts">게시판</CardTitle>
-        <Image
-          className={styles.icon}
-          src={communityChat}
-          alt=""
-          width={96}
-          height={96}
-        />
-        <p className={styles.description}>이웃 반려인들과 이야기를 나눠요</p>
-      </section>
+      <DrawingCard
+        href="/diaries"
+        title="산책 일기"
+        drawing={diaryBook}
+        text="우리의 소중한 산책을 기록해요"
+      />
+      <DrawingCard
+        href="/posts"
+        title="게시판"
+        drawing={communityChat}
+        text="이웃 반려인들과 이야기를 나눠요"
+      />
     </div>
   </>
 );
+
+const linkCardClass = `${uiStyles.card} ${styles.card} ${styles.linkCard}`;
+
+const DrawingCard = ({
+  href,
+  title,
+  drawing,
+  text,
+}: {
+  href: string;
+  title: string;
+  drawing: StaticImageData;
+  text: string;
+}) => (
+  <section className={linkCardClass}>
+    <CardTitle href={href}>{title}</CardTitle>
+    <Image src={drawing} alt="" width={72} height={72} />
+    <p className={uiStyles.meta}>{text}</p>
+  </section>
+);
+
+// The same count as the header badge. It reads 0 until the count arrives;
+// a failed count shows a dash, and the header shows why.
+const PendingCount = () => {
+  const { pendingCount, pendingCountError } = useNotifications();
+  return (
+    <>
+      <p className={styles.count}>{pendingCountError ? "–" : pendingCount}</p>
+      <p className={uiStyles.meta}>새로 받은 요청</p>
+    </>
+  );
+};
 
 // The link stretches over its card, so the whole card is clickable while the
 // link name stays the card title.
@@ -165,10 +209,15 @@ const MyDogs = () => {
     <ul className={styles.dogs}>
       {query.data.map((dog, index) => (
         <li key={dog.id} className={styles.dog}>
-          <DogFace dog={dog} className={styles.face} size={80} order={index} />
+          <DogFace
+            dog={dog}
+            className={uiStyles.face}
+            size={64}
+            order={index}
+          />
           <div>
             <p className={styles.dogName}>{dog.name}</p>
-            <p className={styles.dogMeta}>
+            <p className={uiStyles.meta}>
               {dog.breed} · {sizeLabels[dog.size]} · {dog.birthYear}년생
             </p>
           </div>

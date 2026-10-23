@@ -112,7 +112,7 @@ test("홈 카드의 회원가입 링크는 회원가입 모달을 연다", async
   ).toBeVisible();
 });
 
-test("로그인한 홈에도 들판 배경이 있고 강변 산책 그림은 없다", async ({
+test("로그인한 홈에는 들판 배경과 강변 산책 그림이 함께 있다", async ({
   page,
   context,
 }) => {
@@ -128,7 +128,9 @@ test("로그인한 홈에도 들판 배경이 있고 강변 산책 그림은 없
   const scene = page.locator(fieldSceneSelector);
   await expect(scene).toHaveCount(1);
   await expect(scene.locator('img[src*="field."]')).toBeVisible();
-  await expect(main.locator('img[src*="home-scene"]')).toHaveCount(0);
+  const homeScene = main.locator('img[src*="home-scene"]');
+  await expect(homeScene).toHaveCount(1);
+  await expect(homeScene).toBeVisible();
 });
 
 test("게시판을 직접 열어도 들판 배경은 하나이고 강아지는 숨겨진다", async ({

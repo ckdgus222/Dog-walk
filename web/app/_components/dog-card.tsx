@@ -42,7 +42,13 @@ export const DogFace = ({
   dog.photoUrl ? (
     // The web container cannot fetch nginx uploads for next/image optimization.
     // eslint-disable-next-line @next/next/no-img-element
-    <img className={className} src={dog.photoUrl} alt="" />
+    <img
+      className={className}
+      src={dog.photoUrl}
+      alt=""
+      width={size}
+      height={size}
+    />
   ) : (
     <Image
       className={className}

@@ -1,78 +1,48 @@
+/* Dashboard: the greeting and actions beside the home drawing, then four
+   cards. */
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  align-items: center;
+  gap: var(--space-6);
+}
+
 .greeting {
-  margin-bottom: 14px;
-  font-size: 17px;
+  composes: eyebrow from "./_components/heading.module.css";
+  color: var(--muted);
 }
 
 .title {
-  color: var(--ink);
-  font-size: 48px;
-  font-weight: 800;
-  line-height: 60px;
-  letter-spacing: -0.02em;
+  composes: title formTitle from "./_components/heading.module.css";
+  line-height: 1.25;
+  text-wrap: balance;
 }
 
 .actions {
   display: flex;
-  align-items: center;
-  margin-top: 26px;
-}
-
-.primaryAction {
-  position: relative;
-  display: flex;
-  flex: 0 1 536px;
-  align-items: center;
-  justify-content: center;
-  height: 71px;
-  padding: 0 64px;
-  border-radius: 4px;
-  background: var(--accent);
-  color: white;
-  font-size: 26px;
-  font-weight: 500;
-}
-
-.primaryAction svg {
-  position: absolute;
-  right: 32px;
-}
-
-.textAction {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  height: 56px;
-  margin-left: 36px;
-  padding-left: 34px;
-  border-left: 1px solid var(--line);
-  color: var(--accent);
-  font-size: 22px;
-  font-weight: 700;
-  white-space: nowrap;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
 }
 
 .cards {
   display: grid;
-  grid-template-columns: 1.6fr 1fr 1fr;
-  gap: 18px;
-  margin-top: 26px;
+  grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-6);
 }
 
 .card {
-  position: relative;
-  padding: 20px 28px 14px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: var(--card);
+  display: grid;
+  align-content: start;
+  gap: var(--space-3);
 }
 
 .cardTitle {
+  composes: cardTitle from "./_components/ui.module.css";
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: var(--ink);
-  font-size: 22px;
-  font-weight: 700;
 }
 
 .cardLink::after {
@@ -82,60 +52,43 @@
 }
 
 .dogs {
-  display: grid;
-  gap: 10px;
-  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-6);
   list-style: none;
 }
 
 .dog {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: var(--space-3);
   overflow-wrap: anywhere;
-}
-
-.face {
-  flex: none;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
 }
 
 .dogName {
   color: var(--ink);
-  font-size: 22px;
+  font-size: var(--text-lg);
   font-weight: 700;
 }
 
-.dogMeta {
-  margin-top: 4px;
-  color: var(--muted);
-  font-size: 17px;
-}
-
 .linkCard {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  justify-items: center;
   text-align: center;
 }
 
 .linkCard .cardTitle {
-  align-self: stretch;
+  justify-self: stretch;
 }
 
-.icon {
-  margin: 8px 0 0;
+.count {
+  color: var(--accent);
+  font-size: var(--text-3xl);
+  font-weight: 800;
+  line-height: 1.2;
 }
 
 .description {
-  max-width: 10em;
   color: var(--text);
-  font-size: 17px;
-  line-height: 1.6;
-  text-wrap: balance;
 }
 
 /* Guest home: the welcome on the left, the login card on the right, both
@@ -159,7 +112,6 @@
    field beside the card. */
 .welcome .title {
   font-size: clamp(36px, 3.4vw, 48px);
-  line-height: 1.25;
 }
 
 .features {
@@ -230,10 +182,11 @@
   }
 }
 
-/* Tablets: the dog card takes a full row so its details stay on one line. */
-@media (max-width: 1024px) {
+/* Narrower windows: the dog card on a row of its own, the other three
+   under it. */
+@media (max-width: 1279px) {
   .cards {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .cards > :first-child {
@@ -286,106 +239,15 @@
     padding: 24px 18px 20px;
   }
 
-  .greeting {
-    margin-bottom: 8px;
-    font-size: 15px;
+  .hero {
+    grid-template-columns: 1fr;
   }
 
-  .title {
-    font-size: 27px;
-    line-height: 37px;
-  }
-
-  .actions {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-    margin-top: 20px;
-  }
-
-  .primaryAction {
-    flex: none;
-    gap: 12px;
-    height: 60px;
-    font-size: 20px;
-  }
-
-  .primaryAction svg {
-    position: static;
-  }
-
-  .textAction {
-    justify-content: center;
-    height: 55px;
-    margin-left: 0;
-    padding-left: 0;
-    border: 1px solid var(--line);
-    border-radius: 4px;
-    background: var(--card);
-    font-size: 20px;
+  .actions > * {
+    flex: 1;
   }
 
   .cards {
     grid-template-columns: 1fr;
-    gap: 13px;
-    margin-top: 20px;
-  }
-
-  .card {
-    padding: 15px 22px 18px;
-  }
-
-  .cardTitle {
-    font-size: 19px;
-  }
-
-  .dogs {
-    gap: 8px;
-    margin-top: 12px;
-  }
-
-  .dog {
-    gap: 28px;
-  }
-
-  .face {
-    width: 72px;
-    height: 72px;
-  }
-
-  .dogName {
-    font-size: 20px;
-  }
-
-  .dogMeta {
-    font-size: 16px;
-  }
-
-  /* Title in a fixed left column, the icon and the text in a column beside
-     it, and the chevron at the far right. */
-  .linkCard {
-    display: grid;
-    grid-template-columns: 94px 1fr;
-    align-items: center;
-    gap: 10px 0;
-    text-align: left;
-  }
-
-  .linkCard .cardTitle svg {
-    position: absolute;
-    top: 19px;
-    right: 22px;
-  }
-
-  .icon {
-    width: 58px;
-    height: 58px;
-    margin: -12px 0;
-  }
-
-  .description {
-    grid-column: 2;
-    max-width: none;
-    font-size: 14px;
   }
 }
