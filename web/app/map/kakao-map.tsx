@@ -150,8 +150,9 @@ const KakaoMap = ({
         map: instance,
         position: new maps.LatLng(neighbor.lat, neighbor.lng),
         content,
-        xAnchor: 0.2,
-        yAnchor: 0.5,
+        // The tail tip, at the bottom center of the face and tail.
+        xAnchor: 0.5,
+        yAnchor: 1,
         clickable: true,
         zIndex: 1,
       });

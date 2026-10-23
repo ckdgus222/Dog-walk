@@ -107,13 +107,19 @@
   height: 420px;
   border: 1px solid var(--line);
   border-radius: 6px;
+  background: var(--surface);
   overflow: hidden;
 }
 
 .mapFallback {
   display: grid;
   place-items: center;
-  background: var(--surface);
+}
+
+/* Kakao has no map styling API, so only the tile images are toned.
+   Overlays live in a different layer and keep their colors. */
+.map :global(img[src*="/api/v1/tile/"]) {
+  filter: sepia(0.35) saturate(0.55) brightness(1.04) contrast(0.92);
 }
 
 .mapNote {
@@ -135,12 +141,24 @@
   color: var(--muted);
 }
 
-/* Map overlays, drawn as plain elements inside the Kakao map. */
+/* Map overlays, drawn as plain elements inside the Kakao map. The marker box
+   is only the face and its tail, so the overlay anchor at its bottom center is
+   the tail tip. The label sits beside it out of the flow. */
 .marker {
+  position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
   cursor: pointer;
+}
+
+.marker::after {
+  content: "";
+  margin-top: -1px;
+  border-top: 10px solid var(--field);
+  border-right: 7px solid transparent;
+  border-left: 7px solid transparent;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.15));
 }
 
 .markerFace {
@@ -155,6 +173,11 @@
 }
 
 .markerLabel {
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  margin-left: 6px;
+  transform: translateY(-50%);
   display: grid;
   gap: 2px;
   padding: 8px 12px;
@@ -172,6 +195,10 @@
 
 .markerSelected .markerFace {
   border: 4px solid var(--accent);
+}
+
+.markerSelected::after {
+  border-top-color: var(--accent);
 }
 
 .markerSelected .markerLabel span {
