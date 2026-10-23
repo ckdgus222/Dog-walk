@@ -6,6 +6,8 @@ import { QueryProvider } from "./_components/query-provider";
 import { NotificationsProvider } from "./_components/notifications-provider";
 import { SiteHeader } from "./_components/site-header";
 import { WalkRequestModal } from "./_components/walk-request-modal";
+import { Intro } from "./_components/intro";
+import { introHeadScript } from "./_components/intro-seen";
 
 // Korean glyphs load on demand by unicode range, so only latin is preloaded.
 const notoSansKr = Noto_Sans_KR({
@@ -20,8 +22,12 @@ export const metadata: Metadata = {
 
 const RootLayout = ({ children, modal }: LayoutProps<"/">) => {
   return (
-    <html lang="ko" className={notoSansKr.variable}>
+    <html lang="ko" className={notoSansKr.variable} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: introHeadScript }} />
+      </head>
       <body>
+        <Intro />
         <AuthProvider>
           <QueryProvider>
             <NotificationsProvider>
