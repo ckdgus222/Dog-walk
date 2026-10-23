@@ -39,7 +39,7 @@ const DogsPage = () => {
         wide={livingRoom}
         narrow={livingRoomMobile}
         narrowMedia="(max-width: 720px)"
-        wideSizes="(max-width: 1170px) 100vw, 1170px"
+        wideSizes="(max-width: 1430px) 100vw, 1650px"
         loading="lazy"
       />
     </main>

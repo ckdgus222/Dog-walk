@@ -10,6 +10,32 @@
   --field: #fffcf5;
   --line: #e2dcc8;
   --muted: #6b7175;
+  /* Content width of most pages. The mockup's 1170px frame holds 1060px;
+     wide screens get more room. Other widths are worked out from this. */
+  --page-width: 1060px;
+  --wide-zoom: 1;
+}
+
+@media (min-width: 1440px) {
+  :root {
+    --page-width: 1320px;
+  }
+}
+
+/* Wide screens enlarge the header and page content a little; modules opt in
+   with zoom: var(--wide-zoom). Not the whole document: inside zoom, window
+   lengths such as 100vw grow too, so the full-window field scene would run
+   past the window. */
+@media (min-width: 1600px) {
+  :root {
+    --wide-zoom: 1.1;
+  }
+}
+
+@media (min-width: 1800px) {
+  :root {
+    --wide-zoom: 1.15;
+  }
 }
 
 html {

@@ -1,5 +1,5 @@
 .content {
-  width: min(100% - 48px, 936px);
+  width: min(100% - 48px, calc(var(--page-width) - 124px));
   padding-top: 56px;
 }
 
@@ -144,7 +144,7 @@
 }
 
 .checking {
-  width: min(100% - 48px, 936px);
+  width: min(100% - 48px, calc(var(--page-width) - 124px));
   margin: 0 auto;
   padding-top: 56px;
 }
@@ -157,7 +157,10 @@
   grid-template-columns: minmax(0, 1fr) clamp(380px, 36vw, 420px);
   align-items: start;
   column-gap: clamp(40px, 5vw, 64px);
-  width: min(100% - 48px, 1060px);
+  width: min(100% - 48px, var(--page-width));
+  /* Zoomed here rather than on the page, whose field scene is drawn in
+     window units. */
+  zoom: var(--wide-zoom);
   margin: 0 auto;
   padding: 64px 0 48px;
 }

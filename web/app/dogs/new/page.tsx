@@ -38,7 +38,7 @@ const NewDogPage = () => {
           className={styles.crouchPet}
           src={crouchPet}
           alt=""
-          sizes="710px"
+          sizes="(min-width: 1600px) 820px, 710px"
         />
       </AuthGate>
     </main>

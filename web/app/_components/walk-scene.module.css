@@ -2,6 +2,7 @@
    still ends with the drawing at the bottom of the window. Pages may also lay
    the drawing over the first row. */
 .page {
+  zoom: var(--wide-zoom);
   display: grid;
   flex: 1;
   grid-template-rows: auto 1fr;

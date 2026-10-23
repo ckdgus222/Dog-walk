@@ -48,7 +48,16 @@ export const FieldScene = ({ variant }: { variant: "intro" | "home" }) => (
     >
       {groundLayers.map(({ image, className }) => (
         <div key={image.src} className={`${className} ${styles.layer}`}>
-          <Image src={image} alt="" fill sizes="max(100vw, 180vh)" />
+          {/* The ground is the first thing a guest sees on the home, so it
+              loads at once there; the intro's copy stays lazy, as it is
+              hidden for anyone who has seen it. */}
+          <Image
+            src={image}
+            alt=""
+            fill
+            sizes="max(100vw, 180vh)"
+            loading={variant === "home" ? "eager" : undefined}
+          />
         </div>
       ))}
     </div>

@@ -399,6 +399,14 @@
   font-weight: 500;
 }
 
+/* Wide screens give the wider map more height too. */
+@media (min-width: 1440px) {
+  .map,
+  .mapFallback {
+    height: 520px;
+  }
+}
+
 /* Tablets: the chosen neighbor needs the full width for its details. */
 @media (max-width: 1024px) {
   .columns {

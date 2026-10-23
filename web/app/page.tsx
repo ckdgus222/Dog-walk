@@ -80,24 +80,26 @@ const features = [
 // Guests can only sign in or sign up, so their home introduces the service
 // over the intro's field and asks them to log in.
 const GuestHome = () => (
-  <main className={styles.guest}>
+  <main>
     <FieldScene variant="home" />
-    <div className={styles.welcome}>
-      <Title />
-      <ul className={styles.features}>
-        {features.map(({ icon, name, detail }) => (
-          <li key={name}>
-            {icon}
-            <strong>{name}</strong>
-            <span>{detail}</span>
-          </li>
-        ))}
-      </ul>
+    <div className={styles.guest}>
+      <div className={styles.welcome}>
+        <Title />
+        <ul className={styles.features}>
+          {features.map(({ icon, name, detail }) => (
+            <li key={name}>
+              {icon}
+              <strong>{name}</strong>
+              <span>{detail}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <section className={styles.loginCard}>
+        {/* Logging in turns this same page into the dashboard. */}
+        <LoginForm variant="card" onSuccess={() => {}} />
+      </section>
     </div>
-    <section className={styles.loginCard}>
-      {/* Logging in turns this same page into the dashboard. */}
-      <LoginForm variant="card" onSuccess={() => {}} />
-    </section>
   </main>
 );
 
@@ -174,12 +176,7 @@ const MyDogs = () => {
     <ul className={styles.dogs}>
       {query.data.map((dog, index) => (
         <li key={dog.id} className={styles.dog}>
-          <DogFace
-            dog={dog}
-            className={styles.face}
-            size={80}
-            order={index}
-          />
+          <DogFace dog={dog} className={styles.face} size={80} order={index} />
           <div>
             <p className={styles.dogName}>{dog.name}</p>
             <p className={styles.dogMeta}>

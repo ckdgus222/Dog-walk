@@ -1,8 +1,9 @@
-/* The same 1170px frame as the mockup, so the logo lines up with the page
-   content on wide screens too. */
+/* 110px wider than the content, as the mockup's 1170px frame is around its
+   1060px content, so the logo lines up with the page content. */
 .header {
   width: 100%;
-  max-width: 1170px;
+  max-width: calc(var(--page-width) + 110px);
+  zoom: var(--wide-zoom);
   margin: 0 auto;
   padding: 0 30px;
 }

@@ -1,5 +1,5 @@
 .content {
-  width: min(100% - 48px, 1020px);
+  width: min(100% - 48px, calc(var(--page-width) - 40px));
   padding-top: 96px;
 }
 
@@ -23,7 +23,7 @@
 
 /* Login: one narrow form under the title, at x113 of the 1170px mockup. */
 .login {
-  width: min(100% - 48px, 944px);
+  width: min(100% - 48px, calc(var(--page-width) - 116px));
   padding-top: 103px;
 }
 
@@ -100,8 +100,8 @@
   grid-template-columns: 1fr 618px;
   align-items: start;
   gap: 48px;
-  width: min(100% - 48px, 1015px);
-  margin-left: max(24px, calc(50% - 467px));
+  width: min(100% - 48px, calc(var(--page-width) - 45px));
+  margin-left: max(24px, calc(50% - var(--page-width) / 2 + 63px));
   padding-top: 48px;
 }
 
