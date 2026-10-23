@@ -1,39 +1,21 @@
-/* List */
-.head {
-  align-items: center;
-  margin-top: 6px;
-  padding-bottom: 8px;
+/* List: the posts beside a column with an invitation and a reminder. */
+.board {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  align-items: start;
+  gap: var(--space-5);
 }
 
-.head p {
-  margin-top: 8px;
-  font-size: 20px;
+.listColumn {
+  display: grid;
+  gap: var(--space-5);
 }
 
-.columns,
 .row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 140px 130px 64px 30px;
+  grid-template-columns: minmax(0, 1fr) 150px 120px 48px 16px;
   align-items: center;
-  gap: 16px;
-  padding: 0 16px;
-}
-
-.columns {
-  padding-block: 10px;
-  border-bottom: 1px solid var(--line);
-  color: var(--muted);
-  font-size: 14px;
-}
-
-.row {
-  position: relative;
-  min-height: 51px;
-  border-bottom: 1px solid var(--line);
-}
-
-.row:hover {
-  background: var(--card);
+  gap: var(--space-4);
 }
 
 .row > svg {
@@ -42,9 +24,12 @@
 }
 
 .row h2 {
-  font-size: 19px;
+  color: var(--ink);
+  font-size: var(--text-lg);
   font-weight: 500;
-  overflow-wrap: anywhere;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* The title link stretches over the row, so the whole row is clickable. */
@@ -54,67 +39,65 @@
   inset: 0;
 }
 
+/* A face beside a nickname, in the list, the post and its comments. */
+.author {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 /* A long nickname is cut with an ellipsis instead of running into the date. */
 .row .author {
   min-width: 0;
-  font-size: 15px;
+  font-size: var(--text-sm);
+}
+
+.row .author span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.date {
-  color: var(--muted);
-  font-size: 15px;
-}
-
 .count {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-1);
   color: var(--accent);
-  font-size: 16px;
+  font-weight: 700;
 }
 
 /* The bubble icon only shows in the phone layout, where the count has no
-   column heading. */
+   column of its own. */
 .count svg {
   display: none;
 }
 
 .pages {
-  display: grid;
-  grid-template-columns: 108px auto 108px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 40px;
-  margin-top: 4px;
-}
-
-.pages > a,
-.pages > .off {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  height: 48px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  color: var(--ink);
-  font-size: 16px;
+  gap: var(--space-4);
 }
 
 .pages > .off {
-  color: var(--muted);
-}
-
-.pages > span:not(.off) {
-  font-size: 19px;
+  opacity: 0.6;
+  cursor: default;
 }
 
 .pages strong {
   color: var(--accent);
-  font-weight: 500;
+}
+
+.side {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.invite {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  text-align: center;
 }
 
 /* Detail */
@@ -122,38 +105,28 @@
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
-  gap: 18px 24px;
+  gap: var(--space-4) var(--space-5);
 }
 
 .post > h1 {
   grid-column: 1 / -1;
-  color: var(--ink);
-  font-size: 40px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
   overflow-wrap: anywhere;
 }
 
 .byline {
   display: grid;
-  gap: 4px;
-}
-
-.byline time {
-  color: var(--muted);
-  font-size: 17px;
+  gap: var(--space-1);
 }
 
 .post .author,
 .comment .author {
   color: var(--ink);
-  font-size: 18px;
   font-weight: 700;
 }
 
 .actions {
   display: flex;
-  gap: 12px;
+  gap: var(--space-2);
 }
 
 .content {
@@ -163,54 +136,22 @@
 
 .post > .content {
   grid-column: 1 / -1;
-  padding: 28px 0;
+  padding: var(--space-6) 0;
   border-block: 1px solid var(--line);
-  font-size: 19px;
-  line-height: 1.55;
+  font-size: var(--text-lg);
+  line-height: 1.7;
 }
 
 .post > [role="alert"] {
   grid-column: 1 / -1;
 }
 
-.primary,
-.secondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 100px;
-  height: 48px;
-  padding: 0 20px;
-  border-radius: 4px;
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.primary {
-  border: 0;
-  background: var(--accent);
-  color: white;
-}
-
-.secondary {
-  border: 1px solid var(--accent);
-  background: var(--field);
-  color: var(--accent);
-}
-
-.primary:disabled,
-.secondary:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
 /* Comments */
 .comments > h2 {
-  margin-bottom: 4px;
+  margin-bottom: var(--space-1);
   color: var(--ink);
-  font-size: 24px;
-  font-weight: 800;
+  font-size: var(--text-2xl);
+  font-weight: 700;
 }
 
 .comments > h2 span {
@@ -221,15 +162,10 @@
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 8px 14px;
-  padding: 20px 0;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-5) 0;
   border-bottom: 1px solid var(--line);
   overflow-wrap: anywhere;
-}
-
-.comment time {
-  color: var(--muted);
-  font-size: 15px;
 }
 
 .comment > :is(.content, form, [role="alert"]) {
@@ -237,26 +173,17 @@
 }
 
 .comment > .content {
-  font-size: 17px;
   line-height: 1.7;
 }
 
 .commentActions {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .comment > .commentActions {
   grid-row: 1;
   grid-column: 3;
-}
-
-.commentActions .primary,
-.commentActions .secondary {
-  min-width: 72px;
-  height: 38px;
-  padding: 0 14px;
-  font-size: 15px;
 }
 
 .commentEdit textarea {
@@ -266,8 +193,9 @@
 .commentForm {
   display: grid;
   grid-template-columns: 1fr 160px;
-  gap: 14px;
-  margin-top: 20px;
+  align-items: start;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
 }
 
 .commentForm textarea {
@@ -332,13 +260,21 @@
   grid-template-columns: 340px 1fr;
 }
 
-@media (max-width: 720px) {
-  .columns {
-    display: none;
+/* Narrower windows put the side column under the list. */
+@media (max-width: 1279px) {
+  .board {
+    grid-template-columns: 1fr;
   }
 
-  .head p {
-    font-size: 15px;
+  .side {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+@media (max-width: 720px) {
+  .side {
+    grid-template-columns: 1fr;
   }
 
   .count svg {
@@ -359,20 +295,14 @@
     height: 220px;
   }
 
-  .pages {
-    grid-template-columns: 90px 1fr 90px;
-    gap: 16px;
-  }
-
   .row {
     grid-template-columns: auto auto 1fr 20px;
-    gap: 4px 10px;
-    padding: 14px 4px;
+    gap: var(--space-1) var(--space-3);
   }
 
   .row h2 {
     grid-column: 1 / 4;
-    font-size: 17px;
+    font-size: var(--text-md);
   }
 
   .row > svg {
@@ -391,19 +321,10 @@
 
   .row > :is(.author, .date, .count) {
     grid-row: 2;
-    font-size: 14px;
   }
 
   .post {
     grid-template-columns: 1fr;
-  }
-
-  .post > h1 {
-    font-size: 28px;
-  }
-
-  .post > .content {
-    font-size: 17px;
   }
 
   .commentForm {

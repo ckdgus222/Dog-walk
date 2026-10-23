@@ -135,6 +135,11 @@
   padding: var(--space-4) var(--space-5);
 }
 
+/* A row that opens something lights up under the pointer. */
+.listRow:has(a, button):hover {
+  background: var(--card);
+}
+
 .listRow + .listRow::after {
   content: "";
   position: absolute;

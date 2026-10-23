@@ -10,7 +10,13 @@ import {
 import { useAuthStore } from "../../lib/auth-store";
 import type { Comment } from "../../lib/types";
 import formStyles from "../_components/form.module.css";
+import { PersonFace } from "../_components/person-face";
+import uiStyles from "../_components/ui.module.css";
 import styles from "./posts.module.css";
+
+const smallPrimary = `${uiStyles.button} ${uiStyles.sm} ${uiStyles.primary}`;
+const smallSecondary = `${uiStyles.button} ${uiStyles.sm}`;
+const smallDanger = `${smallSecondary} ${uiStyles.danger}`;
 
 // Mounted only while editing, so closing it drops the draft and any error.
 const CommentEditForm = ({
@@ -56,12 +62,12 @@ const CommentEditForm = ({
         </span>
       </label>
       <div className={styles.commentActions}>
-        <button className={styles.primary} disabled={update.isPending}>
+        <button className={smallPrimary} disabled={update.isPending}>
           저장
         </button>
         <button
           type="button"
-          className={styles.secondary}
+          className={smallSecondary}
           disabled={update.isPending}
           onClick={onDone}
         >
@@ -82,8 +88,11 @@ const CommentItem = ({ comment }: { comment: Comment }) => {
 
   return (
     <article className={styles.comment}>
-      <p className={styles.author}>{comment.author.nickname}</p>
-      <time dateTime={comment.createdAt}>
+      <p className={styles.author}>
+        <PersonFace userId={comment.author.id} size={32} />
+        {comment.author.nickname}
+      </p>
+      <time className={uiStyles.meta} dateTime={comment.createdAt}>
         {new Date(comment.createdAt).toLocaleDateString("ko-KR")}
       </time>
       {editing ? (
@@ -94,7 +103,7 @@ const CommentItem = ({ comment }: { comment: Comment }) => {
           {userId === comment.author.id && (
             <div className={styles.commentActions}>
               <button
-                className={styles.primary}
+                className={smallPrimary}
                 disabled={remove.isPending}
                 onClick={() => {
                   remove.reset();
@@ -104,7 +113,7 @@ const CommentItem = ({ comment }: { comment: Comment }) => {
                 수정
               </button>
               <button
-                className={styles.secondary}
+                className={smallDanger}
                 disabled={remove.isPending}
                 onClick={() => {
                   if (window.confirm("댓글을 삭제할까요?"))

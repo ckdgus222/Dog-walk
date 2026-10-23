@@ -4,10 +4,14 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { AuthGate } from "../../_components/auth-gate";
+import { dangerButton, primaryButton } from "../../_components/buttons";
+import headingStyles from "../../_components/heading.module.css";
 import layoutStyles from "../../_components/layout.module.css";
 import { useDeletePost, usePost } from "../../../lib/api/posts";
 import { useAuthStore } from "../../../lib/auth-store";
 import { ChevronLeft } from "../../_components/icons";
+import { PersonFace } from "../../_components/person-face";
+import uiStyles from "../../_components/ui.module.css";
 import { Comments } from "../comments";
 import styles from "../posts.module.css";
 
@@ -24,10 +28,15 @@ const PostDetail = () => {
   return (
     <>
       <article className={styles.post} aria-label="게시글">
-        <h1>{post.title}</h1>
+        <h1 className={`${headingStyles.title} ${headingStyles.formTitle}`}>
+          {post.title}
+        </h1>
         <div className={styles.byline}>
-          <p className={styles.author}>{post.author.nickname}</p>
-          <time dateTime={post.createdAt}>
+          <p className={styles.author}>
+            <PersonFace userId={post.author.id} size={32} />
+            {post.author.nickname}
+          </p>
+          <time className={uiStyles.meta} dateTime={post.createdAt}>
             {new Date(post.createdAt).toLocaleDateString("ko-KR")}
           </time>
         </div>
@@ -35,12 +44,12 @@ const PostDetail = () => {
           <div className={styles.actions}>
             <Link
               href={`/posts/${post.id}/edit`}
-              className={styles.primary}
+              className={primaryButton}
             >
               글 수정
             </Link>
             <button
-              className={styles.secondary}
+              className={dangerButton}
               disabled={remove.isPending}
               onClick={() => {
                 if (!window.confirm("글을 삭제할까요?")) return;

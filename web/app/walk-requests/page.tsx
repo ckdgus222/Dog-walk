@@ -9,6 +9,7 @@ import {
 import type { WalkRequest } from "../../lib/types";
 import crouchPetHeader from "../../public/illustrations/walking-drawing/crouch-pet-header.png";
 import { AuthGate } from "../_components/auth-gate";
+import { dangerButton, primaryButton } from "../_components/buttons";
 import { DogFace, genderLabels, sizeLabels } from "../_components/dog-card";
 import { EmptyState } from "../_components/empty-state";
 import headingStyles from "../_components/heading.module.css";
@@ -31,9 +32,6 @@ const statusBadges = {
   REJECTED: uiStyles.closed,
   CANCELED: uiStyles.closed,
 };
-
-const primaryButton = `${uiStyles.button} ${uiStyles.md} ${uiStyles.primary}`;
-const dangerButton = `${uiStyles.button} ${uiStyles.md} ${uiStyles.danger}`;
 
 const requestTime = new Intl.DateTimeFormat("ko-KR", {
   dateStyle: "long",

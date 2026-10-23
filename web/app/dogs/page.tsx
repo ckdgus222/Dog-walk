@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { AuthGate } from "../_components/auth-gate";
+import { dangerButton, secondaryButton } from "../_components/buttons";
 import { DogCard } from "../_components/dog-card";
 import headingStyles from "../_components/heading.module.css";
 import { InfoIcon, PlusIcon } from "../_components/icons";
@@ -75,13 +76,13 @@ const DogList = () => {
             <div className={styles.actions}>
               <Link
                 href={`/dogs/${dog.id}/edit`}
-                className={`${uiStyles.button} ${uiStyles.md}`}
+                className={secondaryButton}
               >
                 수정
               </Link>
               <button
                 type="button"
-                className={`${uiStyles.button} ${uiStyles.md} ${uiStyles.danger}`}
+                className={dangerButton}
                 disabled={remove.isPending}
                 onClick={() => removeDog(dog)}
               >

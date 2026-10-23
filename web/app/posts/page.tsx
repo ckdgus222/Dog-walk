@@ -1,9 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { AuthGate } from "../_components/auth-gate";
+import { secondaryButton as pageButton } from "../_components/buttons";
 import { EmptyState } from "../_components/empty-state";
 import formStyles from "../_components/form.module.css";
 import {
@@ -11,9 +13,12 @@ import {
   ArrowRight,
   ChatIcon,
   ChevronRight,
+  InfoIcon,
 } from "../_components/icons";
 import headingStyles from "../_components/heading.module.css";
 import layoutStyles from "../_components/layout.module.css";
+import { PersonFace } from "../_components/person-face";
+import uiStyles from "../_components/ui.module.css";
 import { usePosts } from "../../lib/api/posts";
 import communityChat from "../../public/illustrations/walking-drawing/community-chat.svg";
 import styles from "./posts.module.css";
@@ -38,38 +43,43 @@ const PostList = () => {
     <>
       {query.error && <p role="alert">{query.error.message}</p>}
       {query.isPending && <p role="status">글을 불러오고 있어요.</p>}
-      <div>
-        <div className={styles.columns} aria-hidden="true">
-          <span>제목</span>
-          <span>작성자</span>
-          <span>작성일</span>
-          <span>댓글</span>
+      {!!query.data?.posts.length && (
+        <div className={uiStyles.list}>
+          {query.data.posts.map((post) => (
+            <article
+              key={post.id}
+              className={`${uiStyles.listRow} ${styles.row}`}
+            >
+              <h2>
+                <Link href={`/posts/${post.id}`}>
+                  {post.title}
+                  {/* Kept in the link name; the count column shows it on screen. */}
+                  {post.commentCount > 0 && (
+                    <span className={formStyles.visuallyHidden}>
+                      {` [${post.commentCount}]`}
+                    </span>
+                  )}
+                </Link>
+              </h2>
+              <p className={styles.author}>
+                <PersonFace userId={post.author.id} size={32} />
+                <span>{post.author.nickname}</span>
+              </p>
+              <time
+                className={`${uiStyles.meta} ${styles.date}`}
+                dateTime={post.createdAt}
+              >
+                {listDate(post.createdAt)}
+              </time>
+              <span className={styles.count} aria-hidden="true">
+                <ChatIcon />
+                {post.commentCount}
+              </span>
+              <ChevronRight size={22} />
+            </article>
+          ))}
         </div>
-        {query.data?.posts.map((post) => (
-          <article key={post.id} className={styles.row}>
-            <h2>
-              <Link href={`/posts/${post.id}`}>
-                {post.title}
-                {/* Kept in the link name; the count column shows it on screen. */}
-                {post.commentCount > 0 && (
-                  <span className={formStyles.visuallyHidden}>
-                    {` [${post.commentCount}]`}
-                  </span>
-                )}
-              </Link>
-            </h2>
-            <p className={styles.author}>{post.author.nickname}</p>
-            <time className={styles.date} dateTime={post.createdAt}>
-              {listDate(post.createdAt)}
-            </time>
-            <span className={styles.count} aria-hidden="true">
-              <ChatIcon />
-              {post.commentCount}
-            </span>
-            <ChevronRight size={22} />
-          </article>
-        ))}
-      </div>
+      )}
       {query.data &&
         (page > query.data.totalPages ? (
           <>
@@ -91,12 +101,12 @@ const PostList = () => {
             {/* An unusable step stays visible but is not a link. */}
             <nav aria-label="게시판 페이지" className={styles.pages}>
               {page > 1 ? (
-                <Link href={`/posts?page=${page - 1}`}>
+                <Link href={`/posts?page=${page - 1}`} className={pageButton}>
                   <ArrowLeft />
                   이전
                 </Link>
               ) : (
-                <span className={styles.off}>
+                <span className={`${pageButton} ${styles.off}`}>
                   <ArrowLeft />
                   이전
                 </span>
@@ -105,12 +115,12 @@ const PostList = () => {
                 <strong>{page}</strong> / {query.data.totalPages}
               </span>
               {page < query.data.totalPages ? (
-                <Link href={`/posts?page=${page + 1}`}>
+                <Link href={`/posts?page=${page + 1}`} className={pageButton}>
                   다음
                   <ArrowRight size={18} />
                 </Link>
               ) : (
-                <span className={styles.off}>
+                <span className={`${pageButton} ${styles.off}`}>
                   다음
                   <ArrowRight size={18} />
                 </span>
@@ -124,7 +134,7 @@ const PostList = () => {
 
 const PostsPage = () => (
   <main className={layoutStyles.main}>
-    <div className={`${layoutStyles.head} ${styles.head}`}>
+    <div className={layoutStyles.head}>
       <div>
         <h1 className={headingStyles.title}>게시판</h1>
         <p className={headingStyles.lead}>
@@ -139,11 +149,28 @@ const PostsPage = () => (
         <ArrowRight />
       </Link>
     </div>
-    <AuthGate>
-      <Suspense fallback={<p role="status">글을 불러오고 있어요.</p>}>
-        <PostList />
-      </Suspense>
-    </AuthGate>
+    <div className={styles.board}>
+      <div className={styles.listColumn}>
+        <AuthGate>
+          <Suspense fallback={<p role="status">글을 불러오고 있어요.</p>}>
+            <PostList />
+          </Suspense>
+        </AuthGate>
+      </div>
+      <aside className={styles.side}>
+        <div className={`${uiStyles.card} ${styles.invite}`}>
+          <Image src={communityChat} alt="" width={88} height={88} />
+          <h2 className={uiStyles.cardTitle}>이야기를 나눠요</h2>
+          <p className={uiStyles.meta}>
+            산책 길, 강아지 습관, 동네 소식 무엇이든 좋아요.
+          </p>
+        </div>
+        <p className={uiStyles.notice}>
+          <InfoIcon size={24} />
+          서로 존중하는 말로 이야기해 주세요.
+        </p>
+      </aside>
+    </div>
   </main>
 );
 export default PostsPage;
