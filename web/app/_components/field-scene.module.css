@@ -88,8 +88,15 @@
   animation: bounce 0.3s ease-in-out infinite;
 }
 
-.body img + img {
+/* The poses take turns, stretched (the first) at the top of each bounce and
+   tucked (the second) as it lands. Only one shows at a time: the stretched
+   legs would poke out behind the tucked pose as extra legs. */
+.body img {
   animation: frame 0.3s steps(1) infinite;
+}
+
+.body img + img {
+  animation-delay: -0.15s;
 }
 
 /* Intro: each layer rises a little and fades in at its own time, and the
@@ -278,12 +285,18 @@
   }
 }
 
+/* Shown for the middle half of each bounce; steps(1) holds each value until
+   the next keyframe. */
 @keyframes frame {
   0% {
+    opacity: 0;
+  }
+
+  25% {
     opacity: 1;
   }
 
-  50% {
+  75% {
     opacity: 0;
   }
 }
