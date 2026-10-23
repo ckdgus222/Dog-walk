@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link, { type LinkProps } from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useAuth } from "./auth-provider";
@@ -70,25 +70,47 @@ export const SiteHeader = () => {
   );
 };
 
-const MainMenu = ({ pendingCount }: { pendingCount: number }) => (
-  <nav aria-label="주 메뉴" className={styles.menu}>
-    <MenuLink href="/map">주변 친구</MenuLink>
-    <MenuLink href="/walk-requests">
-      산책 요청{" "}
-      {pendingCount > 0 && (
-        <span
-          className={styles.badge}
-          aria-label={`받은 산책 요청 ${pendingCount}개`}
-        >
-          {pendingCount}
-        </span>
-      )}
-    </MenuLink>
-    <MenuLink href="/dogs">내 반려견</MenuLink>
-    <MenuLink href="/diaries">산책 일기</MenuLink>
-    <MenuLink href="/posts">게시판</MenuLink>
-  </nav>
-);
+const MainMenu = ({
+  pendingCount,
+  onLockedClick,
+}: {
+  pendingCount: number;
+  onLockedClick?: () => void;
+}) => {
+  const handleNavigate: LinkProps["onNavigate"] = (event) => {
+    if (!onLockedClick) return;
+    event.preventDefault();
+    onLockedClick();
+  };
+
+  return (
+    <nav aria-label="주 메뉴" className={styles.menu}>
+      <MenuLink href="/map" onNavigate={handleNavigate}>
+        주변 친구
+      </MenuLink>
+      <MenuLink href="/walk-requests" onNavigate={handleNavigate}>
+        산책 요청{" "}
+        {pendingCount > 0 && (
+          <span
+            className={styles.badge}
+            aria-label={`받은 산책 요청 ${pendingCount}개`}
+          >
+            {pendingCount}
+          </span>
+        )}
+      </MenuLink>
+      <MenuLink href="/dogs" onNavigate={handleNavigate}>
+        내 반려견
+      </MenuLink>
+      <MenuLink href="/diaries" onNavigate={handleNavigate}>
+        산책 일기
+      </MenuLink>
+      <MenuLink href="/posts" onNavigate={handleNavigate}>
+        게시판
+      </MenuLink>
+    </nav>
+  );
+};
 
 const GuestLinks = () => (
   <>
@@ -101,29 +123,42 @@ const GuestLinks = () => (
 // Guests see the same menu; the account links fold into a menu button on
 // phones, as in the mockup.
 const GuestHeader = () => {
-  // The header stays mounted across pages, so a new key closes the menu after
-  // a link in it is used.
+  // Reset the notice and account menu whenever the path changes.
   const pathname = usePathname();
+  return <GuestHeaderContent key={pathname} />;
+};
+
+const GuestHeaderContent = () => {
+  const [loginNotice, setLoginNotice] = useState(false);
   return (
-  <header className={styles.header}>
-    <div className={styles.bar}>
-      <Link href="/" className={styles.logo}>
-        강아지 산책
-      </Link>
-      <MainMenu pendingCount={0} />
-      <div className={`${styles.account} ${styles.guestLinks}`}>
-        <GuestLinks />
-      </div>
-      <details key={pathname} className={styles.guestMenu}>
-        <summary aria-label="계정 메뉴">
-          <MenuIcon />
-        </summary>
-        <div>
+    <header className={styles.header}>
+      <div className={styles.bar}>
+        <Link href="/" className={styles.logo}>
+          강아지 산책
+        </Link>
+        <MainMenu pendingCount={0} onLockedClick={() => setLoginNotice(true)} />
+        <div className={`${styles.account} ${styles.guestLinks}`}>
           <GuestLinks />
         </div>
-      </details>
-    </div>
-  </header>
+        <details className={styles.guestMenu}>
+          <summary aria-label="계정 메뉴">
+            <MenuIcon />
+          </summary>
+          <div>
+            <GuestLinks />
+          </div>
+        </details>
+      </div>
+      {loginNotice && (
+        <div role="status" className={styles.notice}>
+          <p>로그인 후 이용할 수 있어요.</p>
+          <Link href="/login">로그인</Link>
+          <button type="button" onClick={() => setLoginNotice(false)}>
+            닫기
+          </button>
+        </div>
+      )}
+    </header>
   );
 };
 
@@ -133,14 +168,20 @@ const GuestHeader = () => {
 const MenuLink = ({
   href,
   children,
+  onNavigate,
 }: {
   href: string;
   children: React.ReactNode;
+  onNavigate?: LinkProps["onNavigate"];
 }) => {
   const pathname = usePathname();
   const current = pathname === href || pathname.startsWith(`${href}/`);
   return (
-    <Link href={href} aria-current={current ? "page" : undefined}>
+    <Link
+      href={href}
+      aria-current={current ? "page" : undefined}
+      onNavigate={onNavigate}
+    >
       {children}
     </Link>
   );
