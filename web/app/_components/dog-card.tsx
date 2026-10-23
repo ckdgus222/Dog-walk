@@ -108,17 +108,14 @@ export const DogCard = ({
       />
     )}
     <Heading>{dog.name}</Heading>
-    {/* One line on wide screens; pages may break it after the gender. */}
     <p>
-      <span>
-        {[dog.breed, sizeLabels[dog.size], genderLabels[dog.gender]].join(
-          ` ${separator} `,
-        )}
-      </span>
-      <span>{` ${separator} `}</span>
-      <span>
-        {`${dog.neutered ? "중성화" : "중성화 안 함"} ${separator} ${dog.birthYear}년생`}
-      </span>
+      {[
+        dog.breed,
+        sizeLabels[dog.size],
+        genderLabels[dog.gender],
+        dog.neutered ? "중성화" : "중성화 안 함",
+        `${dog.birthYear}년생`,
+      ].join(` ${separator} `)}
     </p>
     <p>{dog.personality}</p>
     {children}

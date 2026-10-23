@@ -1,40 +1,28 @@
-/* List */
-.head {
-  align-items: center;
-  margin-top: 14px;
-  padding-bottom: 22px;
-  border-bottom: 1px solid var(--line);
-}
-
-.head p {
-  margin-top: 10px;
-  font-size: 21px;
-}
-
+/* List: dog cards in as many columns as fit, then a tile for a new dog. */
 .list {
   display: grid;
-  gap: 20px;
-  margin-top: -4px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 460px), 1fr));
+  gap: var(--space-4);
 }
 
+/* The photo on the left, the name and details beside it, the buttons on a
+   line of their own. */
 .card {
+  composes: card from "../_components/ui.module.css";
+  --photo: 132px;
   display: grid;
-  grid-template-columns: 190px 1fr auto;
-  grid-template-rows: auto auto auto 1fr;
-  column-gap: 36px;
-  row-gap: 8px;
-  padding: 16px 28px 16px 16px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: var(--card);
+  grid-template-columns: var(--photo) minmax(0, 1fr);
+  grid-template-rows: auto auto 1fr auto;
+  column-gap: var(--space-5);
+  row-gap: var(--space-1);
   overflow-wrap: anywhere;
 }
 
 .card > img {
-  grid-row: 1 / -1;
-  width: 190px;
-  height: 178px;
-  border-radius: 6px;
+  grid-row: 1 / 4;
+  width: var(--photo);
+  height: var(--photo);
+  border-radius: var(--radius-md);
   background: var(--sage-soft);
   object-fit: cover;
 }
@@ -43,87 +31,56 @@
   grid-column: 2;
 }
 
+/* Same look as ui.module.css .cardTitle; DogCard styles its parts by
+   element, so the class cannot be composed here. */
 .card > h2 {
-  margin-top: 10px;
   color: var(--ink);
-  font-size: 30px;
-  font-weight: 800;
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: 1.4;
 }
 
 .card > p {
   color: var(--muted);
-  font-size: 18px;
-  word-spacing: 10px;
+  font-size: var(--text-sm);
 }
 
 .card > p:last-of-type {
-  margin: 4px 30px 0 0;
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
+  margin-top: var(--space-2);
   color: var(--text);
+  font-size: var(--text-md);
   line-height: 1.6;
-  word-spacing: normal;
 }
 
 .actions {
-  display: grid;
-  grid-column: 3;
-  grid-row: 1 / -1;
-  align-self: center;
-  gap: 14px;
-}
-
-.actions a,
-.actions button {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 140px;
-  height: 48px;
-  border: 1px solid var(--ink);
-  border-radius: 4px;
-  background: var(--field);
-  color: var(--ink);
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line);
 }
 
-.actions button {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.actions button:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
-.notice {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-top: -10px;
-  padding: 9px 22px;
-  border-radius: 4px;
-  background: var(--sage-soft);
-  color: var(--muted);
-  font-size: 18px;
-  font-weight: 400;
-}
-
-.notice::before {
-  /* The empty alternative text keeps screen readers from reading the mark. */
-  content: "!" / "";
+.addTile {
+  composes: rough from "../_components/ui.module.css";
   display: grid;
-  flex: none;
   place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #7e8f7f;
-  color: white;
-  font-weight: 800;
+  align-content: center;
+  gap: var(--space-2);
+  min-height: 220px;
+  border-radius: var(--radius-md);
+  color: var(--ink);
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+
+.addTile::before {
+  border-style: dashed;
+}
+
+.addTile:hover {
+  background: var(--card-bg);
 }
 
 /* The dogs lie on the rug under the list, out to the panel's edges and
@@ -299,78 +256,17 @@
 }
 
 @media (max-width: 720px) {
-  .head {
-    margin-top: 0;
-    padding-bottom: 0;
-    border-bottom: 0;
-  }
-
-  .head p {
-    margin-top: 6px;
-    font-size: 16px;
-  }
-
-  .list {
-    gap: 14px;
-    margin-top: 0;
-  }
-
-  /* The details break after the gender, as in the phone mockup. */
-  .card > p:first-of-type > span {
-    display: block;
-  }
-
-  .card > p:first-of-type > span:nth-child(2) {
-    display: none;
-  }
-
-  .notice {
-    margin-top: 0;
-    padding: 12px 18px;
-    font-size: 15px;
-  }
-
   .card {
-    grid-template-columns: 116px 1fr;
-    grid-template-rows: none;
-    column-gap: 18px;
-    row-gap: 4px;
-    padding: 12px;
+    --photo: 96px;
+    column-gap: var(--space-4);
   }
 
-  .card > img {
-    grid-row: 1 / span 3;
-    width: 116px;
-    height: 124px;
+  .actions > * {
+    flex: 1;
   }
 
-  .card > h2 {
-    margin-top: 6px;
-    font-size: 21px;
-  }
-
-  .card > p {
-    font-size: 15px;
-    word-spacing: 3px;
-  }
-
-  .card > p:last-of-type {
-    margin: 2px 0 0;
-    padding-top: 8px;
-    font-size: 15px;
-  }
-
-  .actions {
-    grid-template-columns: 1fr 1fr;
-    grid-column: 1 / -1;
-    grid-row: auto;
-    margin-top: 12px;
-  }
-
-  .actions a,
-  .actions button {
-    width: auto;
-    height: 46px;
+  .addTile {
+    min-height: 120px;
   }
 
   .formActions {

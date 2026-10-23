@@ -4,8 +4,9 @@ import Link from "next/link";
 import { AuthGate } from "../_components/auth-gate";
 import { DogCard } from "../_components/dog-card";
 import headingStyles from "../_components/heading.module.css";
-import { PlusIcon } from "../_components/icons";
+import { InfoIcon, PlusIcon } from "../_components/icons";
 import layoutStyles from "../_components/layout.module.css";
+import uiStyles from "../_components/ui.module.css";
 import { SceneImage } from "../_components/walk-scene";
 import { useDeleteDog, useMyDogs } from "../../lib/api/dogs";
 import type { Dog } from "../../lib/types";
@@ -16,7 +17,7 @@ import styles from "./dogs.module.css";
 const DogsPage = () => {
   return (
     <main className={layoutStyles.main}>
-      <div className={`${layoutStyles.head} ${styles.head}`}>
+      <div className={layoutStyles.head}>
         <div>
           <h1 className={headingStyles.title}>내 반려견</h1>
           <p className={headingStyles.lead}>
@@ -72,9 +73,15 @@ const DogList = () => {
             order={index}
           >
             <div className={styles.actions}>
-              <Link href={`/dogs/${dog.id}/edit`}>수정</Link>
+              <Link
+                href={`/dogs/${dog.id}/edit`}
+                className={`${uiStyles.button} ${uiStyles.md}`}
+              >
+                수정
+              </Link>
               <button
                 type="button"
+                className={`${uiStyles.button} ${uiStyles.md} ${uiStyles.danger}`}
                 disabled={remove.isPending}
                 onClick={() => removeDog(dog)}
               >
@@ -85,19 +92,23 @@ const DogList = () => {
             </div>
           </DogCard>
         ))}
+        {query.isSuccess && (
+          <Link href="/dogs/new" className={styles.addTile}>
+            <PlusIcon size={32} />새 반려견 소개하기
+          </Link>
+        )}
       </div>
       {/* The bar always explains the one-dog rule, and shows the error in
           its place when something fails. */}
-      {error ? (
-        <p key="error" role="alert" className={styles.notice}>
-          {error}
+      {(error || query.isSuccess) && (
+        <p
+          key={error ? "error" : "hint"}
+          role={error ? "alert" : undefined}
+          className={uiStyles.notice}
+        >
+          <InfoIcon size={24} />
+          {error || "반려견은 최소 한 마리 있어야 해요."}
         </p>
-      ) : (
-        query.isSuccess && (
-          <p key="hint" className={styles.notice}>
-            반려견은 최소 한 마리 있어야 해요.
-          </p>
-        )
       )}
     </>
   );
