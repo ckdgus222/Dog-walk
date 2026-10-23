@@ -313,7 +313,11 @@ test("위치 동의를 철회한 뒤 늦은 조회가 공개 상태를 되살리
     await expect(
       main.getByRole("button", { name: "위치 공개 끄기" }),
     ).toBeVisible();
-    await main.getByRole("link", { name: "홈으로" }).click();
+    await page
+      .getByRole("banner")
+      .getByRole("link", { name: "강아지 산책", exact: true })
+      .click();
+    await expect(page).toHaveURL("/");
     const held = await holdNextResponse(page, "**/api/users/me/location");
     await main.getByRole("link", { name: "주변 친구 찾기", exact: true }).click();
     const { response } = await held.captured;

@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useLayoutEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { AuthGate } from "../_components/auth-gate";
+import { PinIcon } from "../_components/icons";
 import headingStyles from "../_components/heading.module.css";
 import layoutStyles from "../_components/layout.module.css";
 import {
@@ -23,8 +23,8 @@ const noNeighbors: Neighbor[] = [];
 
 const MapPage = () => {
   return (
-    <main className={layoutStyles.main}>
-      <div>
+    <main className={`${layoutStyles.main} ${styles.page}`}>
+      <div className={styles.head}>
         <h1 className={headingStyles.title}>내 주변 산책 친구</h1>
         <p className={headingStyles.lead}>
           지금 이 근처에서 함께 산책할 수 있는 이웃을 찾아보세요.
@@ -33,9 +33,6 @@ const MapPage = () => {
       <AuthGate>
         <LocationPanel />
       </AuthGate>
-      <Link href="/" className={layoutStyles.home}>
-        홈으로
-      </Link>
     </main>
   );
 };
@@ -170,7 +167,10 @@ const LocationPanel = () => {
     <>
       {error && <p role="alert">{error}</p>}
       <div className={styles.status}>
-        <span className={styles.live}>위치 공개 중</span>
+        <span className={styles.live}>
+          <PinIcon />
+          위치 공개 중
+        </span>
         <button
           type="button"
           disabled={consent.isPending}
@@ -180,9 +180,12 @@ const LocationPanel = () => {
         </button>
         {location.updatedAt && (
           <p>
-            마지막 갱신:{" "}
+            마지막 업데이트{" "}
             <time dateTime={location.updatedAt}>
-              {new Date(location.updatedAt).toLocaleString("ko-KR")}
+              {new Date(location.updatedAt).toLocaleString("ko-KR", {
+                dateStyle: "medium",
+                timeStyle: "short",
+              })}
             </time>
           </p>
         )}
@@ -192,6 +195,7 @@ const LocationPanel = () => {
           lat={location.lat}
           lng={location.lng}
           neighbors={neighbors ?? noNeighbors}
+          selectedId={selectedId}
           onSelect={setSelectedId}
         />
       )}

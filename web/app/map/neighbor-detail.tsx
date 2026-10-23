@@ -3,6 +3,8 @@ import { DogCard } from "../_components/dog-card";
 import { SendWalkRequest } from "./send-walk-request";
 import styles from "./map.module.css";
 
+// The owner's name and distance sit beside the first dog's picture, as in the
+// mockup; any further dogs follow underneath.
 export const NeighborDetail = ({ neighbor }: { neighbor: Neighbor }) => (
   <section
     className={styles.selected}
@@ -10,11 +12,15 @@ export const NeighborDetail = ({ neighbor }: { neighbor: Neighbor }) => (
   >
     <h2>{neighbor.nickname}</h2>
     <p className={styles.distance}>약 {neighbor.distanceM}m</p>
-    <div className={styles.dogs}>
-      {neighbor.dogs.map((dog) => (
-        <DogCard key={dog.id} dog={dog} heading="h3" className={styles.dog} />
-      ))}
-    </div>
+    {neighbor.dogs.map((dog) => (
+      <DogCard
+        key={dog.id}
+        dog={dog}
+        heading="h3"
+        className={styles.dog}
+        separator="|"
+      />
+    ))}
     <SendWalkRequest key={neighbor.userId} receiverId={neighbor.userId} />
   </section>
 );

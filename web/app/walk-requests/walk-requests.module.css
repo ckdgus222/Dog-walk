@@ -1,18 +1,27 @@
+.head {
+  margin-top: 14px;
+}
+
 .box {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .box > h2 {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 24px;
+  height: 50px;
+  padding: 0 24px;
   border-radius: 4px;
   background: var(--sage-soft);
   color: var(--ink);
   font-size: 21px;
   font-weight: 800;
+}
+
+.box > h2 span {
+  font-weight: 500;
 }
 
 .empty {
@@ -23,36 +32,55 @@
   text-align: center;
 }
 
-.request {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 16px 28px;
-  padding: 22px 28px;
+/* All requests of a box share one card, split by lines. */
+.list {
   border: 1px solid var(--line);
   border-radius: 4px;
   background: var(--surface);
+}
+
+.request {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px 28px;
+  margin: 0 12px;
+  padding: 14px 10px;
   overflow-wrap: anywhere;
 }
 
+.request + .request {
+  border-top: 1px solid var(--line);
+}
+
+.face {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 .info {
+  grid-column: 2;
   display: grid;
-  gap: 6px;
+  gap: 4px;
   min-width: 0;
 }
 
 .info h3 {
   color: var(--ink);
-  font-size: 21px;
+  font-size: 20px;
   font-weight: 800;
 }
 
-.dogNames {
+.dogLine {
   color: var(--muted);
-  font-size: 15px;
+  font-size: 16px;
+  word-spacing: 5px;
 }
 
 .message {
+  margin-top: 2px;
   font-size: 19px;
   font-weight: 700;
 }
@@ -65,24 +93,34 @@
   content: "”";
 }
 
-.info time {
+.personality {
   color: var(--muted);
-  font-size: 14px;
+  font-size: 16px;
 }
 
+.info time {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+/* A status column and a button column, so chips and buttons line up from
+   row to row. */
 .side {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 104px 124px;
   align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
+  gap: 16px;
 }
 
 .status {
-  padding: 8px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
   border-radius: 6px;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 17px;
+  font-weight: 500;
 }
 
 .PENDING {
@@ -106,13 +144,23 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 120px;
   height: 52px;
-  padding: 0 22px;
+  padding: 0 16px;
   border-radius: 4px;
   font: inherit;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 500;
   cursor: pointer;
+}
+
+/* A received request waiting for an answer has two equal buttons. */
+.answer {
+  grid-template-columns: 127px 127px;
+  gap: 10px;
+}
+
+.answer > * {
+  height: 56px;
 }
 
 .primary {
@@ -134,27 +182,74 @@
 }
 
 @media (max-width: 720px) {
+  .head {
+    margin-top: 0;
+  }
+
   .box > h2 {
-    padding: 12px 16px;
-    font-size: 18px;
+    height: 42px;
+    padding: 0 14px;
+    font-size: 17px;
   }
 
   .request {
-    grid-template-columns: 1fr;
-    padding: 18px 16px;
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 10px 14px;
+    margin: 0 10px;
+    padding: 14px 0;
+  }
+
+  .face {
+    width: 64px;
+    height: 64px;
+    align-self: start;
+  }
+
+  .info h3 {
+    font-size: 17px;
+  }
+
+  .dogLine,
+  .personality {
+    font-size: 13px;
+    word-spacing: 2px;
+  }
+
+  .wideOnly {
+    display: none;
   }
 
   .message {
-    font-size: 16px;
+    font-size: 15px;
+  }
+
+  .info time {
+    font-size: 13px;
   }
 
   .side {
-    justify-content: flex-start;
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .status {
+    width: 104px;
+    height: 34px;
+    font-size: 15px;
   }
 
   .primary,
   .secondary {
+    width: 108px;
+    height: 36px;
+    font-size: 15px;
+  }
+
+  /* Received requests split the width between 수락 and 거절. */
+  .answer > * {
     flex: 1;
-    height: 46px;
+    height: 42px;
   }
 }

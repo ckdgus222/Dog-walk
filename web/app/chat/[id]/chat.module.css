@@ -1,68 +1,146 @@
 .back {
-  color: var(--accent);
+  font-size: 18px;
   font-weight: 700;
 }
 
+/* The counterpart's dog on the left, the title and the dog's details beside
+   it, and a short note at the right. */
 .head {
-  padding-bottom: 22px;
+  display: grid;
+  grid-template-areas:
+    "face title note"
+    "face line note"
+    "face personality note";
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 26px;
+  row-gap: 4px;
+  padding-bottom: 18px;
   border-bottom: 1px solid var(--line);
 }
 
+.dogFace {
+  grid-area: face;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: var(--sage-soft);
+  object-fit: cover;
+}
+
+/* Without a dog picture the title starts at the left edge. */
+.head:not(:has(.dogFace)) {
+  column-gap: 0;
+}
+
 .head h1 {
+  grid-area: title;
+  align-self: end;
   color: var(--ink);
   font-size: 40px;
   font-weight: 800;
   letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
 }
 
-.head p {
+.dogLine {
+  grid-area: line;
+  font-size: 19px;
+  word-spacing: 6px;
+}
+
+.personality {
+  grid-area: personality;
+  align-self: start;
+  font-size: 18px;
+}
+
+.note {
+  grid-area: note;
   color: var(--muted);
   font-size: 15px;
+  line-height: 1.7;
+  text-align: right;
 }
 
 .messages {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  height: min(55vh, 520px);
-  padding: 8px 4px;
+  gap: 20px;
+  height: min(55vh, 470px);
+  padding: 8px 14px;
   overflow-y: auto;
   list-style: none;
 }
 
+/* Name above the bubble, time beside its lower end. */
 .mine,
 .theirs {
   display: grid;
-  gap: 6px;
-  max-width: min(75%, 520px);
+  grid-template-columns: auto auto;
+  align-items: end;
+  column-gap: 12px;
+  row-gap: 6px;
+  max-width: min(78%, 640px);
   overflow-wrap: anywhere;
-}
-
-.mine {
-  align-self: flex-end;
-  justify-items: end;
 }
 
 .theirs {
   align-self: flex-start;
-  justify-items: start;
+}
+
+.mine {
+  align-self: flex-end;
 }
 
 .messages strong {
+  grid-row: 1;
   color: var(--ink);
+  font-size: 17px;
+}
+
+.theirs strong,
+.theirs p {
+  grid-column: 1;
+}
+
+.mine strong,
+.mine p {
+  grid-column: 2;
+}
+
+.mine strong {
+  justify-self: end;
 }
 
 .messages p {
+  position: relative;
+  grid-row: 2;
   padding: 14px 20px;
   border-radius: 10px;
-  font-size: 17px;
-  line-height: 1.55;
+  font-size: 19px;
+  line-height: 1.6;
   white-space: pre-wrap;
 }
 
+/* A small tail pointing at the speaker. */
+.messages p::before {
+  content: "";
+  position: absolute;
+  top: 18px;
+  width: 12px;
+  height: 12px;
+  rotate: 45deg;
+}
+
 .theirs p {
-  border: 1px solid var(--line);
-  background: var(--field);
+  background: white;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+}
+
+.theirs p::before {
+  left: -6px;
+  background: white;
 }
 
 .mine p {
@@ -70,9 +148,24 @@
   color: white;
 }
 
+.mine p::before {
+  right: -6px;
+  background: var(--accent);
+}
+
 .messages time {
+  grid-row: 2;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.theirs time {
+  grid-column: 2;
+}
+
+.mine time {
+  grid-column: 1;
 }
 
 /* The message box and the send button share one bordered row. */
@@ -81,7 +174,7 @@
   grid-template-columns: 1fr auto;
   align-items: center;
   gap: 10px;
-  padding: 10px 10px 10px 22px;
+  padding: 10px 10px 10px 26px;
   border: 1px solid var(--line);
   border-radius: 6px;
   background: var(--field);
@@ -95,30 +188,30 @@
 .composer input {
   width: 100%;
   min-width: 0;
-  height: 52px;
+  height: 74px;
   border: 0;
   outline: none;
   background: none;
   color: var(--foreground);
   font: inherit;
-  font-size: 17px;
+  font-size: 19px;
 }
 
 .composer button {
-  height: 56px;
-  padding: 0 32px;
+  width: 140px;
+  height: 70px;
   border: 0;
   border-radius: 4px;
   background: var(--accent);
   color: white;
   font: inherit;
-  font-size: 19px;
+  font-size: 21px;
   font-weight: 700;
   cursor: pointer;
 }
 
 .composer button:disabled {
-  opacity: 0.5;
+  opacity: 0.6;
   cursor: default;
 }
 
@@ -127,26 +220,83 @@
 }
 
 @media (max-width: 720px) {
+  .head {
+    grid-template-areas:
+      "face title"
+      "face line"
+      "face personality"
+      "note note";
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 16px;
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+
+  .dogFace {
+    width: 90px;
+    height: 90px;
+  }
+
   .head h1 {
-    font-size: 26px;
+    font-size: 24px;
+  }
+
+  .dogLine {
+    font-size: 14px;
+    word-spacing: 2px;
+  }
+
+  .personality {
+    font-size: 14px;
+  }
+
+  .note {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .wideBreak {
+    display: none;
+  }
+
+  .messages {
+    gap: 14px;
+    padding: 4px;
   }
 
   .mine,
   .theirs {
-    max-width: 85%;
+    max-width: 92%;
+  }
+
+  .messages strong {
+    font-size: 15px;
   }
 
   .messages p {
+    padding: 10px 14px;
     font-size: 15px;
+  }
+
+  .messages time {
+    font-size: 13px;
   }
 
   .composer {
     padding-left: 14px;
   }
 
+  .composer input {
+    height: 60px;
+    font-size: 15px;
+  }
+
   .composer button {
-    height: 48px;
-    padding: 0 20px;
-    font-size: 16px;
+    width: 84px;
+    height: 64px;
+    font-size: 18px;
   }
 }

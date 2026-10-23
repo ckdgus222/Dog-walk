@@ -5,9 +5,12 @@ import { useParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useChatHistory, useSendChatMessage } from "../../../lib/api/chat";
+import { useWalkRequests } from "../../../lib/api/walk-requests";
 import { AuthGate } from "../../_components/auth-gate";
 import { useAuth } from "../../_components/auth-provider";
+import { DogFace, genderLabels, sizeLabels } from "../../_components/dog-card";
 import formStyles from "../../_components/form.module.css";
+import { ArrowLeft } from "../../_components/icons";
 import layoutStyles from "../../_components/layout.module.css";
 import { useNotifications } from "../../_components/notifications-provider";
 import styles from "./chat.module.css";
@@ -17,9 +20,10 @@ const ChatPage = () => {
     <main className={layoutStyles.main}>
       <Link
         href="/walk-requests"
-        className={`${layoutStyles.back} ${styles.back}`}
+        className={`${layoutStyles.back} ${layoutStyles.backAccent} ${styles.back}`}
       >
-        <span aria-hidden="true">←</span>산책 요청 보기
+        <ArrowLeft size={22} />
+        산책 요청 보기
       </Link>
       <AuthGate>
         <Suspense fallback={<p role="status">메시지를 불러오고 있어요.</p>}>
@@ -103,9 +107,15 @@ const ChatRoom = ({ walkRequestId }: { walkRequestId: number }) => {
 
   return (
     <>
-      <div className={`${layoutStyles.head} ${styles.head}`}>
+      <div className={styles.head}>
+        <CounterpartDog walkRequestId={walkRequestId} />
         <h1>{history.data.counterpart.nickname}님과의 채팅</h1>
-        <p>최근 50개 메시지만 보여요.</p>
+        <p className={styles.note}>
+          최근 50개 메시지
+          <br />
+          서로 존중하는 대화로
+          <br className={styles.wideBreak} /> 즐거운 산책을 만들어가요.
+        </p>
       </div>
       <ol ref={list} aria-label="채팅 메시지" className={styles.messages}>
         {history.data.messages.slice(-50).map((message) => (
@@ -115,12 +125,13 @@ const ChatRoom = ({ walkRequestId }: { walkRequestId: number }) => {
               message.senderId === user?.id ? styles.mine : styles.theirs
             }
           >
-            <strong>
-              {message.senderId === user?.id ? "나" : message.senderNickname}
-            </strong>
+            <strong>{message.senderNickname}</strong>
             <p>{message.content}</p>
             <time dateTime={message.createdAt}>
-              {new Date(message.createdAt).toLocaleString("ko-KR")}
+              {new Date(message.createdAt).toLocaleTimeString("ko-KR", {
+                hour: "numeric",
+                minute: "2-digit",
+              })}
             </time>
           </li>
         ))}
@@ -157,6 +168,33 @@ const ChatRoom = ({ walkRequestId }: { walkRequestId: number }) => {
         )}
         {send.error && <p role="alert">{send.error.message}</p>}
       </form>
+    </>
+  );
+};
+
+// The chat history only names the counterpart, so their dog comes from the
+// walk request lists, which carry each counterpart's dogs.
+const CounterpartDog = ({ walkRequestId }: { walkRequestId: number }) => {
+  const received = useWalkRequests("received");
+  const sent = useWalkRequests("sent");
+  const request = [...(received.data ?? []), ...(sent.data ?? [])].find(
+    (request) => request.id === walkRequestId,
+  );
+  const dog = request?.counterpart.dogs[0];
+  if (!dog) return null;
+  return (
+    <>
+      <DogFace dog={dog} className={styles.dogFace} size={130} />
+      <p className={styles.dogLine}>
+        {[
+          dog.name,
+          dog.breed,
+          sizeLabels[dog.size],
+          genderLabels[dog.gender],
+          `${dog.birthYear}년생`,
+        ].join(" · ")}
+      </p>
+      <p className={styles.personality}>{dog.personality}</p>
     </>
   );
 };

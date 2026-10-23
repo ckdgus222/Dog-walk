@@ -167,8 +167,12 @@ test("산책 요청 실시간 알림·재접속 동기화·로그아웃 정리",
           includeHidden: true,
         });
       await expect(
-        received.getByText("대기 중", { exact: true }),
-      ).toBeVisible();
+        received.getByRole("button", {
+          name: "수락",
+          exact: true,
+          includeHidden: true,
+        }),
+      ).toHaveCount(1);
     });
 
     await test.step("A가 수락하면 양쪽 화면이 새로고침 없이 바뀐다", async () => {
@@ -213,7 +217,7 @@ test("산책 요청 실시간 알림·재접속 동기화·로그아웃 정리",
         .getByRole("region", { name: "보낸 요청", exact: true })
         .getByRole("article")
         .filter({ hasText: "재접속 확인" });
-      await expect(sent.getByText("대기 중", { exact: true })).toBeVisible();
+      await expect(sent.getByText("요청 중", { exact: true })).toBeVisible();
       const previousConnections = connectionsB;
       await contextB.setOffline(true);
       for (const socket of socketsB) await socket.close();
@@ -225,7 +229,7 @@ test("산책 요청 실시간 알림·재접속 동기화·로그아웃 정리",
           })
         ).status(),
       ).toBe(200);
-      await expect(sent.getByText("대기 중", { exact: true })).toBeVisible();
+      await expect(sent.getByText("요청 중", { exact: true })).toBeVisible();
       await contextB.setOffline(false);
       await expect
         .poll(() => connectionsB)

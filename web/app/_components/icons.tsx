@@ -65,3 +65,19 @@ export const PlusIcon = ({ size = 24 }: { size?: number }) => (
     <path d="M12 4v16M4 12h16" strokeWidth={2.6} />
   </Icon>
 );
+
+export const PinIcon = ({ size = 22 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+    <path
+      fill="currentColor"
+      d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Zm0 9.6A2.6 2.6 0 1 1 12 6.4a2.6 2.6 0 0 1 0 5.2Z"
+    />
+  </svg>
+);
+
+export const InfoIcon = ({ size = 18 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+    <circle cx="12" cy="12" r="10" fill="currentColor" />
+    <path d="M12 10.5v6M12 7.2v.1" stroke="white" strokeWidth="2.2" strokeLinecap="round" />
+  </svg>
+);

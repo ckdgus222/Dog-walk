@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useSendWalkRequest } from "../../lib/api/walk-requests";
 import formStyles from "../_components/form.module.css";
+import styles from "./map.module.css";
 
 export const SendWalkRequest = ({ receiverId }: { receiverId: number }) => {
   const request = useSendWalkRequest();
@@ -20,13 +21,22 @@ export const SendWalkRequest = ({ receiverId }: { receiverId: number }) => {
   };
 
   return (
-    <form className={formStyles.form} onSubmit={send}>
+    <form className={`${formStyles.form} ${styles.request}`} onSubmit={send}>
       <label>
-        메시지 (선택)
+        <span>
+          요청 메시지{" "}
+          <span className={formStyles.optional}>(선택)</span>
+        </span>
+        <span
+          className={styles.requestCount}
+          aria-hidden="true"
+          data-count={`${message.length} / 100`}
+        />
         <input
           value={message}
           onChange={(event) => setMessage(event.target.value)}
           maxLength={100}
+          placeholder="안녕하세요! 함께 산책하고 싶어요 :)"
         />
       </label>
       <button
