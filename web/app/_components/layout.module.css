@@ -24,6 +24,20 @@
   gap: 20px;
 }
 
+/* The main action of a list page, beside its title. */
+.headAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  height: 64px;
+  padding: 0 44px;
+  border-radius: 4px;
+  background: var(--accent);
+  color: white;
+  font-size: 21px;
+  font-weight: 700;
+}
+
 .home {
   justify-self: start;
   color: var(--muted);
@@ -34,5 +48,12 @@
   .main {
     width: calc(100% - 32px);
     padding-top: 24px;
+  }
+
+  .headAction {
+    justify-content: center;
+    width: 100%;
+    height: 52px;
+    font-size: 18px;
   }
 }

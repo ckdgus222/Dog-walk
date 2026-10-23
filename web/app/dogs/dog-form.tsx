@@ -51,7 +51,7 @@ const DogForm = ({ dog }: { dog?: Dog }) => {
             alt={`${dog.name} 현재 사진`}
           />
         )}
-        <label className={styles.upload}>
+        <label className={formStyles.upload}>
           사진 (선택, 5MB 이하)
           <input
             name="photo"

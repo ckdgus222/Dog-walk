@@ -9,8 +9,33 @@ export const genderLabels = { MALE: "수컷", FEMALE: "암컷" };
 
 // A dog without an uploaded photo gets one of two drawn faces, chosen by id so
 // the same dog shows the same face on every page.
-export const defaultDogFace = (dog: Dog) =>
+const defaultDogFace = (dog: Dog) =>
   dog.id % 2 === 0 ? dogDubu : dogBami;
+
+// A round face for dog lists and headers: the uploaded photo, or the drawn face.
+// Decorative, because the dog's name is always written beside it.
+export const DogFace = ({
+  dog,
+  className,
+  size,
+}: {
+  dog: Dog;
+  className: string;
+  size: number;
+}) =>
+  dog.photoUrl ? (
+    // The web container cannot fetch nginx uploads for next/image optimization.
+    // eslint-disable-next-line @next/next/no-img-element
+    <img className={className} src={dog.photoUrl} alt="" />
+  ) : (
+    <Image
+      className={className}
+      src={defaultDogFace(dog)}
+      alt=""
+      width={size}
+      height={size}
+    />
+  );
 
 export const DogCard = ({
   dog,

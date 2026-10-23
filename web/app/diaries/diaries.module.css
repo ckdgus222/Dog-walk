@@ -1,10 +1,275 @@
-.thumbnail {
-  width: 120px;
-  height: 90px;
+/* List */
+.head {
+  padding-bottom: 8px;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filters button {
+  min-width: 120px;
+  height: 50px;
+  padding: 0 20px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--field);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.filters button[aria-pressed="true"] {
+  border-color: var(--sage);
+  background: var(--sage);
+}
+
+.list {
+  display: grid;
+  border-top: 1px solid var(--line);
+}
+
+.entry {
+  border-bottom: 1px solid var(--line);
+}
+
+.entry > a {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+  align-items: center;
+  gap: 32px;
+  padding: 24px 12px;
+}
+
+.text {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  overflow-wrap: anywhere;
+}
+
+.text h2 {
+  color: var(--ink);
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.dog {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--ink);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.dog span {
+  display: block;
+  color: var(--muted);
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.face {
+  flex: none;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
   object-fit: cover;
 }
 
+.excerpt {
+  font-size: 18px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.noPhoto {
+  color: var(--muted);
+}
+
+.cover {
+  position: relative;
+}
+
+.coverImage {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.cover p {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  padding: 4px 12px;
+  border-radius: 6px;
+  background: rgb(0 0 0 / 0.6);
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* Detail */
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 32px;
+}
+
+.meta .face {
+  width: 80px;
+  height: 80px;
+}
+
+.private {
+  display: inline-flex;
+  justify-self: start;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 6px;
+  background: var(--sage-soft);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.private::before {
+  content: "🔒" / "";
+  font-size: 15px;
+}
+
 .content {
+  font-size: 24px;
+  line-height: 1.7;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+.photos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+
+.actions a,
+.actions button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 150px;
+  height: 56px;
+  border: 1px solid var(--muted);
+  border-radius: 4px;
+  background: var(--field);
+  color: var(--ink);
+  font: inherit;
+  font-size: 19px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.actions button {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: white;
+}
+
+.actions button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Write and edit form */
+.diaryForm > button {
+  width: 310px;
+}
+
+.fields {
+  grid-template-columns: 1fr 1fr;
+  column-gap: 24px;
+}
+
+.fields > * {
+  grid-column: 1 / -1;
+}
+
+.fields > .half {
+  grid-column: auto;
+}
+
+.existing {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.existing > div {
+  display: grid;
+  gap: 8px;
+}
+
+@media (max-width: 720px) {
+  .filters button {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .entry > a {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 20px 4px;
+  }
+
+  .text h2 {
+    font-size: 21px;
+  }
+
+  .excerpt {
+    font-size: 16px;
+  }
+
+  .content {
+    font-size: 18px;
+  }
+
+  .photos {
+    grid-template-columns: 1fr;
+  }
+
+  .actions a,
+  .actions button {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .diaryForm > button {
+    width: 100%;
+  }
+
+  .fields {
+    grid-template-columns: 1fr;
+  }
 }

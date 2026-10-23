@@ -2,18 +2,17 @@
 
 import { useEffect, useRef } from "react";
 import { useDiaryImage } from "../../lib/api/diaries";
-import styles from "../_components/shared.module.css";
 
 export const DiaryImage = ({
   diaryId,
   imageId,
   alt,
-  className = styles.photo,
+  className,
 }: {
   diaryId: number;
   imageId: number;
   alt: string;
-  className?: string;
+  className: string;
 }) => {
   const query = useDiaryImage(diaryId, imageId);
   const image = useRef<HTMLImageElement>(null);

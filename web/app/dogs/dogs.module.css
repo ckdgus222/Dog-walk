@@ -4,19 +4,6 @@
   border-bottom: 1px solid var(--line);
 }
 
-.add {
-  display: inline-flex;
-  align-items: center;
-  gap: 14px;
-  height: 64px;
-  padding: 0 44px;
-  border-radius: 4px;
-  background: var(--accent);
-  color: white;
-  font-size: 21px;
-  font-weight: 700;
-}
-
 .list {
   display: grid;
   gap: 20px;
@@ -151,55 +138,9 @@
   object-fit: cover;
 }
 
-.dogForm .upload {
-  justify-items: center;
-  gap: 14px;
-  padding: 36px 20px;
-  border: 1.5px dashed var(--line);
-  border-radius: 4px;
-  background: var(--field);
-  font-size: 16px;
-  text-align: center;
-}
-
-.dogForm .upload input {
-  width: auto;
-  max-width: 100%;
-  height: auto;
-  padding: 0;
-  border: 0;
-  background: none;
-  font-size: 14px;
-}
-
-.upload input::file-selector-button {
-  margin-right: 10px;
-  padding: 10px 16px;
-  border: 1px solid var(--accent);
-  border-radius: 4px;
-  background: var(--field);
-  color: var(--accent);
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.upload span {
-  color: var(--muted);
-  font-size: 14px;
-  font-weight: 400;
-}
-
 @media (max-width: 720px) {
   .head {
     padding-bottom: 20px;
-  }
-
-  .add {
-    justify-content: center;
-    width: 100%;
-    height: 52px;
-    font-size: 18px;
   }
 
   .card {

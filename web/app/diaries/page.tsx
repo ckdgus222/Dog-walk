@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { useState } from "react";
 import { AuthGate } from "../_components/auth-gate";
+import { DogFace } from "../_components/dog-card";
+import headingStyles from "../_components/heading.module.css";
+import layoutStyles from "../_components/layout.module.css";
 import { useMyDogs } from "../../lib/api/dogs";
 import { useDiaries } from "../../lib/api/diaries";
 import { DiaryImage } from "./diary-image";
 import { formatDiaryDate } from "./diary-date";
-import styles from "../_components/shared.module.css";
-import diaryStyles from "./diaries.module.css";
+import styles from "./diaries.module.css";
 
 const DiaryList = () => {
   const [dogId, setDogId] = useState<number>();
@@ -17,63 +19,88 @@ const DiaryList = () => {
 
   return (
     <>
-      <Link href="/diaries/new">일기 쓰기</Link>
-      <label>
-        반려견 고르기
-        <select
-          value={dogId ?? ""}
-          onChange={(event) =>
-            setDogId(
-              event.target.value ? Number(event.target.value) : undefined,
-            )
-          }
+      <div role="group" aria-label="반려견 고르기" className={styles.filters}>
+        <button
+          type="button"
+          aria-pressed={dogId === undefined}
+          onClick={() => setDogId(undefined)}
         >
-          <option value="">전체</option>
-          {dogs.data?.map((dog) => (
-            <option key={dog.id} value={dog.id}>
-              {dog.name}
-            </option>
-          ))}
-        </select>
-      </label>
+          전체
+        </button>
+        {dogs.data?.map((dog) => (
+          <button
+            key={dog.id}
+            type="button"
+            aria-pressed={dogId === dog.id}
+            onClick={() => setDogId(dog.id)}
+          >
+            {dog.name}
+          </button>
+        ))}
+      </div>
       {dogs.error && <p role="alert">{dogs.error.message}</p>}
       {query.error && <p role="alert">{query.error.message}</p>}
       {query.isPending && <p role="status">일기를 불러오고 있어요.</p>}
       {query.isSuccess && query.data.length === 0 && <p>아직 일기가 없어요.</p>}
-      <div className={styles.cards}>
-        {query.data?.map((diary) => (
-          <article key={diary.id} className={styles.card}>
-            <Link href={`/diaries/${diary.id}`}>
-              <h2>{formatDiaryDate(diary.walkedOn)}</h2>
-              <p>{diary.dog.name}</p>
-              <p>
-                {diary.content.slice(0, 100)}
-                {diary.content.length > 100 ? "…" : ""}
-              </p>
-              {diary.images[0] && (
-                <DiaryImage
-                  diaryId={diary.id}
-                  imageId={diary.images[0].id}
-                  alt={`${diary.dog.name} 일기 첫 사진`}
-                  className={diaryStyles.thumbnail}
-                />
-              )}
-              <p>사진 {diary.images.length}장</p>
-            </Link>
-          </article>
-        ))}
+      <div className={styles.list}>
+        {query.data?.map((diary) => {
+          const dog = dogs.data?.find((dog) => dog.id === diary.dog.id);
+          return (
+            <article key={diary.id} className={styles.entry}>
+              <Link href={`/diaries/${diary.id}`}>
+                <div className={styles.text}>
+                  <h2>{formatDiaryDate(diary.walkedOn)}</h2>
+                  <div className={styles.dog}>
+                    {dog && (
+                      <DogFace dog={dog} className={styles.face} size={64} />
+                    )}
+                    <p>{diary.dog.name}</p>
+                  </div>
+                  <p className={styles.excerpt}>
+                    {diary.content.slice(0, 100)}
+                    {diary.content.length > 100 ? "…" : ""}
+                  </p>
+                  {!diary.images[0] && (
+                    <p className={styles.noPhoto}>사진 0장</p>
+                  )}
+                </div>
+                {diary.images[0] && (
+                  <div className={styles.cover}>
+                    <DiaryImage
+                      diaryId={diary.id}
+                      imageId={diary.images[0].id}
+                      alt={`${diary.dog.name} 일기 첫 사진`}
+                      className={styles.coverImage}
+                    />
+                    <p>사진 {diary.images.length}장</p>
+                  </div>
+                )}
+              </Link>
+            </article>
+          );
+        })}
       </div>
     </>
   );
 };
 
 const DiariesPage = () => (
-  <main className={styles.main}>
-    <h1>일기</h1>
+  <main className={layoutStyles.main}>
+    <div className={`${layoutStyles.head} ${styles.head}`}>
+      <div>
+        <h1 className={headingStyles.title}>산책 일기</h1>
+        <p className={headingStyles.lead}>나만 보는 기록</p>
+      </div>
+      <Link href="/diaries/new" className={layoutStyles.headAction}>
+        일기 쓰기<span aria-hidden="true">→</span>
+      </Link>
+    </div>
     <AuthGate>
       <DiaryList />
     </AuthGate>
-    <Link href="/">홈으로</Link>
+    <Link href="/" className={layoutStyles.home}>
+      홈으로
+    </Link>
   </main>
 );
 export default DiariesPage;

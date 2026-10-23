@@ -3,11 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMyDogs } from "../lib/api/dogs";
-import type { Dog } from "../lib/types";
 import communityChat from "../public/illustrations/walking-drawing/community-chat.svg";
 import diaryBook from "../public/illustrations/walking-drawing/diary-book.svg";
 import { useAuth } from "./_components/auth-provider";
-import { defaultDogFace, sizeLabels } from "./_components/dog-card";
+import { DogFace, sizeLabels } from "./_components/dog-card";
 import { ScenePage } from "./_components/walk-scene";
 import styles from "./page.module.css";
 
@@ -121,7 +120,7 @@ const MyDogs = () => {
     <ul className={styles.dogs}>
       {query.data.map((dog) => (
         <li key={dog.id} className={styles.dog}>
-          <DogFace dog={dog} />
+          <DogFace dog={dog} className={styles.face} size={80} />
           <div>
             <p className={styles.dogName}>{dog.name}</p>
             <p className={styles.dogMeta}>
@@ -133,18 +132,3 @@ const MyDogs = () => {
     </ul>
   );
 };
-
-const DogFace = ({ dog }: { dog: Dog }) =>
-  dog.photoUrl ? (
-    // The web container cannot fetch nginx uploads for next/image optimization.
-    // eslint-disable-next-line @next/next/no-img-element
-    <img className={styles.face} src={dog.photoUrl} alt="" />
-  ) : (
-    <Image
-      className={styles.face}
-      src={defaultDogFace(dog)}
-      alt=""
-      width={80}
-      height={80}
-    />
-  );

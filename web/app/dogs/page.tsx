@@ -19,7 +19,7 @@ const DogsPage = () => {
             함께 산책하는 소중한 가족을 소개해 주세요.
           </p>
         </div>
-        <Link href="/dogs/new" className={styles.add}>
+        <Link href="/dogs/new" className={layoutStyles.headAction}>
           <span aria-hidden="true">+</span>반려견 추가
         </Link>
       </div>

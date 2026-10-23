@@ -6,7 +6,8 @@ import { useMyDogs } from "../../lib/api/dogs";
 import { useSaveDiary } from "../../lib/api/diaries";
 import type { Diary } from "../../lib/types";
 import { DiaryImage } from "./diary-image";
-import styles from "../_components/shared.module.css";
+import formStyles from "../_components/form.module.css";
+import styles from "./diaries.module.css";
 
 const DiaryForm = ({ diary }: { diary?: Diary }) => {
   const router = useRouter();
@@ -58,10 +59,17 @@ const DiaryForm = ({ diary }: { diary?: Diary }) => {
   if (!dogs.data) return <p role="status">반려견을 불러오고 있어요.</p>;
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
-      <fieldset disabled={save.isPending}>
+    <form
+      className={`${formStyles.form} ${styles.diaryForm}`}
+      onSubmit={handleSubmit}
+    >
+      <fieldset
+        className={`${formStyles.card} ${styles.fields}`}
+        disabled={save.isPending}
+      >
         <legend>반려견 일기</legend>
-        <label>
+        <p className={styles.private}>나만 볼 수 있어요.</p>
+        <label className={styles.half}>
           반려견
           <select name="dogId" required defaultValue={diary?.dog.id ?? ""}>
             <option value="" disabled>
@@ -74,7 +82,7 @@ const DiaryForm = ({ diary }: { diary?: Diary }) => {
             ))}
           </select>
         </label>
-        <label>
+        <label className={styles.half}>
           산책한 날짜
           <input
             name="walkedOn"
@@ -94,31 +102,36 @@ const DiaryForm = ({ diary }: { diary?: Diary }) => {
             defaultValue={diary?.content ?? ""}
           />
         </label>
-        {diary?.images.map((image, index) => (
-          <div key={image.id}>
-            <DiaryImage
-              diaryId={diary.id}
-              imageId={image.id}
-              alt={`기존 일기 사진 ${index + 1}`}
-            />
-            <label className={styles.checkbox}>
-              <input
-                type="checkbox"
-                checked={removeImageIds.includes(image.id)}
-                onChange={(event) => {
-                  const checked = event.currentTarget.checked;
-                  setRemoveImageIds((ids) =>
-                    checked
-                      ? [...ids, image.id]
-                      : ids.filter((id) => id !== image.id),
-                  );
-                }}
-              />
-              이 사진 지우기
-            </label>
+        {diary && diary.images.length > 0 && (
+          <div className={styles.existing}>
+            {diary.images.map((image, index) => (
+              <div key={image.id}>
+                <DiaryImage
+                  diaryId={diary.id}
+                  imageId={image.id}
+                  alt={`기존 일기 사진 ${index + 1}`}
+                  className={styles.photo}
+                />
+                <label className={formStyles.checkbox}>
+                  <input
+                    type="checkbox"
+                    checked={removeImageIds.includes(image.id)}
+                    onChange={(event) => {
+                      const checked = event.currentTarget.checked;
+                      setRemoveImageIds((ids) =>
+                        checked
+                          ? [...ids, image.id]
+                          : ids.filter((id) => id !== image.id),
+                      );
+                    }}
+                  />
+                  이 사진 지우기
+                </label>
+              </div>
+            ))}
           </div>
-        ))}
-        <label>
+        )}
+        <label className={formStyles.upload}>
           사진 (최대 5장, 장당 5MB 이하)
           <input
             type="file"
@@ -128,9 +141,10 @@ const DiaryForm = ({ diary }: { diary?: Diary }) => {
               setImages(Array.from(event.currentTarget.files ?? []))
             }
           />
+          <span>JPG · PNG · WebP</span>
         </label>
       </fieldset>
-      <button disabled={save.isPending}>
+      <button className={formStyles.submit} disabled={save.isPending}>
         {save.isPending ? "저장 중…" : "저장하기"}
       </button>
       {(photoError || error || save.error) && (
