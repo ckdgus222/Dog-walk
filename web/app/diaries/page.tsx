@@ -5,11 +5,13 @@ import { useState } from "react";
 import { AuthGate } from "../_components/auth-gate";
 import { DogFace } from "../_components/dog-card";
 import headingStyles from "../_components/heading.module.css";
+import { ArrowRight } from "../_components/icons";
+import formStyles from "../_components/form.module.css";
 import layoutStyles from "../_components/layout.module.css";
 import { useMyDogs } from "../../lib/api/dogs";
 import { useDiaries } from "../../lib/api/diaries";
 import { DiaryImage } from "./diary-image";
-import { formatDiaryDate } from "./diary-date";
+import { formatListDate } from "./diary-date";
 import styles from "./diaries.module.css";
 
 const DiaryList = () => {
@@ -51,7 +53,7 @@ const DiaryList = () => {
             <article key={diary.id} className={styles.entry}>
               <Link href={`/diaries/${diary.id}`}>
                 <div className={styles.text}>
-                  <h2>{formatDiaryDate(diary.walkedOn)}</h2>
+                  <h2>{formatListDate(diary.walkedOn)}</h2>
                   <div className={styles.dog}>
                     {dog && (
                       <DogFace
@@ -72,14 +74,22 @@ const DiaryList = () => {
                   )}
                 </div>
                 {diary.images[0] && (
+                  // The first two photos, a wide one and a narrow one. The
+                  // count badge sits on the last one shown.
                   <div className={styles.cover}>
-                    <DiaryImage
-                      diaryId={diary.id}
-                      imageId={diary.images[0].id}
-                      alt={`${diary.dog.name} 일기 첫 사진`}
-                      className={styles.coverImage}
-                    />
-                    <p>사진 {diary.images.length}장</p>
+                    {diary.images.slice(0, 2).map((image, index) => (
+                      <DiaryImage
+                        key={image.id}
+                        diaryId={diary.id}
+                        imageId={image.id}
+                        alt={`${diary.dog.name} 일기 ${index === 0 ? "첫" : "두 번째"} 사진`}
+                        className={styles.coverImage}
+                      />
+                    ))}
+                    <p>
+                      <span className={formStyles.visuallyHidden}>사진 </span>
+                      {diary.images.length}장
+                    </p>
                   </div>
                 )}
               </Link>
@@ -98,16 +108,17 @@ const DiariesPage = () => (
         <h1 className={headingStyles.title}>산책 일기</h1>
         <p className={headingStyles.lead}>나만 보는 기록</p>
       </div>
-      <Link href="/diaries/new" className={layoutStyles.headAction}>
-        일기 쓰기<span aria-hidden="true">→</span>
+      <Link
+        href="/diaries/new"
+        className={`${layoutStyles.headAction} ${styles.write}`}
+      >
+        일기 쓰기
+        <ArrowRight />
       </Link>
     </div>
     <AuthGate>
       <DiaryList />
     </AuthGate>
-    <Link href="/" className={layoutStyles.home}>
-      홈으로
-    </Link>
   </main>
 );
 export default DiariesPage;

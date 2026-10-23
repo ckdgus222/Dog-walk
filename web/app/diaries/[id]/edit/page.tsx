@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Suspense } from "react";
 import { AuthGate } from "../../../_components/auth-gate";
@@ -8,6 +7,7 @@ import { useDiary } from "../../../../lib/api/diaries";
 import DiaryForm from "../../diary-form";
 import headingStyles from "../../../_components/heading.module.css";
 import layoutStyles from "../../../_components/layout.module.css";
+import styles from "../../diaries.module.css";
 
 const EditDiary = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,13 +22,12 @@ const EditDiary = () => {
 };
 
 const EditDiaryPage = () => (
-  <main className={layoutStyles.main}>
-    <Link href="/diaries" className={layoutStyles.back}>
-      <span aria-hidden="true">‹</span>일기 목록
-    </Link>
+  <main className={`${layoutStyles.main} ${styles.editPage}`}>
     <div>
-      <h1 className={headingStyles.title}>일기 수정</h1>
-      <p className={headingStyles.lead}>
+      <h1 className={`${headingStyles.title} ${headingStyles.formTitle}`}>
+        일기 수정
+      </h1>
+      <p className={`${headingStyles.lead} ${headingStyles.formLead}`}>
         산책의 순간을 기록하고, 소중한 추억을 간직해요.
       </p>
     </div>

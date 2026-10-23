@@ -293,47 +293,6 @@
   height: 28px;
 }
 
-/* Upload: a file input drawn as a dashed drop box. The browser's own picker
-   stays, so the chosen file names are still shown. */
-.form .upload {
-  justify-items: center;
-  gap: 14px;
-  padding: 36px 20px;
-  border: 1.5px dashed var(--line);
-  border-radius: 4px;
-  background: var(--field);
-  font-size: 16px;
-  text-align: center;
-}
-
-.form .upload input {
-  width: auto;
-  max-width: 100%;
-  height: auto;
-  padding: 0;
-  border: 0;
-  background: none;
-  font-size: 14px;
-}
-
-.upload input::file-selector-button {
-  margin-right: 10px;
-  padding: 10px 16px;
-  border: 1px solid var(--accent);
-  border-radius: 4px;
-  background: var(--field);
-  color: var(--accent);
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.upload span {
-  color: var(--muted);
-  font-size: 14px;
-  font-weight: 400;
-}
-
 .submit {
   position: relative;
   width: 100%;

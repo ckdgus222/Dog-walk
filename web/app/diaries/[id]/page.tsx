@@ -6,11 +6,12 @@ import { Suspense } from "react";
 import { AuthGate } from "../../_components/auth-gate";
 import { DogFace, genderLabels } from "../../_components/dog-card";
 import headingStyles from "../../_components/heading.module.css";
+import { ArrowLeft, LockIcon } from "../../_components/icons";
 import layoutStyles from "../../_components/layout.module.css";
 import { useMyDogs } from "../../../lib/api/dogs";
 import { useDeleteDiary, useDiary } from "../../../lib/api/diaries";
 import { DiaryImage } from "../diary-image";
-import { formatDiaryDate } from "../diary-date";
+import { formatTitleDate } from "../diary-date";
 import styles from "../diaries.module.css";
 
 const DiaryDetail = () => {
@@ -27,14 +28,16 @@ const DiaryDetail = () => {
 
   return (
     <>
-      <h1 className={headingStyles.title}>{formatDiaryDate(diary.walkedOn)}</h1>
+      <h1 className={`${headingStyles.title} ${styles.dateTitle}`}>
+        {formatTitleDate(diary.walkedOn)}
+      </h1>
       <div className={styles.meta}>
         <div className={styles.dog}>
           {dog && (
             <DogFace
               dog={dog}
               className={styles.face}
-              size={80}
+              size={108}
               order={order}
             />
           )}
@@ -42,12 +45,16 @@ const DiaryDetail = () => {
             <p>{diary.dog.name}</p>
             {dog && (
               <span>
-                {dog.breed} · {genderLabels[dog.gender]} · {dog.birthYear}년생
+                {dog.breed} · {genderLabels[dog.gender]}
+                {dog.neutered ? "(중성화)" : ""} · {dog.birthYear}년생
               </span>
             )}
           </div>
         </div>
-        <span className={styles.private}>나만 보는 기록</span>
+        <span className={styles.private}>
+          <LockIcon />
+          나만 보는 기록
+        </span>
       </div>
       <p className={styles.content}>{diary.content}</p>
       <div className={styles.photos}>
@@ -62,6 +69,10 @@ const DiaryDetail = () => {
         ))}
       </div>
       <div className={styles.actions}>
+        <Link href="/diaries" className={styles.listButton}>
+          <ArrowLeft size={22} />
+          일기 목록
+        </Link>
         <Link href={`/diaries/${diary.id}/edit`}>수정</Link>
         <button
           disabled={remove.isPending}
@@ -83,7 +94,8 @@ const DiaryDetail = () => {
 const DiaryPage = () => (
   <main className={layoutStyles.main}>
     <Link href="/diaries" className={layoutStyles.back}>
-      <span aria-hidden="true">‹</span>일기 목록
+      <ArrowLeft />
+      일기 목록으로
     </Link>
     <AuthGate>
       <Suspense fallback={<p role="status">일기를 불러오고 있어요.</p>}>

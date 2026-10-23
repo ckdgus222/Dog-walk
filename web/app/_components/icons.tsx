@@ -81,3 +81,41 @@ export const InfoIcon = ({ size = 18 }: { size?: number }) => (
     <path d="M12 10.5v6M12 7.2v.1" stroke="white" strokeWidth="2.2" strokeLinecap="round" />
   </svg>
 );
+
+export const LockIcon = ({ size = 18 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+    <path
+      fill="currentColor"
+      d="M7 10V7a5 5 0 0 1 10 0v3h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h1Zm2 0h6V7a3 3 0 0 0-6 0v3Z"
+    />
+  </svg>
+);
+
+export const LockLineIcon = ({ size = 22 }: { size?: number }) => (
+  <Icon size={size}>
+    <rect x="5" y="10.5" width="14" height="10" rx="1.5" />
+    <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3M12 14.5v2.5" />
+  </Icon>
+);
+
+export const CameraIcon = ({ size = 48 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+    <path
+      fill="currentColor"
+      d="M9 4h6l1.6 2.4H20a1.5 1.5 0 0 1 1.5 1.5v10.6A1.5 1.5 0 0 1 20 20H4a1.5 1.5 0 0 1-1.5-1.5V7.9A1.5 1.5 0 0 1 4 6.4h3.4L9 4Zm3 4.6a4.4 4.4 0 1 0 0 8.8 4.4 4.4 0 0 0 0-8.8Zm0 2a2.4 2.4 0 1 1 0 4.8 2.4 2.4 0 0 1 0-4.8Z"
+    />
+  </svg>
+);
+
+export const CalendarIcon = ({ size = 20 }: { size?: number }) => (
+  <Icon size={size}>
+    <rect x="3.5" y="5" width="17" height="15" rx="1.5" />
+    <path d="M3.5 9.5h17M8 3v4M16 3v4M8 13h2M14 13h2M8 16.5h2" />
+  </Icon>
+);
+
+export const ChevronDown = ({ size = 18 }: { size?: number }) => (
+  <Icon size={size}>
+    <path d="m5 9 7 7 7-7" />
+  </Icon>
+);
