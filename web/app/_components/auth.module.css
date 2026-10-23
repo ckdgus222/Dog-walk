@@ -63,6 +63,15 @@
   font-size: 19px;
 }
 
+/* Wide screens lay the login drawing over the whole page, from just under the
+   header; the form sits in its empty top-left corner. */
+@media (min-width: 1025px) {
+  .loginScene {
+    grid-row: 1 / -1;
+    margin-top: 50px;
+  }
+}
+
 /* Signup: an introduction beside a form of two cards. In the 1170px mockup
    the text starts at x118 and the form ends 37px before the right edge. */
 .content.signup {
@@ -109,6 +118,18 @@
 
 .signupLinks a:first-of-type {
   margin-left: 12px;
+}
+
+/* The walker stands under the introduction, from the left edge of the window
+   as in the 1170px mockup, behind the form cards. */
+@media (min-width: 1025px) {
+  .signupScene {
+    grid-row: 1 / -1;
+    align-self: start;
+    justify-self: start;
+    width: 520px;
+    margin-top: 235px;
+  }
 }
 
 /* Below the mockup width the two columns stop fitting, so the form moves

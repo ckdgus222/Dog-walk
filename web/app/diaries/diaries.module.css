@@ -247,7 +247,7 @@
 
 /* Write and edit forms */
 .newPage {
-  grid-template-columns: minmax(0, 616px) 1fr;
+  grid-template-columns: minmax(0, 616px) minmax(0, 1fr);
   column-gap: 40px;
 }
 
@@ -259,6 +259,25 @@
   grid-row: 1;
   grid-column: 2;
   justify-self: end;
+}
+
+/* The drawing starts beside the lead and runs past the right edge of the
+   1170px mockup. The note sits in its empty sky. */
+.newPage > .writingScene {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  align-self: start;
+  justify-self: start;
+  width: 475px;
+  margin-top: 119px;
+}
+
+/* Past the mockup width the cut right edge of the drawing shows, so it
+   fades out instead. */
+@media (min-width: 1171px) {
+  .newPage > .writingScene {
+    mask-image: linear-gradient(to left, transparent, black 12%);
+  }
 }
 
 .privateNote {
@@ -536,6 +555,16 @@
     grid-row: auto;
     grid-column: 1;
     justify-self: start;
+  }
+
+  /* Narrow screens end the page with the two dogs by the river. */
+  .newPage > .writingScene {
+    grid-row: auto;
+    grid-column: 1;
+    width: auto;
+    /* As wide as the window without widening the content column. */
+    min-width: 0;
+    margin: 0 calc(50% - 50vw) -80px;
   }
 
   .slots {

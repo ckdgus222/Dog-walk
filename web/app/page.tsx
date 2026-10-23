@@ -5,17 +5,29 @@ import Link from "next/link";
 import { useMyDogs } from "../lib/api/dogs";
 import communityChat from "../public/illustrations/walking-drawing/community-chat.svg";
 import diaryBook from "../public/illustrations/walking-drawing/diary-book.svg";
+import homeScene from "../public/illustrations/walking-drawing/home-scene.png";
+import homeSceneMobile from "../public/illustrations/walking-drawing/home-scene-mobile.png";
 import { useAuth } from "./_components/auth-provider";
 import { DogFace, sizeLabels } from "./_components/dog-card";
 import { ArrowRight, ChevronRight } from "./_components/icons";
-import { ScenePage } from "./_components/walk-scene";
+import { SceneImage, ScenePage } from "./_components/walk-scene";
 import styles from "./page.module.css";
 
 const Home = () => {
   const { user, loading } = useAuth();
 
   return (
-    <ScenePage className={styles.content}>
+    <ScenePage
+      className={styles.content}
+      scene={
+        <SceneImage
+          wide={homeScene}
+          narrow={homeSceneMobile}
+          narrowMedia="(max-width: 720px)"
+          wideSizes="(max-width: 1600px) 100vw, 1600px"
+        />
+      }
+    >
       {loading ? (
         <p role="status">로그인 상태를 확인하고 있어요.</p>
       ) : user ? (

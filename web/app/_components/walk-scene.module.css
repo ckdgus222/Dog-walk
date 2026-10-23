@@ -1,35 +1,42 @@
+/* The content takes the first row and the drawing the rest, so a short page
+   still ends with the drawing at the bottom of the window. Pages may also lay
+   the drawing over the first row. */
 .page {
-  display: flex;
+  display: grid;
   flex: 1;
-  flex-direction: column;
+  grid-template-rows: auto 1fr;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .content {
   position: relative;
   z-index: 1;
-  /* The transparent sky of the drawing slides up behind the content. */
-  margin: 0 auto -48px;
+  /* Both parts name the one column, so a drawing laid over the content
+     shares it instead of being placed in a new column. */
+  grid-area: 1 / 1;
+  margin: 0 auto;
 }
 
-.scene {
-  display: block;
-  align-self: center;
+/* Zero specificity, so a page class can move the drawing whatever order the
+   style sheets load in. */
+:where(.scene) {
+  grid-area: 2 / 1;
+  /* The transparent sky of the drawing slides up behind the content. */
+  margin-top: -48px;
+  align-self: end;
+  justify-self: center;
   width: 100%;
   max-width: 1600px;
+}
+
+:where(.scene) img {
+  display: block;
+  width: 100%;
   height: auto;
-  margin-top: auto;
 }
 
 @media (max-width: 720px) {
-  .content {
-    margin-bottom: 16px;
-  }
-
-  /* A taller frame trims only the trees at both ends; the people and dogs
-     stay inside the middle 56% of the drawing. */
-  .scene {
-    aspect-ratio: 5 / 3;
-    object-fit: cover;
-    object-position: bottom;
+  :where(.scene) {
+    margin-top: 16px;
   }
 }

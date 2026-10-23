@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { useSaveDog } from "../../lib/api/dogs";
 import type { Dog } from "../../lib/types";
-import { DogFace } from "../_components/dog-card";
+import { DogBody } from "../_components/dog-card";
 import { DogFields, readDogFields } from "../_components/dog-fields";
 import formStyles from "../_components/form.module.css";
 import { PictureIcon } from "../_components/icons";
@@ -81,10 +81,9 @@ const DogForm = ({ dog, order }: { dog?: Dog; order?: number }) => {
                 alt={`${dog.name} 현재 사진`}
               />
             ) : (
-              <DogFace
+              <DogBody
                 dog={dog}
                 className={styles.currentPhoto}
-                size={320}
                 order={order}
               />
             )}

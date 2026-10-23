@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import loginScene from "../../public/illustrations/walking-drawing/login-scene.png";
+import loginSceneMobile from "../../public/illustrations/walking-drawing/login-scene-mobile.png";
 import { useAuth } from "../_components/auth-provider";
 import { ArrowRight } from "../_components/icons";
 import styles from "../_components/auth.module.css";
 import formStyles from "../_components/form.module.css";
 import headingStyles from "../_components/heading.module.css";
-import { ScenePage } from "../_components/walk-scene";
+import { SceneImage, ScenePage } from "../_components/walk-scene";
 
 const LoginPage = () => {
   const { login, loading } = useAuth();
@@ -34,7 +36,18 @@ const LoginPage = () => {
   };
 
   return (
-    <ScenePage className={`${styles.content} ${styles.login}`}>
+    <ScenePage
+      className={`${styles.content} ${styles.login}`}
+      scene={
+        <SceneImage
+          className={styles.loginScene}
+          wide={loginScene}
+          narrow={loginSceneMobile}
+          narrowMedia="(max-width: 720px)"
+          wideSizes="(max-width: 1600px) 100vw, 1600px"
+        />
+      }
+    >
       <h1 className={headingStyles.title}>로그인</h1>
       <p className={headingStyles.lead}>
         좋은 산책은 좋은 이웃에서 시작돼요.

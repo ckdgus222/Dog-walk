@@ -1,16 +1,19 @@
 import Image, { getImageProps } from "next/image";
 import type { Dog } from "../../lib/types";
+import dogBamiFull from "../../public/illustrations/walking-drawing/dog-bami-full.png";
 import dogBami from "../../public/illustrations/walking-drawing/dog-bami.png";
+import dogDubuFull from "../../public/illustrations/walking-drawing/dog-dubu-full.png";
 import dogDubu from "../../public/illustrations/walking-drawing/dog-dubu.png";
 
 export const sizeLabels = { SMALL: "소형", MEDIUM: "중형", LARGE: "대형" };
 export const genderLabels = { MALE: "수컷", FEMALE: "암컷" };
 
-// A dog without an uploaded photo gets one of two drawn faces. My own dogs
+// A dog without an uploaded photo gets one of two drawn dogs. My own dogs
 // pass their place in my list, so the first is cream and the second brown as in
 // the mockup; other people's dogs fall back to the id.
-const defaultDogFace = (dog: Dog, order = dog.id) =>
-  order % 2 === 0 ? dogDubu : dogBami;
+const isCream = (dog: Dog, order = dog.id) => order % 2 === 0;
+const defaultDogFace = (dog: Dog, order?: number) =>
+  isCream(dog, order) ? dogDubu : dogBami;
 
 // For places outside React, such as map overlays. The drawn face goes through
 // the image optimizer at the shown size instead of the 1254px source file.
@@ -45,6 +48,24 @@ export const DogFace = ({
       height={size}
     />
   );
+
+// The whole sitting dog, for the edit page of a dog without a photo.
+export const DogBody = ({
+  dog,
+  className,
+  order,
+}: {
+  dog: Dog;
+  className: string;
+  order?: number;
+}) => (
+  <Image
+    className={className}
+    src={isCream(dog, order) ? dogDubuFull : dogBamiFull}
+    alt=""
+    sizes="(max-width: 720px) 240px, 330px"
+  />
+);
 
 export const DogCard = ({
   dog,

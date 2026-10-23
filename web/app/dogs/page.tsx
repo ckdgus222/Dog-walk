@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { AuthGate } from "../_components/auth-gate";
 import { DogCard } from "../_components/dog-card";
@@ -8,6 +9,7 @@ import { PlusIcon } from "../_components/icons";
 import layoutStyles from "../_components/layout.module.css";
 import { useDeleteDog, useMyDogs } from "../../lib/api/dogs";
 import type { Dog } from "../../lib/types";
+import livingRoom from "../../public/illustrations/walking-drawing/living-room.png";
 import styles from "./dogs.module.css";
 
 const DogsPage = () => {
@@ -31,6 +33,12 @@ const DogsPage = () => {
       <AuthGate>
         <DogList />
       </AuthGate>
+      <Image
+        className={styles.livingRoom}
+        src={livingRoom}
+        alt=""
+        sizes="(max-width: 720px) 210vw, (max-width: 1170px) 100vw, 1170px"
+      />
     </main>
   );
 };

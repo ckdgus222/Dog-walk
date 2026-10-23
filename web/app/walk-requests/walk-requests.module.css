@@ -1,5 +1,29 @@
 .head {
+  position: relative;
   margin-top: 14px;
+}
+
+.head > :is(h1, p) {
+  position: relative;
+  z-index: 1;
+}
+
+/* Leaves room for the drawing on tablets. */
+.head > p {
+  max-width: calc(100% - 400px);
+}
+
+/* The crouching walker stands on the "받은 요청" bar, right of the title. Her
+   empty sky reaches up over the header, so it lets clicks through. */
+.head > img {
+  position: absolute;
+  right: -27px;
+  bottom: -59px;
+  width: 440px;
+  height: auto;
+  pointer-events: none;
+  /* The wall is cut at the edge of the drawing, so it fades out instead. */
+  mask-image: linear-gradient(to left, transparent, black 15%);
 }
 
 .box {
@@ -184,6 +208,17 @@
 @media (max-width: 720px) {
   .head {
     margin-top: 0;
+  }
+
+  .head > p {
+    max-width: 185px;
+  }
+
+  /* Past the right gutter, so the bushes start after the lead. */
+  .head > img {
+    right: -40px;
+    bottom: -24px;
+    width: 230px;
   }
 
   .box > h2 {

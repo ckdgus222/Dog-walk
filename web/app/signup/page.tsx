@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { signup } from "../../lib/auth";
+import signupScene from "../../public/illustrations/walking-drawing/signup-scene.png";
+import signupSceneMobile from "../../public/illustrations/walking-drawing/signup-scene-mobile.png";
 import styles from "../_components/auth.module.css";
 import formStyles from "../_components/form.module.css";
 import headingStyles from "../_components/heading.module.css";
@@ -12,7 +14,7 @@ import {
   readDogFields,
   Required,
 } from "../_components/dog-fields";
-import { ScenePage } from "../_components/walk-scene";
+import { SceneImage, ScenePage } from "../_components/walk-scene";
 
 const SignupPage = () => {
   const router = useRouter();
@@ -40,7 +42,19 @@ const SignupPage = () => {
   };
 
   return (
-    <ScenePage className={`${styles.content} ${styles.signup}`}>
+    <ScenePage
+      className={`${styles.content} ${styles.signup}`}
+      scene={
+        <SceneImage
+          className={styles.signupScene}
+          wide={signupScene}
+          narrow={signupSceneMobile}
+          narrowMedia="(max-width: 1024px)"
+          loading="lazy"
+          wideSizes="520px"
+        />
+      }
+    >
       <div className={styles.intro}>
         <p className={headingStyles.eyebrow}>함께 걷는, 더 특별한 하루</p>
         <h1 className={headingStyles.title}>회원가입</h1>

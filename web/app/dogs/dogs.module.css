@@ -134,6 +134,34 @@
   font-weight: 800;
 }
 
+/* The dogs lie on the rug under the list, across the 1170px mockup. Phones
+   crop the room to the rug so the dogs stay large. */
+.livingRoom {
+  justify-self: stretch;
+  width: auto;
+  /* Wider than the content column without widening it. */
+  min-width: 0;
+  height: auto;
+  margin: -16px calc(50% - min(50vw, 585px)) -56px;
+}
+
+/* Add page: the walker crouches beside the buttons, against the right edge of
+   the window as in the 1170px mockup. Behind the form, which stays usable. */
+.newPage {
+  position: relative;
+  isolation: isolate;
+}
+
+.crouchPet {
+  position: absolute;
+  /* The page is centered, so this reaches the right edge of the window. */
+  right: calc(50% - 50vw);
+  bottom: -34px;
+  z-index: -1;
+  width: 710px;
+  height: auto;
+}
+
 /* Add form: the dog card beside a narrow photo card. */
 .addForm {
   grid-template-columns: minmax(0, 1fr) 317px;
@@ -235,6 +263,7 @@
 .currentPhoto {
   width: 100%;
   max-width: 330px;
+  height: auto;
   aspect-ratio: 1;
   border-radius: 6px;
   object-fit: cover;
@@ -279,6 +308,10 @@
 
 /* Tablets: the dog card needs the full width so its button rows fit. */
 @media (max-width: 1024px) {
+  .crouchPet {
+    display: none;
+  }
+
   .addForm,
   .editForm {
     grid-template-columns: 1fr;
@@ -290,6 +323,12 @@
 }
 
 @media (max-width: 720px) {
+  .livingRoom {
+    aspect-ratio: 390 / 170;
+    margin-bottom: -80px;
+    object-fit: cover;
+  }
+
   .head {
     margin-top: 0;
     padding-bottom: 0;
@@ -411,7 +450,7 @@
   }
 
   .currentPhoto {
-    max-width: 200px;
+    max-width: 240px;
   }
 
   .photoCard .photoButton {
