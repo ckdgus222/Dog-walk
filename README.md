@@ -3,6 +3,8 @@
 0단계: Next.js 첫 화면과 DB 연결을 확인하는 `GET /api/health`를 제공한다.
 Node.js 24와 Docker Compose가 필요하다. 각 앱의 패키지는 이미 설치돼 있다.
 
+서버 배포는 [docs/phase-8-deploy.md](docs/phase-8-deploy.md)를 따른다.
+
 ## 로컬 개발
 
 저장소 루트에서 처음 한 번 실행한다.

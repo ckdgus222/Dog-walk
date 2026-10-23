@@ -1,0 +1,12 @@
+services:
+  # HTTPS on means the refresh cookie must be HTTPS-only, so one switch sets both.
+  api:
+    environment:
+      COOKIE_SECURE: "true"
+
+  nginx:
+    ports:
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.https.conf:/etc/nginx/nginx.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro

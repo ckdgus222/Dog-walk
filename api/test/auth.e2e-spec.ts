@@ -7,6 +7,7 @@ import { createHash } from 'node:crypto';
 import * as bcrypt from 'bcrypt';
 import { AppModule } from '../src/app.module.js';
 import { setupApp } from '../src/app-setup.js';
+import { LoginLimiter } from '../src/auth/login-limiter.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
 
 const dog = {
@@ -48,6 +49,7 @@ describe('Auth (e2e)', () => {
   });
 
   beforeEach(async () => {
+    app.get(LoginLimiter).clear();
     await prisma.comment.deleteMany();
     await prisma.post.deleteMany();
     await prisma.diaryImage.deleteMany();
@@ -345,6 +347,91 @@ describe('Auth (e2e)', () => {
       '이메일 또는 비밀번호가 올바르지 않습니다.',
     );
   });
+
+  it('locks after five incorrect passwords without issuing a cookie and isolates other IPs', async () => {
+    await request(app.getHttpServer())
+      .post('/api/auth/signup')
+      .send(signup)
+      .expect(201);
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const failure = await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .set('X-Forwarded-For', '203.0.113.1')
+        .send({ ...credentials, password: 'incorrect' })
+        .expect(401);
+      expect(failure.headers['set-cookie']).toBeUndefined();
+    }
+    const locked = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .set('X-Forwarded-For', '203.0.113.1')
+      .send(credentials)
+      .expect(429);
+    expect(locked.body).toEqual({
+      message: '로그인 시도가 너무 많아요. 잠시 뒤에 다시 시도해 주세요.',
+    });
+    expect(locked.headers['set-cookie']).toBeUndefined();
+    await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .set('X-Forwarded-For', '203.0.113.2')
+      .send(credentials)
+      .expect(200);
+  });
+
+  it('counts unknown emails as failed login attempts', async () => {
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .set('X-Forwarded-For', '203.0.113.3')
+        .send({ ...credentials, email: 'unknown@example.com' })
+        .expect(401);
+    }
+    const locked = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .set('X-Forwarded-For', '203.0.113.3')
+      .send(credentials)
+      .expect(429);
+    expect(locked.headers['set-cookie']).toBeUndefined();
+  });
+
+  it('counts the rightmost forwarded address even when the client spoofs earlier addresses', async () => {
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .set('X-Forwarded-For', `198.51.100.${attempt + 1}, 203.0.113.9`)
+        .send(credentials)
+        .expect(401);
+    }
+    await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .set('X-Forwarded-For', '198.51.100.99, 203.0.113.9')
+      .send(credentials)
+      .expect(429);
+  });
+
+  it.each(['empty email', 'non-JSON body'])(
+    'does not count requests rejected for %s before the controller',
+    async (kind) => {
+      await request(app.getHttpServer())
+        .post('/api/auth/signup')
+        .send(signup)
+        .expect(201);
+      for (let attempt = 0; attempt < 6; attempt += 1) {
+        const login = request(app.getHttpServer())
+          .post('/api/auth/login')
+          .set('X-Forwarded-For', '203.0.113.4');
+        if (kind === 'empty email') {
+          await login.send({ ...credentials, email: '' }).expect(400);
+          continue;
+        }
+        await login.type('form').send(credentials).expect(415);
+      }
+      await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .set('X-Forwarded-For', '203.0.113.4')
+        .send(credentials)
+        .expect(200);
+    },
+  );
 
   it.each([
     { password: 123 },
