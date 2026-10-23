@@ -8,6 +8,7 @@ import { DogFace, genderLabels } from "../../_components/dog-card";
 import headingStyles from "../../_components/heading.module.css";
 import { ArrowLeft, ChevronLeft, LockIcon } from "../../_components/icons";
 import layoutStyles from "../../_components/layout.module.css";
+import uiStyles from "../../_components/ui.module.css";
 import { useMyDogs } from "../../../lib/api/dogs";
 import { useDeleteDiary, useDiary } from "../../../lib/api/diaries";
 import { DiaryImage } from "../diary-image";
@@ -36,7 +37,7 @@ const DiaryDetail = () => {
           {dog && (
             <DogFace
               dog={dog}
-              className={styles.face}
+              className={`${uiStyles.face} ${styles.face}`}
               size={108}
               order={order}
             />

@@ -1,138 +1,66 @@
-/* List */
-.head {
-  align-items: flex-start;
-  margin-top: 6px;
-}
-
-.head p {
-  margin-top: 8px;
-  font-size: 20px;
-}
-
-.write {
-  margin-top: 10px;
-}
-
+/* List: a chip per dog, then the diaries as cards in as many columns as
+   fit. */
 .filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: -4px;
-}
-
-.filters button {
-  min-width: 102px;
-  height: 43px;
-  padding: 0 20px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: var(--field);
-  color: var(--ink);
-  font: inherit;
-  font-size: 17px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.filters button[aria-pressed="true"] {
-  border-color: var(--sage);
-  background: var(--sage);
+  gap: var(--space-2);
 }
 
 .list {
   display: grid;
-  margin-top: -4px;
-  border-top: 1px solid var(--line);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr));
+  align-items: start;
+  gap: var(--space-4);
 }
 
 .entry {
-  border-bottom: 1px solid var(--line);
+  composes: card from "../_components/ui.module.css";
 }
 
 .entry > a {
   display: grid;
-  grid-template-columns: 330px minmax(0, 1fr);
-  align-items: start;
-  gap: 24px;
-  padding: 16px 10px;
-}
-
-.text {
-  display: grid;
-  align-content: start;
-  gap: 10px;
+  gap: var(--space-3);
   overflow-wrap: anywhere;
 }
 
-.text h2 {
-  color: var(--ink);
-  font-size: 22px;
-  font-weight: 800;
-}
-
-.dog {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  color: var(--ink);
-  font-size: 20px;
-  font-weight: 700;
-}
-
-.dog span {
-  display: block;
-  color: var(--muted);
-  font-size: 16px;
-  font-weight: 400;
-}
-
-.face {
-  flex: none;
-  width: 62px;
-  height: 62px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.excerpt {
-  font-size: 19px;
-  line-height: 1.45;
-  white-space: pre-wrap;
-}
-
-.noPhoto {
-  color: var(--muted);
-}
-
-/* A wide first photo and a narrower second one. */
 .cover {
   position: relative;
-  display: grid;
-  grid-template-columns: 380fr 268fr;
-  gap: 14px;
-}
-
-.cover:has(> img:only-of-type) {
-  grid-template-columns: 1fr;
 }
 
 .coverImage {
   display: block;
   width: 100%;
-  height: 198px;
-  border-radius: 6px;
+  height: 180px;
+  border-radius: var(--radius-sm);
   object-fit: cover;
 }
 
-.cover > p {
+.photoCount {
   position: absolute;
-  right: 8px;
-  bottom: 8px;
-  padding: 2px 10px;
-  border-radius: 6px;
+  right: var(--space-2);
+  bottom: var(--space-2);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
   background: var(--ink);
   color: white;
-  font-size: 18px;
+  font-size: var(--text-sm);
+}
+
+/* The dog's face and name, on the list and on the detail page. */
+.dog {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* Two lines of the diary, cut with an ellipsis. */
+.excerpt {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 /* Detail */
@@ -156,7 +84,10 @@
 }
 
 .meta .dog span {
+  display: block;
+  color: var(--muted);
   font-size: 18px;
+  font-weight: 400;
 }
 
 .meta .face {
@@ -513,59 +444,6 @@
 }
 
 @media (max-width: 720px) {
-  .head p {
-    font-size: 16px;
-  }
-
-  .write {
-    margin-top: 0;
-  }
-
-  .filters button {
-    flex: 1;
-    min-width: 0;
-    height: 42px;
-  }
-
-  .entry > a {
-    grid-template-columns: 1fr;
-    gap: 10px;
-    padding: 14px 2px;
-  }
-
-  .text {
-    gap: 6px;
-  }
-
-  .text h2 {
-    font-size: 18px;
-  }
-
-  .dog {
-    font-size: 18px;
-  }
-
-  .face {
-    width: 46px;
-    height: 46px;
-  }
-
-  .excerpt {
-    font-size: 15px;
-  }
-
-  .coverImage {
-    height: 104px;
-  }
-
-  .cover {
-    gap: 10px;
-  }
-
-  .cover > p {
-    font-size: 15px;
-  }
-
   .dateTitle {
     font-size: 40px;
   }

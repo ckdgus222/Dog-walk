@@ -9,6 +9,7 @@ import headingStyles from "../_components/heading.module.css";
 import { ArrowRight } from "../_components/icons";
 import formStyles from "../_components/form.module.css";
 import layoutStyles from "../_components/layout.module.css";
+import uiStyles from "../_components/ui.module.css";
 import { useMyDogs } from "../../lib/api/dogs";
 import { useDiaries } from "../../lib/api/diaries";
 import { DiaryImage } from "./diary-image";
@@ -26,6 +27,7 @@ const DiaryList = () => {
       <div role="group" aria-label="반려견 고르기" className={styles.filters}>
         <button
           type="button"
+          className={uiStyles.chip}
           aria-pressed={dogId === undefined}
           onClick={() => setDogId(undefined)}
         >
@@ -35,6 +37,7 @@ const DiaryList = () => {
           <button
             key={dog.id}
             type="button"
+            className={uiStyles.chip}
             aria-pressed={dogId === dog.id}
             onClick={() => setDogId(dog.id)}
           >
@@ -62,45 +65,42 @@ const DiaryList = () => {
             return (
               <article key={diary.id} className={styles.entry}>
                 <Link href={`/diaries/${diary.id}`}>
-                  <div className={styles.text}>
-                    <h2>{formatListDate(diary.walkedOn)}</h2>
-                    <div className={styles.dog}>
-                      {dog && (
-                        <DogFace
-                          dog={dog}
-                          className={styles.face}
-                          size={64}
-                          order={order}
-                        />
-                      )}
-                      <p>{diary.dog.name}</p>
-                    </div>
-                    <p className={styles.excerpt}>
-                      {diary.content.slice(0, 100)}
-                      {diary.content.length > 100 ? "…" : ""}
-                    </p>
-                    {!diary.images[0] && (
-                      <p className={styles.noPhoto}>사진 0장</p>
-                    )}
-                  </div>
                   {diary.images[0] && (
-                    // The first two photos, a wide one and a narrow one. The
-                    // count badge sits on the last one shown.
+                    // The first photo, with the count of all photos on it.
                     <div className={styles.cover}>
-                      {diary.images.slice(0, 2).map((image, index) => (
-                        <DiaryImage
-                          key={image.id}
-                          diaryId={diary.id}
-                          imageId={image.id}
-                          alt={`${diary.dog.name} 일기 ${index === 0 ? "첫" : "두 번째"} 사진`}
-                          className={styles.coverImage}
-                        />
-                      ))}
-                      <p>
+                      <DiaryImage
+                        diaryId={diary.id}
+                        imageId={diary.images[0].id}
+                        alt={`${diary.dog.name} 일기 첫 사진`}
+                        className={styles.coverImage}
+                      />
+                      <p className={styles.photoCount}>
                         <span className={formStyles.visuallyHidden}>사진 </span>
                         {diary.images.length}장
                       </p>
                     </div>
+                  )}
+                  <h2 className={uiStyles.cardTitle}>
+                    {formatListDate(diary.walkedOn)}
+                  </h2>
+                  <p className={styles.dog}>
+                    {dog && (
+                      <DogFace
+                        dog={dog}
+                        className={uiStyles.face}
+                        size={32}
+                        order={order}
+                      />
+                    )}
+                    {diary.dog.name}
+                  </p>
+                  {/* CSS clamps it to two lines; the slice keeps a long
+                      diary from filling the page with hidden text. */}
+                  <p className={styles.excerpt}>
+                    {diary.content.slice(0, 200)}
+                  </p>
+                  {!diary.images[0] && (
+                    <p className={uiStyles.meta}>사진 0장</p>
                   )}
                 </Link>
               </article>
@@ -114,14 +114,14 @@ const DiaryList = () => {
 
 const DiariesPage = () => (
   <main className={layoutStyles.main}>
-    <div className={`${layoutStyles.head} ${styles.head}`}>
+    <div className={layoutStyles.head}>
       <div>
         <h1 className={headingStyles.title}>산책 일기</h1>
         <p className={headingStyles.lead}>나만 보는 기록</p>
       </div>
       <Link
         href="/diaries/new"
-        className={`${layoutStyles.headAction} ${styles.write}`}
+        className={layoutStyles.headAction}
       >
         일기 쓰기
         <ArrowRight />
