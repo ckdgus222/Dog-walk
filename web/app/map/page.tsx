@@ -218,6 +218,11 @@ const LocationPanel = () => {
           />
         )}
         {selected && <NeighborDetail neighbor={selected} />}
+        {!selected && !!neighbors?.length && (
+          <p className={styles.pickHint}>
+            이웃을 고르면 반려견 정보와 산책 요청이 여기에 보여요.
+          </p>
+        )}
       </div>
     </>
   );

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { AuthGate } from "../_components/auth-gate";
+import { EmptyState } from "../_components/empty-state";
 import formStyles from "../_components/form.module.css";
 import {
   ArrowLeft,
@@ -14,6 +15,7 @@ import {
 import headingStyles from "../_components/heading.module.css";
 import layoutStyles from "../_components/layout.module.css";
 import { usePosts } from "../../lib/api/posts";
+import communityChat from "../../public/illustrations/walking-drawing/community-chat.svg";
 import styles from "./posts.module.css";
 
 // "2026.10.22", as in the list mockup.
@@ -79,7 +81,12 @@ const PostList = () => {
         ) : (
           <>
             {page === 1 && query.data.posts.length === 0 && (
-              <p>아직 글이 없어요.</p>
+              <EmptyState
+                image={communityChat}
+                title="아직 글이 없어요."
+                description="우리 동네 반려인들에게 첫 이야기를 건네 보세요."
+                action={{ href: "/posts/new", label: "첫 글 쓰기" }}
+              />
             )}
             {/* An unusable step stays visible but is not a link. */}
             <nav aria-label="게시판 페이지" className={styles.pages}>

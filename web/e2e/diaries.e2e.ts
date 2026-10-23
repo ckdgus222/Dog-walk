@@ -109,6 +109,9 @@ test("일기 사진 작성·수정·삭제와 반려견 삭제 제한", async ({
     await menu.getByRole("link", { name: "산책 일기", exact: true }).click();
     await expect(page).toHaveURL("/diaries");
     await expect(main.getByText("아직 일기가 없어요.")).toBeVisible();
+    await expect(
+      main.getByRole("link", { name: "첫 일기 쓰기", exact: true }),
+    ).toHaveAttribute("href", "/diaries/new");
     await main.getByRole("link", { name: "일기 쓰기", exact: true }).click();
     await expect(page).toHaveURL("/diaries/new");
     await main

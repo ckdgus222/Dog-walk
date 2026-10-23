@@ -227,7 +227,23 @@
   gap: 16px;
 }
 
+/* A lone child, such as the list with nobody nearby, takes both columns. */
+.columns > :only-child {
+  grid-column: 1 / -1;
+}
+
+.pickHint {
+  padding: 40px 24px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 17px;
+  text-align: center;
+  text-wrap: balance;
+}
+
 .neighborList h2 {
+  margin-bottom: 12px;
   color: var(--ink);
   font-size: 18px;
 }
@@ -235,7 +251,6 @@
 .neighbors {
   display: grid;
   gap: 8px;
-  margin-top: 12px;
   list-style: none;
 }
 
@@ -492,12 +507,12 @@
   }
 
   .neighborList h2 {
+    margin-bottom: 8px;
     font-size: 16px;
   }
 
   .neighbors {
     gap: 6px;
-    margin-top: 8px;
   }
 
   .neighbors button {

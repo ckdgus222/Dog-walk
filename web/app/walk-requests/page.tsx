@@ -10,6 +10,7 @@ import type { WalkRequest } from "../../lib/types";
 import crouchPetHeader from "../../public/illustrations/walking-drawing/crouch-pet-header.png";
 import { AuthGate } from "../_components/auth-gate";
 import { DogFace, genderLabels, sizeLabels } from "../_components/dog-card";
+import { EmptyState } from "../_components/empty-state";
 import headingStyles from "../_components/heading.module.css";
 import layoutStyles from "../_components/layout.module.css";
 import { useNotifications } from "../_components/notifications-provider";
@@ -21,6 +22,15 @@ const statusLabels = {
   ACCEPTED: "수락됨",
   REJECTED: "거절됨",
   CANCELED: "취소됨",
+};
+
+// Only the sender has something to do while a box is empty.
+const emptyHints = {
+  received: { description: "이웃이 요청을 보내면 여기에 보여요." },
+  sent: {
+    description: "주변 친구에게 먼저 요청해 보세요.",
+    action: { href: "/map", label: "주변 친구 찾기" },
+  },
 };
 
 const WalkRequestsPage = () => {
@@ -87,7 +97,7 @@ const RequestLists = () => {
             {requests[box] && <span>{requests[box].length}</span>}
           </h2>
           {requests[box]?.length === 0 && (
-            <p className={styles.empty}>아직 요청이 없어요.</p>
+            <EmptyState title="아직 요청이 없어요." {...emptyHints[box]} />
           )}
           {requests[box] && requests[box].length > 0 && (
             <div className={styles.list}>
