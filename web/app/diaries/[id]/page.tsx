@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { AuthGate } from "../../_components/auth-gate";
+import { dangerButton, secondaryButton } from "../../_components/buttons";
 import { DogFace, genderLabels } from "../../_components/dog-card";
 import headingStyles from "../../_components/heading.module.css";
 import { ArrowLeft, ChevronLeft, LockIcon } from "../../_components/icons";
@@ -70,12 +71,21 @@ const DiaryDetail = () => {
         ))}
       </div>
       <div className={styles.actions}>
-        <Link href="/diaries" className={styles.listButton}>
+        <Link
+          href="/diaries"
+          className={`${secondaryButton} ${styles.listButton}`}
+        >
           <ArrowLeft size={22} />
           일기 목록
         </Link>
-        <Link href={`/diaries/${diary.id}/edit`}>수정</Link>
+        <Link
+          href={`/diaries/${diary.id}/edit`}
+          className={secondaryButton}
+        >
+          수정
+        </Link>
         <button
+          className={dangerButton}
           disabled={remove.isPending}
           onClick={() => {
             if (!window.confirm("일기를 삭제할까요?")) return;

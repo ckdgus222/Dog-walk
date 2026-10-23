@@ -1,14 +1,13 @@
 /* A cream card over a dimmed page, in the walking drawing colors. */
 .dialog {
+  composes: panel from "./ui.module.css";
   width: min(480px, calc(100% - 32px));
   max-width: none;
   max-height: calc(100dvh - 48px);
   margin: auto;
-  padding: 52px 40px 36px;
+  padding: var(--space-7) var(--space-6) var(--space-6);
   overflow-y: auto;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--paper);
+  border: 0;
   color: var(--text);
   box-shadow: 0 24px 60px rgb(39 75 73 / 0.25);
 }
@@ -38,7 +37,7 @@
   width: 40px;
   height: 40px;
   border: 0;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: transparent;
   color: var(--ink);
   cursor: pointer;
@@ -83,8 +82,7 @@
     height: 100dvh;
     max-height: none;
     margin: 0;
-    padding: 56px 16px 28px;
-    border: 0;
+    padding: var(--space-7) var(--space-4) var(--space-5);
     border-radius: 0;
   }
 }

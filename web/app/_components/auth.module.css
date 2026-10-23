@@ -3,12 +3,12 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  margin-top: 24px;
-  font-size: 17px;
+  margin-top: var(--space-5);
+  font-size: var(--text-lg);
 }
 
 .links a {
-  padding: 0 22px;
+  padding: 0 var(--space-5);
   color: var(--accent);
 }
 
@@ -17,9 +17,9 @@
 }
 
 .loginForm {
-  gap: 18px;
+  gap: var(--space-4);
   width: min(100%, 440px);
-  margin-top: 44px;
+  margin-top: var(--space-7);
 }
 
 .loginForm button {
@@ -29,17 +29,17 @@
 /* In the modal card the form fills the card under a smaller title. */
 .modalForm.modalForm {
   width: 100%;
-  margin-top: 28px;
+  margin-top: var(--space-5);
 }
 
 /* "처음이세요? 회원가입" under the guest home's login card. */
 .cardLinks {
   display: flex;
   justify-content: center;
-  gap: 10px;
-  margin-top: 20px;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
   color: var(--muted);
-  font-size: 16px;
+  font-size: var(--text-md);
 }
 
 .cardLinks a {
@@ -49,23 +49,22 @@
 
 .loginForm + .links {
   width: min(100%, 440px);
-  margin-top: 30px;
-  font-size: 19px;
+  margin-top: var(--space-6);
 }
 
 .intro > p:first-child {
-  font-size: 18px;
+  font-size: var(--text-lg);
 }
 
 .signupForm {
-  gap: 15px;
+  gap: var(--space-4);
 }
 
 .signupLinks {
-  margin-top: 18px;
-  padding-top: 20px;
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
   border-top: 1px solid var(--line);
-  font-size: 15px;
+  font-size: var(--text-md);
 }
 
 .signupLinks a {
@@ -77,17 +76,16 @@
 }
 
 .signupLinks a:first-of-type {
-  margin-left: 12px;
+  margin-left: var(--space-3);
 }
 
 @media (max-width: 720px) {
   .loginForm {
-    gap: 14px;
-    margin-top: 32px;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
   }
 
   .loginForm + .links {
-    margin-top: 22px;
-    font-size: 17px;
+    margin-top: var(--space-5);
   }
 }

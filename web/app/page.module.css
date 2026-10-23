@@ -101,11 +101,11 @@
   column-gap: clamp(40px, 5vw, 64px);
   width: var(--page-width);
   margin: 0 auto;
-  padding: 64px 0 48px;
+  padding: var(--space-8) 0 var(--space-7);
 }
 
 .welcome {
-  padding-top: 24px;
+  padding-top: var(--space-5);
 }
 
 /* The title shrinks with the window so it stays on two lines above the
@@ -116,43 +116,41 @@
 
 .features {
   display: grid;
-  gap: 18px;
-  margin-top: 36px;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
   list-style: none;
 }
 
 .features li {
   display: grid;
   grid-template-columns: 48px 1fr;
-  column-gap: 16px;
+  column-gap: var(--space-4);
   align-items: center;
 }
 
 .features svg {
   grid-row: span 2;
   box-sizing: content-box;
-  padding: 12px;
-  border-radius: 50%;
+  padding: var(--space-3);
+  border-radius: var(--radius-full);
   background: rgb(255 252 245 / 0.8);
   color: var(--ink);
 }
 
 .features strong {
   color: var(--ink);
-  font-size: 19px;
+  font-size: var(--text-lg);
 }
 
 .features span {
   color: var(--text);
-  font-size: 16px;
+  font-size: var(--text-md);
 }
 
 .loginCard {
-  padding: 36px 32px 28px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--paper);
-  box-shadow: 0 18px 48px rgb(39 75 73 / 0.16);
+  composes: panel from "./_components/ui.module.css";
+  padding: var(--space-6) var(--space-6) var(--space-5);
+  box-shadow: var(--shadow-panel);
   animation: card-rise 0.5s ease-out both;
 }
 
@@ -160,7 +158,7 @@
 @media (max-width: 900px) {
   .guest {
     grid-template-columns: 1fr;
-    row-gap: 32px;
+    row-gap: var(--space-6);
   }
 
   .loginCard {
@@ -196,8 +194,8 @@
 
 @media (max-width: 720px) {
   .guest {
-    padding-top: 28px;
-    row-gap: 24px;
+    padding-top: var(--space-5);
+    row-gap: var(--space-5);
   }
 
   .welcome {
@@ -205,29 +203,29 @@
   }
 
   .welcome .title {
-    font-size: 27px;
+    font-size: var(--text-2xl);
     line-height: 37px;
   }
 
   .features {
-    gap: 10px;
-    margin-top: 20px;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
   }
 
   .features li {
     grid-template-columns: 36px 1fr;
-    column-gap: 12px;
+    column-gap: var(--space-3);
   }
 
   .features svg {
     grid-row: auto;
     width: 20px;
     height: 20px;
-    padding: 8px;
+    padding: var(--space-2);
   }
 
   .features strong {
-    font-size: 16px;
+    font-size: var(--text-md);
   }
 
   /* Phones keep only the feature names. */
@@ -236,7 +234,7 @@
   }
 
   .loginCard {
-    padding: 24px 18px 20px;
+    padding: var(--space-5) var(--space-4) var(--space-4);
   }
 
   .hero {

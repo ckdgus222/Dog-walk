@@ -248,7 +248,7 @@
 .formActions {
   display: grid;
   grid-template-columns: 247px 217px;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 /* The write form puts saving first; the edit form puts the list link first. */

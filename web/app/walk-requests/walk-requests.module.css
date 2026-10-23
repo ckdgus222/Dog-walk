@@ -60,15 +60,9 @@
   overflow-wrap: anywhere;
 }
 
-/* The dog's face tucks under the person's, ringed in the card color. */
 .faces {
-  display: flex;
+  composes: facePair from "../_components/ui.module.css";
   align-self: start;
-}
-
-.faces > * + * {
-  margin-left: -14px;
-  box-shadow: 0 0 0 3px var(--card);
 }
 
 .info {
@@ -125,11 +119,6 @@
   .head > img {
     justify-self: end;
     width: min(100%, 280px);
-  }
-
-  .faces > img {
-    width: 48px;
-    height: 48px;
   }
 
   .wideOnly {

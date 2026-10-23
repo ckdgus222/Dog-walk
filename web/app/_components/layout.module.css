@@ -1,5 +1,6 @@
 /* Each page's content sits on a cream panel over the field background. */
 .main {
+  composes: panel from "./ui.module.css";
   --panel-pad-bottom: var(--space-7);
   display: grid;
   align-content: start;
@@ -7,8 +8,6 @@
   width: var(--page-width);
   margin: var(--space-5) auto var(--space-7);
   padding: var(--space-7) var(--panel-pad-x) var(--panel-pad-bottom);
-  border-radius: var(--radius-md);
-  background: var(--paper) var(--paper-grain);
   box-shadow: var(--shadow-panel);
 }
 

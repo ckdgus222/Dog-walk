@@ -233,6 +233,23 @@
   background: var(--accent-soft);
 }
 
+/* A person's face with their dog's tucked under it, ringed in the color
+   behind them (--face-ring, the card color by default). */
+.facePair {
+  display: flex;
+}
+
+.facePair > * + * {
+  margin-left: -14px;
+  box-shadow: 0 0 0 3px var(--face-ring, var(--card));
+}
+
+/* A sheet of paper: the page panel, the login card and the dialog. */
+.panel {
+  border-radius: var(--radius-md);
+  background: var(--paper) var(--paper-grain);
+}
+
 .meta {
   color: var(--muted);
   font-size: var(--text-sm);
@@ -241,5 +258,10 @@
 @media (max-width: 720px) {
   .card {
     padding: var(--space-4);
+  }
+
+  .facePair > img {
+    width: 48px;
+    height: 48px;
   }
 }

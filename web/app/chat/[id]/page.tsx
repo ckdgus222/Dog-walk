@@ -6,10 +6,13 @@ import { Suspense, useEffect, useRef, useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useChatHistory, useSendChatMessage } from "../../../lib/api/chat";
 import { useWalkRequests } from "../../../lib/api/walk-requests";
+import type { Dog } from "../../../lib/types";
 import { AuthGate } from "../../_components/auth-gate";
 import { useAuth } from "../../_components/auth-provider";
 import { DogFace, genderLabels, sizeLabels } from "../../_components/dog-card";
 import formStyles from "../../_components/form.module.css";
+import { PersonFace } from "../../_components/person-face";
+import uiStyles from "../../_components/ui.module.css";
 import { ChevronLeft } from "../../_components/icons";
 import layoutStyles from "../../_components/layout.module.css";
 import { useNotifications } from "../../_components/notifications-provider";
@@ -105,7 +108,10 @@ const ChatRoom = ({ walkRequestId }: { walkRequestId: number }) => {
   return (
     <>
       <div className={styles.head}>
-        <CounterpartDog walkRequestId={walkRequestId} />
+        <Counterpart
+          walkRequestId={walkRequestId}
+          userId={history.data.counterpart.id}
+        />
         <h1>{history.data.counterpart.nickname}님과의 채팅</h1>
         <p className={styles.note}>
           최근 50개 메시지
@@ -170,29 +176,44 @@ const ChatRoom = ({ walkRequestId }: { walkRequestId: number }) => {
   );
 };
 
-// The chat history only names the counterpart, so their dog comes from the
-// walk request lists, which carry each counterpart's dogs.
-const CounterpartDog = ({ walkRequestId }: { walkRequestId: number }) => {
+// The counterpart's face, then their first dog. The chat history only names
+// the counterpart, so the dog comes from the walk request lists, which carry
+// each counterpart's dogs.
+const Counterpart = ({
+  walkRequestId,
+  userId,
+}: {
+  walkRequestId: number;
+  userId: number;
+}) => {
   const received = useWalkRequests("received");
   const sent = useWalkRequests("sent");
   const request = [...(received.data ?? []), ...(sent.data ?? [])].find(
     (request) => request.id === walkRequestId,
   );
   const dog = request?.counterpart.dogs[0];
-  if (!dog) return null;
   return (
     <>
-      <DogFace dog={dog} className={styles.dogFace} size={130} />
-      <p className={styles.dogLine}>
-        {[
-          dog.name,
-          dog.breed,
-          sizeLabels[dog.size],
-          genderLabels[dog.gender],
-          `${dog.birthYear}년생`,
-        ].join(" · ")}
-      </p>
-      <p className={styles.personality}>{dog.personality}</p>
+      <span className={styles.faces}>
+        <PersonFace userId={userId} size={64} />
+        {dog && <DogFace dog={dog} className={uiStyles.face} size={64} />}
+      </span>
+      {dog && <DogDetails dog={dog} />}
     </>
   );
 };
+
+const DogDetails = ({ dog }: { dog: Dog }) => (
+  <>
+    <p className={styles.dogLine}>
+      {[
+        dog.name,
+        dog.breed,
+        sizeLabels[dog.size],
+        genderLabels[dog.gender],
+        `${dog.birthYear}년생`,
+      ].join(" · ")}
+    </p>
+    <p className={styles.personality}>{dog.personality}</p>
+  </>
+);

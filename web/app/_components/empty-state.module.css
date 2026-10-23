@@ -1,11 +1,9 @@
 .empty {
+  composes: card from "./ui.module.css";
   display: grid;
   justify-items: center;
-  gap: 12px;
-  padding: 40px 24px 44px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--card);
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-5) var(--space-7);
   text-align: center;
 }
 
@@ -13,36 +11,31 @@
   width: auto;
   max-width: 100%;
   height: 180px;
-  margin-bottom: 12px;
+  margin-bottom: var(--space-3);
   object-fit: contain;
 }
 
 .title {
   color: var(--ink);
-  font-size: 22px;
+  font-size: var(--text-xl);
   font-weight: 700;
 }
 
 .description {
   max-width: 32em;
   color: var(--muted);
-  font-size: 17px;
+  font-size: var(--text-lg);
   line-height: 1.6;
   text-wrap: balance;
 }
 
-/* A smaller version of the list pages' head action. */
 .action {
-  gap: 12px;
-  height: 56px;
-  margin-top: 12px;
-  padding: 0 36px;
-  font-size: 19px;
+  margin-top: var(--space-3);
 }
 
 @media (max-width: 720px) {
   .empty {
-    padding: 28px 16px 24px;
+    padding: var(--space-5) var(--space-4);
   }
 
   .image {
@@ -50,16 +43,10 @@
   }
 
   .title {
-    font-size: 19px;
+    font-size: var(--text-lg);
   }
 
   .description {
-    font-size: 15px;
-  }
-
-  .action {
-    width: 100%;
-    height: 52px;
-    font-size: 18px;
+    font-size: var(--text-md);
   }
 }
