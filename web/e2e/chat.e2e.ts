@@ -291,8 +291,8 @@ test("1:1 채팅·전송 대기·조회 경쟁·알림·재접속·인증 갱신
 
     await test.step("채팅방 밖에서는 새 메시지 안내를 누르면 해당 채팅으로 이동한다", async () => {
       await a
-        .getByRole("navigation", { name: "주 메뉴" })
-        .getByRole("link", { name: "홈", exact: true })
+        .getByRole("banner")
+        .getByRole("link", { name: "강아지 산책", exact: true })
         .click();
       await expect(a).toHaveURL("/");
       const content = `밖에서 받은 메시지 ${runId}`;

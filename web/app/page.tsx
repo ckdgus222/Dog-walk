@@ -1,51 +1,165 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useMyDogs } from "../lib/api/dogs";
+import type { Dog } from "../lib/types";
+import communityChat from "../public/illustrations/walking-drawing/community-chat.svg";
+import diaryBook from "../public/illustrations/walking-drawing/diary-book.svg";
+import dogBami from "../public/illustrations/walking-drawing/dog-bami.png";
+import dogDubu from "../public/illustrations/walking-drawing/dog-dubu.png";
+import walkScene from "../public/illustrations/walking-drawing/walk-scene.png";
 import { useAuth } from "./_components/auth-provider";
+import { sizeLabels } from "./_components/dog-card";
 import styles from "./page.module.css";
 
 const Home = () => {
-  const { user, loading, logout } = useAuth();
-  const [error, setError] = useState("");
-  const [pending, setPending] = useState(false);
-
-  const handleLogout = async () => {
-    setError("");
-    setPending(true);
-    try {
-      await logout();
-    } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "로그아웃하지 못했습니다.",
-      );
-    } finally {
-      setPending(false);
-    }
-  };
+  const { user, loading } = useAuth();
 
   return (
     <main className={styles.main}>
-      <h1>강아지 산책</h1>
-      {loading ? (
-        <p role="status">로그인 상태를 확인하고 있어요.</p>
-      ) : user ? (
-        <>
-          <p>{user.nickname}님, 안녕하세요</p>
-          <Link href="/dogs">내 반려견</Link>
-          <Link href="/map">지도</Link>
-          <button type="button" disabled={pending} onClick={handleLogout}>
-            로그아웃
-          </button>
-        </>
-      ) : (
-        <nav aria-label="계정">
-          <Link href="/login">로그인</Link>
-          <Link href="/signup">회원가입</Link>
-        </nav>
-      )}
-      {error && <p role="alert">{error}</p>}
+      <div className={styles.content}>
+        {loading ? (
+          <p role="status">로그인 상태를 확인하고 있어요.</p>
+        ) : user ? (
+          <Dashboard nickname={user.nickname} />
+        ) : (
+          <Welcome />
+        )}
+      </div>
+      {/* Phones show the drawing in a 2:1 frame, about 150% of the screen width. */}
+      <Image
+        className={styles.scene}
+        src={walkScene}
+        alt=""
+        sizes="(max-width: 720px) 150vw, (max-width: 1600px) 100vw, 1600px"
+        loading="eager"
+      />
     </main>
   );
 };
 export default Home;
+
+const Title = () => (
+  <h1 className={styles.title}>
+    오늘도,
+    <br />
+    좋은 산책이 기다리고 있어요
+  </h1>
+);
+
+const Welcome = () => (
+  <>
+    <Title />
+    <nav aria-label="계정" className={styles.actions}>
+      <Link href="/login" className={styles.primaryAction}>
+        로그인
+      </Link>
+      <Link href="/signup" className={styles.textAction}>
+        회원가입
+      </Link>
+    </nav>
+  </>
+);
+
+const Dashboard = ({ nickname }: { nickname: string }) => (
+  <>
+    <p className={styles.greeting}>{nickname}님, 안녕하세요</p>
+    <Title />
+    <div className={styles.actions}>
+      <Link href="/map" className={styles.primaryAction}>
+        주변 친구 찾기<span aria-hidden="true">→</span>
+      </Link>
+      <Link href="/walk-requests" className={styles.textAction}>
+        산책 요청<span aria-hidden="true">→</span>
+      </Link>
+    </div>
+    <div className={styles.cards}>
+      <section className={styles.card}>
+        <CardTitle href="/dogs">내 반려견</CardTitle>
+        <MyDogs />
+      </section>
+      <section className={`${styles.card} ${styles.linkCard}`}>
+        <CardTitle href="/diaries">산책 일기</CardTitle>
+        <Image
+          className={styles.icon}
+          src={diaryBook}
+          alt=""
+          width={72}
+          height={72}
+        />
+        <p className={styles.description}>우리의 소중한 산책을 기록해요</p>
+      </section>
+      <section className={`${styles.card} ${styles.linkCard}`}>
+        <CardTitle href="/posts">게시판</CardTitle>
+        <Image
+          className={styles.icon}
+          src={communityChat}
+          alt=""
+          width={72}
+          height={72}
+        />
+        <p className={styles.description}>이웃 반려인들과 이야기를 나눠요</p>
+      </section>
+    </div>
+  </>
+);
+
+// The link stretches over its card, so the whole card is clickable while the
+// link name stays the card title.
+const CardTitle = ({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) => (
+  <h2 className={styles.cardTitle}>
+    <Link href={href} className={styles.cardLink}>
+      {children}
+    </Link>
+    <span aria-hidden="true">›</span>
+  </h2>
+);
+
+const MyDogs = () => {
+  const query = useMyDogs();
+  if (query.isPending) return <p role="status">반려견을 불러오고 있어요.</p>;
+  if (query.isError) return <p role="alert">{query.error.message}</p>;
+  if (query.data.length === 0) {
+    return <p className={styles.description}>아직 등록한 반려견이 없어요.</p>;
+  }
+  return (
+    <ul className={styles.dogs}>
+      {query.data.map((dog, index) => (
+        <li key={dog.id} className={styles.dog}>
+          <DogFace dog={dog} index={index} />
+          <div>
+            <p className={styles.dogName}>{dog.name}</p>
+            <p className={styles.dogMeta}>
+              {dog.breed} · {sizeLabels[dog.size]} · {dog.birthYear}년생
+            </p>
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+};
+
+// Dogs without an uploaded photo alternate between the two drawn faces.
+const defaultFaces = [dogDubu, dogBami];
+
+const DogFace = ({ dog, index }: { dog: Dog; index: number }) =>
+  dog.photoUrl ? (
+    // The web container cannot fetch nginx uploads for next/image optimization.
+    // eslint-disable-next-line @next/next/no-img-element
+    <img className={styles.face} src={dog.photoUrl} alt="" />
+  ) : (
+    <Image
+      className={styles.face}
+      src={defaultFaces[index % defaultFaces.length]}
+      alt=""
+      width={80}
+      height={80}
+    />
+  );

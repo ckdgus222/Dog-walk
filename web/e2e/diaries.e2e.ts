@@ -106,7 +106,7 @@ test("일기 사진 작성·수정·삭제와 반려견 삭제 제한", async ({
 
   await test.step("로그인 후 상단 메뉴에서 일기를 쓴다", async () => {
     await login(page, account);
-    await menu.getByRole("link", { name: "일기", exact: true }).click();
+    await menu.getByRole("link", { name: "산책 일기", exact: true }).click();
     await expect(page).toHaveURL("/diaries");
     await expect(main.getByText("아직 일기가 없어요.")).toBeVisible();
     await main.getByRole("link", { name: "일기 쓰기", exact: true }).click();
@@ -212,7 +212,7 @@ test("일기 사진 작성·수정·삭제와 반려견 삭제 제한", async ({
   });
 
   await test.step("일기를 삭제하면 목록에서 사라진다", async () => {
-    await menu.getByRole("link", { name: "일기", exact: true }).click();
+    await menu.getByRole("link", { name: "산책 일기", exact: true }).click();
     await expect(page).toHaveURL("/diaries");
     await main.getByRole("article").getByRole("link").click();
     await expect(page).toHaveURL(/\/diaries\/\d+$/);
@@ -245,7 +245,7 @@ test("목록 조회가 실패해도 수정 저장 응답으로 상세에 바로 
   await login(page, account);
   await page
     .getByRole("navigation", { name: "주 메뉴" })
-    .getByRole("link", { name: "일기", exact: true })
+    .getByRole("link", { name: "산책 일기", exact: true })
     .click();
   await expect(page).toHaveURL("/diaries");
   await main.getByRole("article").getByRole("link").click();
@@ -309,7 +309,7 @@ test("일기 수정은 첫 진입과 재진입 모두 새 조회를 기다리고
   await login(page, account);
   await page
     .getByRole("navigation", { name: "주 메뉴" })
-    .getByRole("link", { name: "일기", exact: true })
+    .getByRole("link", { name: "산책 일기", exact: true })
     .click();
   await expect(page).toHaveURL("/diaries");
   await main.getByRole("article").getByRole("link").click();

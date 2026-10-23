@@ -1,13 +1,12 @@
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #f5f0db;
+  --foreground: #33383c;
+  --ink: #274b49;
+  --accent: #e56d49;
+  --sage: #d2dfca;
+  --surface: #fbf7ec;
+  --line: #e2dcc8;
+  --muted: #6b7175;
 }
 
 html {
@@ -26,7 +25,10 @@ body {
   flex-direction: column;
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), "Apple SD Gothic Neo", "Malgun Gothic",
+    sans-serif;
+  /* Wrap Korean text between words, not in the middle of a word. */
+  word-break: keep-all;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -42,8 +44,8 @@ a {
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
 }

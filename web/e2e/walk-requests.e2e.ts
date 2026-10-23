@@ -118,7 +118,7 @@ test("산책 요청 실시간 알림·재접속 동기화·로그아웃 정리",
         .click();
       await b
         .getByRole("navigation", { name: "주 메뉴" })
-        .getByRole("link", { name: "지도", exact: true })
+        .getByRole("link", { name: "주변 친구", exact: true })
         .click();
       await expect(a).toHaveURL("/walk-requests");
       await expect(b).toHaveURL("/map");
@@ -238,8 +238,8 @@ test("산책 요청 실시간 알림·재접속 동기화·로그아웃 정리",
 
     await test.step("모달이 열린 상태의 로그아웃은 알림을 모두 비우고, 재로그인하면 대기 수를 읽는다", async () => {
       await a
-        .getByRole("navigation", { name: "주 메뉴" })
-        .getByRole("link", { name: "홈", exact: true })
+        .getByRole("banner")
+        .getByRole("link", { name: "강아지 산책", exact: true })
         .click();
       const headersB = { Authorization: authorizations[1] };
       // Leave a notice as well as a pending modal to check that both are removed.
@@ -274,7 +274,7 @@ test("산책 요청 실시간 알림·재접속 동기화·로그아웃 정리",
       // it is open (for example, refresh fails after a login elsewhere). Invoke
       // the logout button's handler to end the session with the modal still up.
       await a
-        .getByRole("main", { includeHidden: true })
+        .getByRole("banner", { includeHidden: true })
         .getByRole("button", {
           name: "로그아웃",
           exact: true,

@@ -93,7 +93,7 @@ const login = async (page: Page, account: Account) => {
   await main.getByLabel("비밀번호").fill(account.password);
   await main.getByRole("button", { name: "로그인", exact: true }).click();
   await expect(page).toHaveURL("/");
-  await main.getByRole("link", { name: "지도", exact: true }).click();
+  await main.getByRole("link", { name: "주변 친구 찾기", exact: true }).click();
 };
 const openMap = async (page: Page, accounts: Account[]) => {
   await login(page, accounts[0]);
@@ -252,7 +252,7 @@ for (const leave of ["hidden", "navigate"] as const) {
     else await main.getByRole("link", { name: "홈으로" }).click();
     const held = await holdResponse(page, "**/api/users/nearby", "GET");
     if (leave === "hidden") await setVisibility(page, "visible");
-    else await main.getByRole("link", { name: "지도", exact: true }).click();
+    else await main.getByRole("link", { name: "주변 친구 찾기", exact: true }).click();
     await held.captured;
     await expect(
       main.getByRole("region", { name: "주변 산책 친구", exact: true }),

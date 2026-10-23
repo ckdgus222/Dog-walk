@@ -1,36 +1,74 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { useAuth } from "./auth-provider";
 import { useNotifications } from "./notifications-provider";
-import styles from "./notifications.module.css";
+import styles from "./site-header.module.css";
 
 export const SiteHeader = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { pendingCount, pendingCountError, notice, dismissNotice } =
     useNotifications();
+  const [logoutError, setLogoutError] = useState("");
+  const [loggingOut, setLoggingOut] = useState(false);
   if (!user) return null;
+
+  const handleLogout = async () => {
+    setLogoutError("");
+    setLoggingOut(true);
+    try {
+      await logout();
+    } catch (error) {
+      setLogoutError(
+        error instanceof Error ? error.message : "로그아웃하지 못했습니다.",
+      );
+    } finally {
+      setLoggingOut(false);
+    }
+  };
+
   return (
     <header className={styles.header}>
-      <nav aria-label="주 메뉴">
-        <Link href="/">홈</Link>
-        <Link href="/map">지도</Link>
-        <Link href="/dogs">내 반려견</Link>
-        <Link href="/diaries">일기</Link>
-        <Link href="/posts">게시판</Link>
-        <Link href="/walk-requests">
-          산책 요청{" "}
-          {pendingCount > 0 && (
-            <span
-              className={styles.badge}
-              aria-label={`받은 산책 요청 ${pendingCount}개`}
-            >
-              {pendingCount}
-            </span>
-          )}
+      <div className={styles.bar}>
+        <Link href="/" className={styles.logo}>
+          강아지 산책
         </Link>
-      </nav>
-      {pendingCountError && <p role="alert">{pendingCountError}</p>}
+        <nav aria-label="주 메뉴" className={styles.menu}>
+          <MenuLink href="/map">주변 친구</MenuLink>
+          <MenuLink href="/walk-requests">
+            산책 요청{" "}
+            {pendingCount > 0 && (
+              <span
+                className={styles.badge}
+                aria-label={`받은 산책 요청 ${pendingCount}개`}
+              >
+                {pendingCount}
+              </span>
+            )}
+          </MenuLink>
+          <MenuLink href="/dogs">내 반려견</MenuLink>
+          <MenuLink href="/diaries">산책 일기</MenuLink>
+          <MenuLink href="/posts">게시판</MenuLink>
+        </nav>
+        <div className={styles.account}>
+          <span className={styles.greeting}>{user.nickname}님, 안녕하세요</span>
+          <button type="button" disabled={loggingOut} onClick={handleLogout}>
+            로그아웃
+          </button>
+        </div>
+      </div>
+      {pendingCountError && (
+        <p role="alert" className={styles.message}>
+          {pendingCountError}
+        </p>
+      )}
+      {logoutError && (
+        <p role="alert" className={styles.message}>
+          {logoutError}
+        </p>
+      )}
       {notice && (
         <div role="status" className={styles.notice}>
           <p>{notice.text}</p>
@@ -43,5 +81,23 @@ export const SiteHeader = () => {
         </div>
       )}
     </header>
+  );
+};
+
+// Rendered only for a logged-in user, which never happens while prerendering,
+// so usePathname cannot suspend dynamic routes such as /dogs/[id]/edit.
+const MenuLink = ({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) => {
+  const pathname = usePathname();
+  const current = pathname === href || pathname.startsWith(`${href}/`);
+  return (
+    <Link href={href} aria-current={current ? "page" : undefined}>
+      {children}
+    </Link>
   );
 };

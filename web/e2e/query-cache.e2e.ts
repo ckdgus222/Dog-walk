@@ -134,20 +134,22 @@ test("계정 전환 중 이전 계정의 반려견 캐시를 보여 주지 않�
     main.getByRole("heading", { name: a.dog.name, exact: true }),
   ).toBeVisible();
   await main.getByRole("link", { name: "홈으로" }).click();
-  await main.getByRole("button", { name: "로그아웃" }).click();
+  await page
+    .getByRole("banner")
+    .getByRole("button", { name: "로그아웃" })
+    .click();
   await main.getByRole("link", { name: "로그인", exact: true }).click();
-  await login(page, b);
+  // The home page loads my dogs right after login, so hold that first request.
   const held = await holdNextResponse(page, "**/api/dogs/me");
-  await main.getByRole("link", { name: "내 반려견", exact: true }).click();
+  await login(page, b);
   await held.captured;
   await expect(main.getByRole("status")).toHaveText(
     "반려견을 불러오고 있어요.",
   );
-  await expect(main.getByRole("article")).toHaveCount(0);
-  await expect(
-    page.getByRole("heading", { name: a.dog.name, exact: true }),
-  ).toHaveCount(0);
+  await expect(page.getByText(a.dog.name)).toHaveCount(0);
   await held.release();
+  await expect(main.getByText(b.dog.name, { exact: true })).toBeVisible();
+  await main.getByRole("link", { name: "내 반려견", exact: true }).click();
   await expect(
     main.getByRole("heading", { name: b.dog.name, exact: true }),
   ).toBeVisible();
@@ -301,13 +303,13 @@ test("위치 동의를 철회한 뒤 늦은 조회가 공개 상태를 되살리
     await publishLocation(request, account.headers);
     await page.goto("/login");
     await login(page, account);
-    await main.getByRole("link", { name: "지도", exact: true }).click();
+    await main.getByRole("link", { name: "주변 친구 찾기", exact: true }).click();
     await expect(
       main.getByRole("button", { name: "위치 공개 끄기" }),
     ).toBeVisible();
     await main.getByRole("link", { name: "홈으로" }).click();
     const held = await holdNextResponse(page, "**/api/users/me/location");
-    await main.getByRole("link", { name: "지도", exact: true }).click();
+    await main.getByRole("link", { name: "주변 친구 찾기", exact: true }).click();
     const { response } = await held.captured;
     expect(await response.json()).toMatchObject({ consented: true });
     page.once("dialog", (dialog) => dialog.accept());
@@ -344,7 +346,7 @@ for (const moved of [true, false]) {
       await publishLocation(request, neighbor.headers, 37.57);
       await page.goto("/login");
       await login(page, account);
-      await main.getByRole("link", { name: "지도", exact: true }).click();
+      await main.getByRole("link", { name: "주변 친구 찾기", exact: true }).click();
       const neighbors = main.getByRole("region", {
         name: "주변 산책 친구",
         exact: true,

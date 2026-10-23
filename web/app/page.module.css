@@ -2,22 +2,259 @@
   display: flex;
   flex: 1;
   flex-direction: column;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  width: min(100% - 48px, 936px);
+  /* The transparent sky of the walk scene slides up behind the cards. */
+  margin: 0 auto -48px;
+  padding-top: 56px;
+}
+
+.greeting {
+  margin-bottom: 14px;
+  font-size: 17px;
+}
+
+.title {
+  color: var(--ink);
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1.36;
+  letter-spacing: -0.02em;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  margin-top: 30px;
+}
+
+.primaryAction {
+  position: relative;
+  display: flex;
+  flex: 0 1 536px;
   align-items: center;
   justify-content: center;
-  gap: 24px;
-  padding: 24px;
+  height: 72px;
+  padding: 0 64px;
+  border-radius: 4px;
+  background: var(--accent);
+  color: white;
+  font-size: 22px;
+  font-weight: 700;
 }
 
-.main nav {
+.primaryAction span {
+  position: absolute;
+  right: 32px;
+}
+
+.textAction {
   display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 56px;
+  margin-left: 36px;
+  padding-left: 34px;
+  border-left: 1px solid var(--line);
+  color: var(--accent);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr;
+  gap: 18px;
+  margin-top: 28px;
+}
+
+.card {
+  position: relative;
+  padding: 24px 28px 28px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface);
+}
+
+.cardTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--ink);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.cardLink::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.dogs {
+  display: grid;
+  gap: 6px;
+  margin-top: 16px;
+  list-style: none;
+}
+
+.dog {
+  display: flex;
+  align-items: center;
   gap: 24px;
+  overflow-wrap: anywhere;
 }
 
-.main a {
-  text-decoration: underline;
+.face {
+  flex: none;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
-.main button {
-  padding: 10px 20px;
-  font: inherit;
+.dogName {
+  color: var(--ink);
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.dogMeta {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.linkCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.linkCard .cardTitle {
+  align-self: stretch;
+}
+
+.icon {
+  margin: 26px 0 18px;
+}
+
+.description {
+  max-width: 10em;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.6;
+  text-wrap: balance;
+}
+
+.scene {
+  display: block;
+  align-self: center;
+  width: 100%;
+  max-width: 1600px;
+  height: auto;
+  margin-top: auto;
+}
+
+@media (max-width: 720px) {
+  .content {
+    width: calc(100% - 32px);
+    margin-bottom: 16px;
+    padding-top: 24px;
+  }
+
+  .greeting {
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+
+  .title {
+    font-size: 26px;
+  }
+
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .primaryAction {
+    flex: none;
+    height: 54px;
+    font-size: 18px;
+  }
+
+  .primaryAction span {
+    position: static;
+    margin-left: 12px;
+  }
+
+  .textAction {
+    justify-content: center;
+    height: 50px;
+    margin-left: 0;
+    padding-left: 0;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--surface);
+    font-size: 18px;
+  }
+
+  .cards {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .card {
+    padding: 18px 20px;
+  }
+
+  .cardTitle {
+    font-size: 18px;
+  }
+
+  .dogs {
+    margin-top: 14px;
+  }
+
+  .face {
+    width: 64px;
+    height: 64px;
+  }
+
+  .linkCard {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    gap: 12px 14px;
+    text-align: left;
+  }
+
+  .linkCard .cardTitle {
+    grid-column: 1 / -1;
+  }
+
+  .icon {
+    width: 44px;
+    height: 44px;
+    margin: 0;
+  }
+
+  .description {
+    max-width: none;
+  }
+
+  /* A taller frame trims only the trees at both ends; the people and dogs
+     stay inside the middle two thirds of the drawing. */
+  .scene {
+    aspect-ratio: 2 / 1;
+    object-fit: cover;
+    object-position: bottom;
+  }
 }
