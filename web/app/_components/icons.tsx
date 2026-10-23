@@ -28,6 +28,12 @@ export const ArrowRight = ({ size = 22 }: { size?: number }) => (
   </Icon>
 );
 
+export const CloseIcon = ({ size = 22 }: { size?: number }) => (
+  <Icon size={size}>
+    <path d="M6 6l12 12M18 6 6 18" />
+  </Icon>
+);
+
 export const ChevronRight = ({ size = 20 }: { size?: number }) => (
   <Icon size={size}>
     <path d="m9 5 7 7-7 7" />

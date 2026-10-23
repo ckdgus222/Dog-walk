@@ -27,6 +27,16 @@
   font-size: 18px;
 }
 
+/* Login and signup inside the modal card. */
+.title.modalTitle {
+  font-size: 38px;
+}
+
+.lead.modalLead {
+  margin-top: 10px;
+  font-size: 16px;
+}
+
 @media (max-width: 720px) {
   .eyebrow {
     margin-bottom: 8px;
@@ -39,6 +49,10 @@
 
   .formTitle {
     font-size: 35px;
+  }
+
+  .title.modalTitle {
+    font-size: 32px;
   }
 
   .lead {

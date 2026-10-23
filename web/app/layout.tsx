@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   description: "함께 산책할 반려인을 찾는 서비스",
 };
 
-const RootLayout = ({ children }: LayoutProps<"/">) => {
+const RootLayout = ({ children, modal }: LayoutProps<"/">) => {
   return (
     <html lang="ko" className={notoSansKr.variable}>
       <body>
@@ -27,6 +27,7 @@ const RootLayout = ({ children }: LayoutProps<"/">) => {
             <NotificationsProvider>
               <SiteHeader />
               {children}
+              {modal}
               <WalkRequestModal />
             </NotificationsProvider>
           </QueryProvider>

@@ -31,7 +31,7 @@ interface SignupBody {
 }
 
 let refreshPromise: Promise<User> | null = null;
-let loginPromise: Promise<void> | null = null;
+let loginPromise: Promise<boolean> | null = null;
 let loggingOut = false;
 
 export const getAccessToken = () => useAuthStore.getState().accessToken;
@@ -89,7 +89,11 @@ export const refresh = (): Promise<User> => {
   return refreshPromise;
 };
 
-export const login = (email: string, password: string): Promise<void> => {
+export const login = (
+  email: string,
+  password: string,
+  canNavigate: () => boolean = () => true,
+): Promise<boolean> => {
   loginPromise = (async () => {
     const response = await fetch("/api/auth/login", {
       method: "POST",
@@ -98,7 +102,10 @@ export const login = (email: string, password: string): Promise<void> => {
     });
     if (!response.ok) throw await responseError(response);
     const { user, accessToken }: AuthResponse = await response.json();
+    // Saving auth remounts the forms, so check departure before saving it.
+    const shouldNavigate = canNavigate();
     useAuthStore.getState().setAuth(user, accessToken);
+    return shouldNavigate;
   })().finally(() => {
     loginPromise = null;
   });

@@ -51,8 +51,12 @@ test("안내의 로그인 링크로 이동한 뒤 홈에 돌아와도 안내가 
   await expect(page).toHaveURL("/login");
   await expect(notice).toHaveCount(0);
 
-  await header.getByRole("link", { name: "강아지 산책", exact: true }).click();
+  await expect(
+    page.getByRole("dialog", { name: "로그인", exact: true }),
+  ).toBeVisible();
+  await page.goBack();
   await expect(page).toHaveURL("/");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(notice).toHaveCount(0);
 });
 

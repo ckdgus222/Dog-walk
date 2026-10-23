@@ -145,7 +145,13 @@ test("계정 전환 중 이전 계정의 반려견 캐시를 보여 주지 않�
   await main.getByRole("link", { name: "로그인", exact: true }).click();
   // The home page loads my dogs right after login, so hold that first request.
   const held = await holdNextResponse(page, "**/api/dogs/me");
-  await login(page, b);
+  const dialog = page.getByRole("dialog", { name: "로그인", exact: true });
+  await dialog.getByLabel("이메일").fill(b.email);
+  await dialog.getByLabel("비밀번호").fill(b.password);
+  await dialog.getByRole("button", { name: "로그인", exact: true }).click();
+  await expect(page).toHaveURL("/");
+  await expect(dialog).toHaveCount(0);
+  await expect(main.getByText(`${b.nickname}님, 안녕하세요`)).toBeVisible();
   await held.captured;
   await expect(main.getByRole("status")).toHaveText(
     "반려견을 불러오고 있어요.",

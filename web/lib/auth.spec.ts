@@ -36,6 +36,49 @@ describe("Browser auth client", () => {
     });
   });
 
+  it.each([false, true])(
+    "checks departure after the response and still saves auth (left: %s)",
+    async (left) => {
+      let releaseLogin!: (response: Response) => void;
+      fetchMock.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            releaseLogin = resolve;
+          }),
+      );
+      let hasLeft = false;
+      const canNavigate = vi.fn(() => {
+        expect(useAuthStore.getState().user).toBeNull();
+        return !hasLeft;
+      });
+      const loggingIn = client.login(accountA.email, "password123", canNavigate);
+      expect(canNavigate).not.toHaveBeenCalled();
+      hasLeft = left;
+      releaseLogin(authResponse());
+
+      await expect(loggingIn).resolves.toBe(!left);
+      expect(canNavigate).toHaveBeenCalledTimes(1);
+      expect(useAuthStore.getState().user).toEqual(accountA);
+      expect(client.getAccessToken()).toBe("access-token");
+    },
+  );
+
+  it("keeps the navigation decision when saving auth removes the form", async () => {
+    fetchMock.mockResolvedValueOnce(authResponse());
+    let left = false;
+    const unsubscribe = useAuthStore.subscribe(() => {
+      left = true;
+    });
+    try {
+      await expect(
+        client.login(accountA.email, "password123", () => !left),
+      ).resolves.toBe(true);
+      expect(left).toBe(true);
+    } finally {
+      unsubscribe();
+    }
+  });
+
   it("retries multipart data without setting Content-Type", async () => {
     fetchMock.mockResolvedValueOnce(authResponse(accountA, "old-token"));
     await client.login(accountA.email, "password123");
