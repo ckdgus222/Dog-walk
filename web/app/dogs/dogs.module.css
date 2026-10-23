@@ -135,13 +135,10 @@
 }
 
 /* The dogs lie on the rug under the list, across the 1170px mockup. Phones
-   crop the room to the rug so the dogs stay large. */
+   get a narrower room with the same plant, dogs and chair. */
 .livingRoom {
-  justify-self: stretch;
-  width: auto;
   /* Wider than the content column without widening it. */
   min-width: 0;
-  height: auto;
   margin: -16px calc(50% - min(50vw, 585px)) -56px;
 }
 
@@ -324,9 +321,7 @@
 
 @media (max-width: 720px) {
   .livingRoom {
-    aspect-ratio: 390 / 170;
     margin-bottom: -80px;
-    object-fit: cover;
   }
 
   .head {

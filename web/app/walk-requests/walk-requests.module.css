@@ -10,20 +10,19 @@
 
 /* Leaves room for the drawing on tablets. */
 .head > p {
-  max-width: calc(100% - 400px);
+  max-width: calc(100% - 460px);
 }
 
-/* The crouching walker stands on the "받은 요청" bar, right of the title. Her
-   empty sky reaches up over the header, so it lets clicks through. */
+/* The crouching walker stands on the "받은 요청" bar, right of the title, and
+   the grass ends line up with the bar's ends. Her empty sky reaches up over
+   the header, so it lets clicks through. */
 .head > img {
   position: absolute;
-  right: -27px;
-  bottom: -59px;
-  width: 440px;
+  right: -51px;
+  bottom: -46px;
+  width: 553px;
   height: auto;
   pointer-events: none;
-  /* The wall is cut at the edge of the drawing, so it fades out instead. */
-  mask-image: linear-gradient(to left, transparent, black 15%);
 }
 
 .box {
@@ -214,11 +213,10 @@
     max-width: 185px;
   }
 
-  /* Past the right gutter, so the bushes start after the lead. */
   .head > img {
     right: -40px;
-    bottom: -24px;
-    width: 230px;
+    bottom: -18px;
+    width: 290px;
   }
 
   .box > h2 {

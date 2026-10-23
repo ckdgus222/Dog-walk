@@ -7,7 +7,7 @@ import {
   useWalkRequests,
 } from "../../lib/api/walk-requests";
 import type { WalkRequest } from "../../lib/types";
-import crouchPet from "../../public/illustrations/walking-drawing/crouch-pet.png";
+import crouchPetHeader from "../../public/illustrations/walking-drawing/crouch-pet-header.png";
 import { AuthGate } from "../_components/auth-gate";
 import { DogFace, genderLabels, sizeLabels } from "../_components/dog-card";
 import headingStyles from "../_components/heading.module.css";
@@ -32,9 +32,9 @@ const WalkRequestsPage = () => {
           주변의 반려인과 산책을 요청하고, 받은 요청을 확인할 수 있어요.
         </p>
         <Image
-          src={crouchPet}
+          src={crouchPetHeader}
           alt=""
-          sizes="(max-width: 720px) 230px, 440px"
+          sizes="(max-width: 720px) 290px, 553px"
           loading="eager"
         />
       </div>

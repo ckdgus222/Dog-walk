@@ -17,9 +17,9 @@
   margin: 0 auto;
 }
 
-/* Zero specificity, so a page class can move the drawing whatever order the
-   style sheets load in. */
-:where(.scene) {
+/* The band under a ScenePage's content. Zero specificity, so a page class can
+   move the drawing whatever order the style sheets load in. */
+:where(.page > .scene) {
   grid-area: 2 / 1;
   /* The transparent sky of the drawing slides up behind the content. */
   margin-top: -48px;
@@ -36,7 +36,7 @@
 }
 
 @media (max-width: 720px) {
-  :where(.scene) {
+  :where(.page > .scene) {
     margin-top: 16px;
   }
 }

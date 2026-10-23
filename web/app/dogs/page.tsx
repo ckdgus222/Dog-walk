@@ -1,14 +1,15 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { AuthGate } from "../_components/auth-gate";
 import { DogCard } from "../_components/dog-card";
 import headingStyles from "../_components/heading.module.css";
 import { PlusIcon } from "../_components/icons";
 import layoutStyles from "../_components/layout.module.css";
+import { SceneImage } from "../_components/walk-scene";
 import { useDeleteDog, useMyDogs } from "../../lib/api/dogs";
 import type { Dog } from "../../lib/types";
+import livingRoomMobile from "../../public/illustrations/walking-drawing/living-room-mobile.png";
 import livingRoom from "../../public/illustrations/walking-drawing/living-room.png";
 import styles from "./dogs.module.css";
 
@@ -33,11 +34,13 @@ const DogsPage = () => {
       <AuthGate>
         <DogList />
       </AuthGate>
-      <Image
+      <SceneImage
         className={styles.livingRoom}
-        src={livingRoom}
-        alt=""
-        sizes="(max-width: 720px) 210vw, (max-width: 1170px) 100vw, 1170px"
+        wide={livingRoom}
+        narrow={livingRoomMobile}
+        narrowMedia="(max-width: 720px)"
+        wideSizes="(max-width: 1170px) 100vw, 1170px"
+        loading="lazy"
       />
     </main>
   );
