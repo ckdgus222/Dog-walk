@@ -255,7 +255,7 @@ test("로그인·앱 안 이동·로그아웃 뒤에도 들판 배경은 같은 
   }
 });
 
-test("1920px 창에서 로그인한 글쓰기·일기 쓰기·반려견 추가 판의 보이는 폭은 페이지별 폭에 1.15를 곱한 값이다", async ({
+test("1920px 창에서 로그인한 글쓰기·일기 쓰기·반려견 추가 판의 보이는 폭은 페이지별 폭이다", async ({
   page,
   context,
 }) => {
@@ -281,7 +281,7 @@ test("1920px 창에서 로그인한 글쓰기·일기 쓰기·반려견 추가 �
       (element) => element.getBoundingClientRect().width,
     );
     expect(
-      Math.abs(visibleWidth - width * 1.15),
+      Math.abs(visibleWidth - width),
       `${path} 판의 폭 오차`,
     ).toBeLessThanOrEqual(1);
   }
@@ -302,7 +302,6 @@ for (const width of [1920, 2560]) {
     const main = page.getByRole("main");
     await expect(main.getByText(`${account.nickname}님, 안녕하세요`)).toBeVisible();
 
-    // The rendered rectangle includes CSS zoom, unlike the declared CSS width.
     const homeWidth = await main.evaluate(
       (element) => element.getBoundingClientRect().width,
     );

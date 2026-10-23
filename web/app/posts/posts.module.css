@@ -33,7 +33,7 @@
 }
 
 .row:hover {
-  background: var(--surface);
+  background: var(--card);
 }
 
 .row > svg {
@@ -279,7 +279,7 @@
   border: 1px solid var(--line);
   border-radius: 4px;
   background: var(--field);
-  color: var(--foreground);
+  color: var(--text);
   font: inherit;
   resize: vertical;
 }

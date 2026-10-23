@@ -8,7 +8,7 @@
 .sky {
   position: absolute;
   inset: 0;
-  background: linear-gradient(#cfe5e3 0%, #e4eedf 45%, var(--background) 75%);
+  background: linear-gradient(#cfe5e3 0%, #e4eedf 45%, var(--paper) 75%);
 }
 
 .ground {

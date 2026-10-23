@@ -1,47 +1,66 @@
 :root {
-  --background: #f5f0db;
-  --foreground: #33383c;
+  /* Colors. docs/design-system.md lists where each one goes. */
+  --paper: #f5f0db;
+  --text: #33383c;
   --ink: #274b49;
-  --accent: #e56d49;
+  /* Dark enough for white button text and orange text on cream (4.5:1). */
+  --accent: #b8492a;
   --accent-soft: #fbe5da;
   --sage: #d2dfca;
   --sage-soft: #e6ebda;
-  --surface: #fbf7ec;
+  --card: #fbf7ec;
   --field: #fffcf5;
   --line: #e2dcc8;
-  --muted: #6b7175;
+  --muted: #5c6266;
+  --rough-line: rgb(39 75 73 / 0.55);
+
+  /* Type, spacing and corners come in fixed steps. */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-md: 16px;
+  --text-lg: 18px;
+  --text-xl: 22px;
+  --text-2xl: 28px;
+  --text-3xl: 40px;
+  --text-4xl: 56px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-full: 999px;
+
+  --shadow-card: 0 2px 0 rgb(39 75 73 / 0.06), 0 6px 18px rgb(39 75 73 / 0.07);
+  --shadow-panel: 0 18px 48px rgb(39 75 73 / 0.12);
+
+  --button-lg: 48px;
+  --button-md: 40px;
+  --button-sm: 32px;
+  --field-height: 48px;
+
   /* Width of the header and the content panel: the window less about 5% on
-     each side, up to 1680px on screen. Percentages stay true to the window
-     inside the wide-screen zoom, but px grow with it, so the cap is divided
-     back. */
-  --page-width: min(100% - 2 * max(24px, 5%), 1680px / var(--wide-zoom));
+     each side, up to 1680px. Wider windows get more columns, not bigger
+     text. */
+  --page-width: min(100% - 2 * max(24px, 5%), 1680px);
   /* The panel's inner side padding, shared with the header so the logo
      lines up with the content. */
   --panel-pad-x: 48px;
-  --wide-zoom: 1;
 }
 
 /* Phones keep a thin strip of the field on each side. */
 @media (max-width: 720px) {
   :root {
+    --text-3xl: 28px;
+    --text-4xl: 32px;
     --page-width: calc(100% - 20px);
     --panel-pad-x: 14px;
-  }
-}
-
-/* Wide screens enlarge the header and page content a little; modules opt in
-   with zoom: var(--wide-zoom). Not the whole document: inside zoom, window
-   lengths such as 100vw grow too, so the full-window field scene would run
-   past the window. */
-@media (min-width: 1600px) {
-  :root {
-    --wide-zoom: 1.1;
-  }
-}
-
-@media (min-width: 1800px) {
-  :root {
-    --wide-zoom: 1.15;
   }
 }
 
@@ -59,8 +78,8 @@ body {
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
+  color: var(--text);
+  background: var(--paper);
   font-family: var(--font-sans), "Apple SD Gothic Neo", "Malgun Gothic",
     sans-serif;
   /* Wrap Korean text between words, not in the middle of a word. */

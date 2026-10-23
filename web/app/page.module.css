@@ -63,7 +63,7 @@
   padding: 20px 28px 14px;
   border: 1px solid var(--line);
   border-radius: 4px;
-  background: var(--surface);
+  background: var(--card);
 }
 
 .cardTitle {
@@ -132,7 +132,7 @@
 
 .description {
   max-width: 10em;
-  color: var(--foreground);
+  color: var(--text);
   font-size: 17px;
   line-height: 1.6;
   text-wrap: balance;
@@ -147,8 +147,6 @@
   align-items: start;
   column-gap: clamp(40px, 5vw, 64px);
   width: var(--page-width);
-  /* No panel here, so the grid takes the wide-screen zoom itself. */
-  zoom: var(--wide-zoom);
   margin: 0 auto;
   padding: 64px 0 48px;
 }
@@ -193,7 +191,7 @@
 }
 
 .features span {
-  color: var(--foreground);
+  color: var(--text);
   font-size: 16px;
 }
 
@@ -201,7 +199,7 @@
   padding: 36px 32px 28px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: var(--background);
+  background: var(--paper);
   box-shadow: 0 18px 48px rgb(39 75 73 / 0.16);
   animation: card-rise 0.5s ease-out both;
 }
@@ -323,7 +321,7 @@
     padding-left: 0;
     border: 1px solid var(--line);
     border-radius: 4px;
-    background: var(--surface);
+    background: var(--card);
     font-size: 20px;
   }
 

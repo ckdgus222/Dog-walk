@@ -12,8 +12,8 @@
   max-height: 85vh;
   border: 1px solid #888;
   border-radius: 8px;
-  color: var(--foreground);
-  background: var(--background);
+  color: var(--text);
+  background: var(--paper);
   overflow-wrap: anywhere;
 }
 

@@ -2,7 +2,6 @@
    logo lines up with the page content. */
 .header {
   width: var(--page-width);
-  zoom: var(--wide-zoom);
   margin: 0 auto;
 }
 
@@ -121,7 +120,7 @@
   padding: 14px 18px;
   border: 1px solid var(--line);
   border-radius: 4px;
-  background: var(--surface);
+  background: var(--card);
   font-size: 15px;
 }
 

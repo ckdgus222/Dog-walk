@@ -22,7 +22,7 @@
   border: 1px solid var(--line);
   border-radius: 4px;
   background: var(--field);
-  color: var(--foreground);
+  color: var(--text);
   font: inherit;
   font-weight: 400;
 }
@@ -47,7 +47,7 @@
 .form .checkbox {
   display: flex;
   align-items: center;
-  color: var(--foreground);
+  color: var(--text);
   font-weight: 400;
 }
 
@@ -83,7 +83,7 @@
   align-items: center;
   gap: 10px;
   min-width: 110px;
-  color: var(--foreground);
+  color: var(--text);
   font-weight: 400;
 }
 
@@ -105,7 +105,7 @@
   border: 1px solid var(--line);
   border-radius: 4px;
   background: var(--field);
-  color: var(--foreground);
+  color: var(--text);
   font-weight: 400;
 }
 
@@ -213,7 +213,7 @@
   padding: 22px 26px 26px;
   border: 1px solid var(--line);
   border-radius: 4px;
-  background: var(--surface);
+  background: var(--card);
 }
 
 .card > legend {

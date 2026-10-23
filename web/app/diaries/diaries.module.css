@@ -389,7 +389,7 @@
 
 .dropBox strong {
   margin-top: 4px;
-  color: var(--foreground);
+  color: var(--text);
   font-size: 14px;
   font-weight: 400;
 }

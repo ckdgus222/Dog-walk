@@ -5,7 +5,7 @@
   padding: 40px 24px 44px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: var(--surface);
+  background: var(--card);
   text-align: center;
 }
 

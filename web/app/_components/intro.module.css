@@ -11,7 +11,7 @@
   max-height: none;
   border: 0;
   overflow: hidden;
-  background: var(--background);
+  background: var(--paper);
   --leave: 0.8s;
   animation: leave var(--leave) ease-in
     calc(var(--intro-duration) - var(--leave)) forwards;

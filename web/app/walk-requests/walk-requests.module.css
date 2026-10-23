@@ -51,7 +51,7 @@
 .list {
   border: 1px solid var(--line);
   border-radius: 4px;
-  background: var(--surface);
+  background: var(--card);
 }
 
 .request {

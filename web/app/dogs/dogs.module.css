@@ -26,7 +26,7 @@
   padding: 16px 28px 16px 16px;
   border: 1px solid var(--line);
   border-radius: 4px;
-  background: var(--surface);
+  background: var(--card);
   overflow-wrap: anywhere;
 }
 
@@ -60,7 +60,7 @@
   margin: 4px 30px 0 0;
   padding-top: 14px;
   border-top: 1px solid var(--line);
-  color: var(--foreground);
+  color: var(--text);
   line-height: 1.6;
   word-spacing: normal;
 }
