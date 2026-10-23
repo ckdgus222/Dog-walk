@@ -8,34 +8,24 @@ import communityChat from "../public/illustrations/walking-drawing/community-cha
 import diaryBook from "../public/illustrations/walking-drawing/diary-book.svg";
 import dogBami from "../public/illustrations/walking-drawing/dog-bami.png";
 import dogDubu from "../public/illustrations/walking-drawing/dog-dubu.png";
-import walkScene from "../public/illustrations/walking-drawing/walk-scene.png";
 import { useAuth } from "./_components/auth-provider";
 import { sizeLabels } from "./_components/dog-card";
+import { ScenePage } from "./_components/walk-scene";
 import styles from "./page.module.css";
 
 const Home = () => {
   const { user, loading } = useAuth();
 
   return (
-    <main className={styles.main}>
-      <div className={styles.content}>
-        {loading ? (
-          <p role="status">로그인 상태를 확인하고 있어요.</p>
-        ) : user ? (
-          <Dashboard nickname={user.nickname} />
-        ) : (
-          <Welcome />
-        )}
-      </div>
-      {/* Phones show the drawing in a 2:1 frame, about 150% of the screen width. */}
-      <Image
-        className={styles.scene}
-        src={walkScene}
-        alt=""
-        sizes="(max-width: 720px) 150vw, (max-width: 1600px) 100vw, 1600px"
-        loading="eager"
-      />
-    </main>
+    <ScenePage className={styles.content}>
+      {loading ? (
+        <p role="status">로그인 상태를 확인하고 있어요.</p>
+      ) : user ? (
+        <Dashboard nickname={user.nickname} />
+      ) : (
+        <Welcome />
+      )}
+    </ScenePage>
   );
 };
 export default Home;

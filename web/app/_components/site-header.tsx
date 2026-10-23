@@ -8,12 +8,13 @@ import { useNotifications } from "./notifications-provider";
 import styles from "./site-header.module.css";
 
 export const SiteHeader = () => {
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
   const { pendingCount, pendingCountError, notice, dismissNotice } =
     useNotifications();
   const [logoutError, setLogoutError] = useState("");
   const [loggingOut, setLoggingOut] = useState(false);
-  if (!user) return null;
+  if (loading) return null;
+  if (!user) return <GuestHeader />;
 
   const handleLogout = async () => {
     setLogoutError("");
@@ -84,8 +85,23 @@ export const SiteHeader = () => {
   );
 };
 
-// Rendered only for a logged-in user, which never happens while prerendering,
-// so usePathname cannot suspend dynamic routes such as /dogs/[id]/edit.
+const GuestHeader = () => (
+  <header className={styles.header}>
+    <div className={styles.bar}>
+      <Link href="/" className={styles.logo}>
+        강아지 산책
+      </Link>
+      <div className={styles.account}>
+        <MenuLink href="/login">로그인</MenuLink>
+        <MenuLink href="/signup">회원가입</MenuLink>
+      </div>
+    </div>
+  </header>
+);
+
+// Rendered only after the login check, which runs in the browser and never
+// while prerendering, so usePathname cannot suspend dynamic routes such as
+// /dogs/[id]/edit.
 const MenuLink = ({
   href,
   children,

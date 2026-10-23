@@ -1,0 +1,35 @@
+.page {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  /* The transparent sky of the drawing slides up behind the content. */
+  margin: 0 auto -48px;
+}
+
+.scene {
+  display: block;
+  align-self: center;
+  width: 100%;
+  max-width: 1600px;
+  height: auto;
+  margin-top: auto;
+}
+
+@media (max-width: 720px) {
+  .content {
+    margin-bottom: 16px;
+  }
+
+  /* A taller frame trims only the trees at both ends; the people and dogs
+     stay inside the middle two thirds of the drawing. */
+  .scene {
+    aspect-ratio: 2 / 1;
+    object-fit: cover;
+    object-position: bottom;
+  }
+}

@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { useAuth } from "../_components/auth-provider";
-import styles from "../_components/shared.module.css";
+import styles from "../_components/auth.module.css";
+import { ScenePage } from "../_components/walk-scene";
 
 const LoginPage = () => {
   const { login, loading } = useAuth();
@@ -30,9 +31,17 @@ const LoginPage = () => {
   };
 
   return (
-    <main className={`${styles.main} ${styles.narrow}`}>
-      <h1>로그인</h1>
-      <form className={styles.form} onSubmit={handleSubmit}>
+    <ScenePage className={styles.content}>
+      <h1 className={styles.title}>로그인</h1>
+      <p className={styles.lead}>
+        좋은 산책은 좋은 이웃에서 시작돼요.
+        <br />
+        강아지 산책에서 가까운 산책 친구를 만나보세요.
+      </p>
+      <form
+        className={`${styles.form} ${styles.loginForm}`}
+        onSubmit={handleSubmit}
+      >
         <label>
           이메일
           <input name="email" type="email" autoComplete="username" required />
@@ -46,15 +55,18 @@ const LoginPage = () => {
             required
           />
         </label>
-        <button disabled={pending || loading}>
+        <button className={styles.submit} disabled={pending || loading}>
           {pending ? "로그인 중…" : "로그인"}
+          <span aria-hidden="true">→</span>
         </button>
         {loading && <p role="status">로그인 상태를 확인하고 있어요.</p>}
         {error && <p role="alert">{error}</p>}
       </form>
-      <Link href="/signup">회원가입</Link>
-      <Link href="/">홈으로</Link>
-    </main>
+      <p className={styles.links}>
+        <Link href="/signup">회원가입</Link>
+        <Link href="/">홈으로</Link>
+      </p>
+    </ScenePage>
   );
 };
 export default LoginPage;

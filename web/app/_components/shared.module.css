@@ -6,10 +6,6 @@
   gap: 20px;
 }
 
-.narrow {
-  width: min(100%, 480px);
-}
-
 .form,
 .form fieldset,
 .form label,

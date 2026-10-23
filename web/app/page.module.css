@@ -1,15 +1,5 @@
-.main {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-}
-
 .content {
-  position: relative;
-  z-index: 1;
   width: min(100% - 48px, 936px);
-  /* The transparent sky of the walk scene slides up behind the cards. */
-  margin: 0 auto -48px;
   padding-top: 56px;
 }
 
@@ -152,19 +142,9 @@
   text-wrap: balance;
 }
 
-.scene {
-  display: block;
-  align-self: center;
-  width: 100%;
-  max-width: 1600px;
-  height: auto;
-  margin-top: auto;
-}
-
 @media (max-width: 720px) {
   .content {
     width: calc(100% - 32px);
-    margin-bottom: 16px;
     padding-top: 24px;
   }
 
@@ -248,13 +228,5 @@
 
   .description {
     max-width: none;
-  }
-
-  /* A taller frame trims only the trees at both ends; the people and dogs
-     stay inside the middle two thirds of the drawing. */
-  .scene {
-    aspect-ratio: 2 / 1;
-    object-fit: cover;
-    object-position: bottom;
   }
 }
