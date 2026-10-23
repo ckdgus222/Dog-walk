@@ -2,7 +2,7 @@
 
 import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
-import type { Neighbor } from "../../lib/types";
+import type { Dog, Neighbor } from "../../lib/types";
 import { dogFaceSrc } from "../_components/dog-card";
 import { InfoIcon } from "../_components/icons";
 import styles from "./map.module.css";
@@ -45,25 +45,25 @@ const element = <K extends keyof HTMLElementTagNameMap>(
 
 // The overlays are drawn for mouse users only. They are hidden from screen
 // readers, which choose a neighbor from the list beside the map instead.
-const neighborOverlay = (neighbor: Neighbor) => {
-  const root = element("div", styles.marker);
+const markerElement = (className: string, title: string, detail?: string) => {
+  const root = element("div", className);
   root.setAttribute("aria-hidden", "true");
   const face = element("img", styles.markerFace);
   face.alt = "";
-  if (neighbor.dogs[0]) face.src = dogFaceSrc(neighbor.dogs[0], 80);
   const label = element("div", styles.markerLabel);
-  label.append(
-    element("strong", "", neighbor.nickname),
-    element("span", "", `약 ${neighbor.distanceM}m`),
-  );
+  label.append(element("strong", "", title));
+  if (detail) label.append(element("span", "", detail));
   root.append(face, label);
-  return root;
+  return { root, face };
 };
 
-const ownOverlay = () => {
-  const root = element("div", styles.me);
-  root.setAttribute("aria-hidden", "true");
-  root.append(element("span", styles.meDot), element("span", styles.meLabel, "내 위치"));
+const neighborOverlay = (neighbor: Neighbor) => {
+  const { root, face } = markerElement(
+    styles.marker,
+    neighbor.nickname,
+    `약 ${neighbor.distanceM}m`,
+  );
+  if (neighbor.dogs[0]) face.src = dogFaceSrc(neighbor.dogs[0], 80);
   return root;
 };
 
@@ -76,12 +76,14 @@ declare global {
 const KakaoMap = ({
   lat,
   lng,
+  myDog,
   neighbors,
   selectedId,
   onSelect,
 }: {
   lat: number;
   lng: number;
+  myDog: Dog | undefined;
   neighbors: Neighbor[];
   selectedId: number | null;
   onSelect: (userId: number) => void;
@@ -96,6 +98,7 @@ const KakaoMap = ({
     new Map<number, { overlay: MapOverlay; content: HTMLElement }>(),
   );
   const ownMarker = useRef<MapOverlay | null>(null);
+  const ownFace = useRef<HTMLImageElement | null>(null);
   const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
@@ -112,11 +115,15 @@ const KakaoMap = ({
       try {
         const center = new maps.LatLng(initialCenter.lat, initialCenter.lng);
         map.current = new maps.Map(element, { center, level: 5 });
+        // Drawn like a neighbor; the face stays empty until my dogs arrive.
+        const own = markerElement(`${styles.marker} ${styles.me}`, "내 위치");
+        ownFace.current = own.face;
         ownMarker.current = new maps.CustomOverlay({
           map: map.current,
           position: center,
-          content: ownOverlay(),
-          yAnchor: 0.5,
+          content: own.root,
+          xAnchor: 0.5,
+          yAnchor: 1,
         });
         setMapReady(true);
       } catch {
@@ -127,6 +134,7 @@ const KakaoMap = ({
       cancelled = true;
       ownMarker.current?.setMap(null);
       ownMarker.current = null;
+      ownFace.current = null;
       map.current = null;
       element.replaceChildren();
     };
@@ -137,6 +145,13 @@ const KakaoMap = ({
     if (!mapReady || !maps) return;
     ownMarker.current?.setPosition(new maps.LatLng(lat, lng));
   }, [mapReady, lat, lng]);
+
+  // The map and my dogs load separately; fill the face once both are there.
+  // Order 0 picks the same drawing as my first dog on the home page.
+  useEffect(() => {
+    if (!mapReady || !myDog || !ownFace.current) return;
+    ownFace.current.src = dogFaceSrc(myDog, 80, 0);
+  }, [mapReady, myDog]);
 
   useEffect(() => {
     const maps = window.kakao?.maps;

@@ -17,10 +17,14 @@ const defaultDogFace = (dog: Dog, order?: number) =>
 
 // For places outside React, such as map overlays. The drawn face goes through
 // the image optimizer at the shown size instead of the 1254px source file.
-export const dogFaceSrc = (dog: Dog, size: number) =>
+export const dogFaceSrc = (dog: Dog, size: number, order?: number) =>
   dog.photoUrl ??
-  getImageProps({ src: defaultDogFace(dog), alt: "", width: size, height: size })
-    .props.src;
+  getImageProps({
+    src: defaultDogFace(dog, order),
+    alt: "",
+    width: size,
+    height: size,
+  }).props.src;
 
 // A round face for dog lists and headers: the uploaded photo, or the drawn face.
 // Decorative, because the dog's name is always written beside it.
