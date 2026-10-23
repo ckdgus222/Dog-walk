@@ -1,11 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import writingScene from "../../../public/illustrations/walking-drawing/writing-scene.png";
 import writingSceneMobile from "../../../public/illustrations/walking-drawing/writing-scene-mobile.png";
 import { AuthGate } from "../../_components/auth-gate";
-import { useAuth } from "../../_components/auth-provider";
 import headingStyles from "../../_components/heading.module.css";
-import { LockLineIcon } from "../../_components/icons";
+import { ChevronLeft, LockLineIcon } from "../../_components/icons";
 import layoutStyles from "../../_components/layout.module.css";
 import { SceneImage } from "../../_components/walk-scene";
 import DiaryForm from "../diary-form";
@@ -13,13 +13,15 @@ import styles from "../diaries.module.css";
 
 // The form takes the left column and the writing drawing the right one.
 const NewDiaryPage = () => {
-  const { user } = useAuth();
   return (
-    <main className={`${layoutStyles.main} ${styles.newPage}`}>
+    <main
+      className={`${layoutStyles.main} ${layoutStyles.wide} ${styles.newPage}`}
+    >
+      <Link href="/diaries" className={layoutStyles.back}>
+        <ChevronLeft />
+        산책 일기
+      </Link>
       <div>
-        <p className={headingStyles.eyebrow}>
-          {user ? `${user.nickname}님, 일기 쓰기` : "일기 쓰기"}
-        </p>
         <h1 className={`${headingStyles.title} ${headingStyles.formTitle}`}>
           오늘의 산책을 기록해요
         </h1>

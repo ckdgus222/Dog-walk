@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Suspense } from "react";
 import { AuthGate } from "../../../_components/auth-gate";
+import { ChevronLeft } from "../../../_components/icons";
 import { useDiary } from "../../../../lib/api/diaries";
 import DiaryForm from "../../diary-form";
 import headingStyles from "../../../_components/heading.module.css";
@@ -22,7 +24,13 @@ const EditDiary = () => {
 };
 
 const EditDiaryPage = () => (
-  <main className={`${layoutStyles.main} ${styles.editPage}`}>
+  <main
+    className={`${layoutStyles.main} ${layoutStyles.reading} ${styles.editPage}`}
+  >
+    <Link href="/diaries" className={layoutStyles.back}>
+      <ChevronLeft />
+      산책 일기
+    </Link>
     <div>
       <h1 className={`${headingStyles.title} ${headingStyles.formTitle}`}>
         일기 수정

@@ -10,14 +10,6 @@
   font-size: 20px;
 }
 
-.write {
-  width: 177px;
-  height: 53px;
-  justify-content: center;
-  font-size: 21px;
-  font-weight: 500;
-}
-
 .columns,
 .row {
   display: grid;
@@ -306,26 +298,7 @@
   grid-column: 1 / -1;
 }
 
-.detailBack {
-  padding-bottom: 14px;
-  border-bottom: 1px solid var(--line);
-  font-size: 16px;
-}
-
 /* Write and edit forms */
-.crumbs {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--muted);
-  font-size: 16px;
-}
-
-.crumbs [aria-current] {
-  color: var(--ink);
-  font-weight: 700;
-}
-
 .fields {
   display: grid;
   gap: 22px;
@@ -387,30 +360,8 @@
   order: -1;
 }
 
-.formActions > button {
-  height: 60px;
-  font-size: 20px;
-  font-weight: 500;
-}
-
-.listButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: var(--field);
-  color: var(--ink);
-  font-size: 18px;
-  font-weight: 500;
-}
-
 .editForm .formActions {
   grid-template-columns: 340px 1fr;
-}
-
-.editForm .formActions > * {
-  height: 66px;
 }
 
 @media (max-width: 720px) {
@@ -420,12 +371,6 @@
 
   .head p {
     font-size: 15px;
-  }
-
-  .write {
-    width: 100%;
-    height: 46px;
-    font-size: 18px;
   }
 
   .count svg {
@@ -439,12 +384,6 @@
 
   .formActions > button {
     order: -1;
-  }
-
-  .formActions > button,
-  .formActions > .listButton {
-    height: 48px;
-    font-size: 17px;
   }
 
   .fields input {

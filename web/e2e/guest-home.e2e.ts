@@ -255,6 +255,38 @@ test("로그인·앱 안 이동·로그아웃 뒤에도 들판 배경은 같은 
   }
 });
 
+test("1920px 창에서 로그인한 글쓰기·일기 쓰기·반려견 추가 판의 보이는 폭은 페이지별 폭에 1.15를 곱한 값이다", async ({
+  page,
+  context,
+}) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  const account = await createAccount(context.request);
+  const response = await context.request.post("/api/auth/login", {
+    data: { email: account.email, password: account.password },
+  });
+  expect(response.status()).toBe(200);
+
+  for (const { path, heading, width } of [
+    { path: "/posts/new", heading: "글쓰기", width: 960 },
+    { path: "/diaries/new", heading: "오늘의 산책을 기록해요", width: 1280 },
+    { path: "/dogs/new", heading: "반려견 추가", width: 1280 },
+  ]) {
+    await page.goto(path);
+    await expect(page).toHaveURL(path);
+    const main = page.getByRole("main");
+    await expect(
+      main.getByRole("heading", { level: 1, name: heading, exact: true }),
+    ).toBeVisible();
+    const visibleWidth = await main.evaluate(
+      (element) => element.getBoundingClientRect().width,
+    );
+    expect(
+      Math.abs(visibleWidth - width * 1.15),
+      `${path} 판의 폭 오차`,
+    ).toBeLessThanOrEqual(1);
+  }
+});
+
 for (const width of [1920, 2560]) {
   test(`${width}px 창에서 로그인한 홈과 게시판 내용 판의 보이는 폭은 1680px 이하이다`, async ({
     page,

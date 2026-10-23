@@ -302,7 +302,7 @@
   background: var(--accent);
   color: white;
   font: inherit;
-  font-size: 21px;
+  font-size: 19px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -316,6 +316,20 @@
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+/* The outlined button beside .submit, such as a link back to the list. */
+.secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--field);
+  color: var(--ink);
+  font-size: 19px;
+  font-weight: 500;
 }
 
 .submit:disabled {
@@ -412,7 +426,9 @@
     grid-template-columns: 78px 1fr;
   }
 
-  .submit {
+  .submit,
+  .secondary {
+    height: 52px;
     font-size: 18px;
   }
 }

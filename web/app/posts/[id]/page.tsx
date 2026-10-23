@@ -62,13 +62,10 @@ const PostDetail = () => {
 };
 
 const PostPage = () => (
-  <main className={layoutStyles.main}>
-    <Link
-      href="/posts"
-      className={`${layoutStyles.back} ${styles.detailBack}`}
-    >
+  <main className={`${layoutStyles.main} ${layoutStyles.reading}`}>
+    <Link href="/posts" className={layoutStyles.back}>
       <ChevronLeft />
-      게시판 목록
+      게시판
     </Link>
     <AuthGate>
       <Suspense fallback={<p role="status">글을 불러오고 있어요.</p>}>

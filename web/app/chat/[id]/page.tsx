@@ -10,20 +10,17 @@ import { AuthGate } from "../../_components/auth-gate";
 import { useAuth } from "../../_components/auth-provider";
 import { DogFace, genderLabels, sizeLabels } from "../../_components/dog-card";
 import formStyles from "../../_components/form.module.css";
-import { ArrowLeft } from "../../_components/icons";
+import { ChevronLeft } from "../../_components/icons";
 import layoutStyles from "../../_components/layout.module.css";
 import { useNotifications } from "../../_components/notifications-provider";
 import styles from "./chat.module.css";
 
 const ChatPage = () => {
   return (
-    <main className={layoutStyles.main}>
-      <Link
-        href="/walk-requests"
-        className={`${layoutStyles.back} ${layoutStyles.backAccent} ${styles.back}`}
-      >
-        <ArrowLeft size={22} />
-        산책 요청 보기
+    <main className={`${layoutStyles.main} ${layoutStyles.reading}`}>
+      <Link href="/walk-requests" className={layoutStyles.back}>
+        <ChevronLeft />
+        산책 요청
       </Link>
       <AuthGate>
         <Suspense fallback={<p role="status">메시지를 불러오고 있어요.</p>}>

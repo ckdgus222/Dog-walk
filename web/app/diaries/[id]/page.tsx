@@ -6,7 +6,7 @@ import { Suspense } from "react";
 import { AuthGate } from "../../_components/auth-gate";
 import { DogFace, genderLabels } from "../../_components/dog-card";
 import headingStyles from "../../_components/heading.module.css";
-import { ArrowLeft, LockIcon } from "../../_components/icons";
+import { ArrowLeft, ChevronLeft, LockIcon } from "../../_components/icons";
 import layoutStyles from "../../_components/layout.module.css";
 import { useMyDogs } from "../../../lib/api/dogs";
 import { useDeleteDiary, useDiary } from "../../../lib/api/diaries";
@@ -92,10 +92,10 @@ const DiaryDetail = () => {
 };
 
 const DiaryPage = () => (
-  <main className={layoutStyles.main}>
+  <main className={`${layoutStyles.main} ${layoutStyles.reading}`}>
     <Link href="/diaries" className={layoutStyles.back}>
-      <ArrowLeft />
-      일기 목록으로
+      <ChevronLeft />
+      산책 일기
     </Link>
     <AuthGate>
       <Suspense fallback={<p role="status">일기를 불러오고 있어요.</p>}>

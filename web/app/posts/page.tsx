@@ -133,7 +133,7 @@ const PostsPage = () => (
       </div>
       <Link
         href="/posts/new"
-        className={`${layoutStyles.headAction} ${styles.write}`}
+        className={layoutStyles.headAction}
       >
         글쓰기
         <ArrowRight />

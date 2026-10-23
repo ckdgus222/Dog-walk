@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { AuthGate } from "../../_components/auth-gate";
 import headingStyles from "../../_components/heading.module.css";
-import { ArrowLeft } from "../../_components/icons";
+import { ChevronLeft } from "../../_components/icons";
 import layoutStyles from "../../_components/layout.module.css";
 import crouchPet from "../../../public/illustrations/walking-drawing/crouch-pet.png";
 import DogForm from "../dog-form";
@@ -12,13 +12,12 @@ import styles from "../dogs.module.css";
 
 const NewDogPage = () => {
   return (
-    <main className={`${layoutStyles.main} ${styles.newPage}`}>
-      <Link
-        href="/dogs"
-        className={`${layoutStyles.back} ${layoutStyles.backAccent}`}
-      >
-        <ArrowLeft />
-        내 반려견으로 돌아가기
+    <main
+      className={`${layoutStyles.main} ${layoutStyles.wide} ${styles.newPage}`}
+    >
+      <Link href="/dogs" className={layoutStyles.back}>
+        <ChevronLeft />
+        내 반려견
       </Link>
       <div>
         <h1 className={`${headingStyles.title} ${headingStyles.formTitle}`}>

@@ -106,7 +106,7 @@ const PostForm = ({ post }: { post?: Post }) => {
         </label>
       </fieldset>
       <div className={styles.formActions}>
-        <Link href="/posts" className={styles.listButton}>
+        <Link href="/posts" className={formStyles.secondary}>
           게시판 목록
         </Link>
         <button className={formStyles.submit} disabled={save.isPending}>

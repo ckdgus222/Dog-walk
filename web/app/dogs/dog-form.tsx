@@ -113,7 +113,10 @@ const DogForm = ({ dog, order }: { dog?: Dog; order?: number }) => {
           {save.isPending ? "저장 중…" : "저장하기"}
         </button>
         {!dog && (
-          <Link href="/dogs" className={styles.secondaryButton}>
+          <Link
+            href="/dogs"
+            className={`${formStyles.secondary} ${styles.secondaryButton}`}
+          >
             내 반려견으로 돌아가기
           </Link>
         )}

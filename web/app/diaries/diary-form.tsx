@@ -82,7 +82,7 @@ const DiaryForm = ({ diary }: { diary?: Diary }) => {
   );
   const actions = (
     <div className={styles.formActions}>
-      <Link href="/diaries" className={styles.listButton}>
+      <Link href="/diaries" className={formStyles.secondary}>
         일기 목록
       </Link>
       <button className={formStyles.submit} disabled={save.isPending}>

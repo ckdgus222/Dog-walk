@@ -25,7 +25,7 @@ const DogsPage = () => {
         </div>
         <Link
           href="/dogs/new"
-          className={`${layoutStyles.headAction} ${styles.add}`}
+          className={layoutStyles.headAction}
         >
           <PlusIcon />
           반려견 추가

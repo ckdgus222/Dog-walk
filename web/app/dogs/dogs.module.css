@@ -11,14 +11,6 @@
   font-size: 21px;
 }
 
-.add {
-  width: 268px;
-  height: 66px;
-  justify-content: center;
-  font-size: 23px;
-  font-weight: 500;
-}
-
 .list {
   display: grid;
   gap: 20px;
@@ -87,7 +79,7 @@
   align-items: center;
   justify-content: center;
   width: 140px;
-  height: 50px;
+  height: 48px;
   border: 1px solid var(--ink);
   border-radius: 4px;
   background: var(--field);
@@ -221,23 +213,10 @@
 
 .formActions > button {
   width: 310px;
-  height: 52px;
-  font-size: 20px;
-  font-weight: 500;
 }
 
 .secondaryButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   width: 255px;
-  height: 52px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: var(--field);
-  color: var(--ink);
-  font-size: 17px;
-  font-weight: 500;
 }
 
 /* Edit form: the photo card on the left, the dog card on the right, both the
@@ -301,7 +280,6 @@
 
 .editForm > .formActions > button {
   width: 288px;
-  height: 58px;
 }
 
 /* Tablets: the dog card needs the full width so its button rows fit. */
@@ -330,11 +308,6 @@
   .head p {
     margin-top: 6px;
     font-size: 16px;
-  }
-
-  .add {
-    height: 58px;
-    font-size: 21px;
   }
 
   .list {
@@ -397,7 +370,7 @@
   .actions a,
   .actions button {
     width: auto;
-    height: 44px;
+    height: 46px;
   }
 
   .formActions {
@@ -447,17 +420,6 @@
 
   .photoCard .photoButton {
     height: 40px;
-    font-size: 16px;
-  }
-
-  .formActions > button,
-  .editForm > .formActions > button {
-    height: 46px;
-    font-size: 18px;
-  }
-
-  .secondaryButton {
-    height: 44px;
     font-size: 16px;
   }
 

@@ -27,7 +27,7 @@ const EditDog = () => {
 
 const EditDogPage = () => {
   return (
-    <main className={layoutStyles.main}>
+    <main className={`${layoutStyles.main} ${layoutStyles.wide}`}>
       <Link href="/dogs" className={layoutStyles.back}>
         <ChevronLeft />
         내 반려견

@@ -1,18 +1,16 @@
 import Link from "next/link";
 import { AuthGate } from "../../_components/auth-gate";
-import { ChevronRight } from "../../_components/icons";
+import { ChevronLeft } from "../../_components/icons";
 import PostForm from "../post-form";
-import styles from "../posts.module.css";
 import headingStyles from "../../_components/heading.module.css";
 import layoutStyles from "../../_components/layout.module.css";
 
 const NewPostPage = () => (
-  <main className={layoutStyles.main}>
-    <nav aria-label="경로" className={styles.crumbs}>
-      <Link href="/posts">게시판</Link>
-      <ChevronRight size={16} />
-      <span aria-current="page">글쓰기</span>
-    </nav>
+  <main className={`${layoutStyles.main} ${layoutStyles.reading}`}>
+    <Link href="/posts" className={layoutStyles.back}>
+      <ChevronLeft />
+      게시판
+    </Link>
     <div>
       <h1 className={`${headingStyles.title} ${headingStyles.formTitle}`}>
         글쓰기

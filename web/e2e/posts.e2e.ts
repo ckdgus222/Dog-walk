@@ -103,7 +103,7 @@ test("게시판 작성·댓글·작성자 권한·삭제·페이지 이동", asy
           .getByRole("region", { name: "댓글", exact: true })
           .getByText(authorComment, { exact: true }),
       ).toBeVisible();
-      await main.getByRole("link", { name: "게시판 목록" }).click();
+      await main.getByRole("link", { name: "게시판", exact: true }).click();
       await expect(page).toHaveURL("/posts");
       await expect(
         main.getByRole("link", { name: `${title} [1]`, exact: true }),

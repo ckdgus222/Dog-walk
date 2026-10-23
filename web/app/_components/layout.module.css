@@ -23,19 +23,25 @@
   width: min(var(--page-width), 860px);
 }
 
+/* Reading and form pages: a line of text or an input stays a readable
+   length. */
+.main.reading {
+  width: min(var(--page-width), 960px);
+}
+
+/* Forms with a drawing or a photo card beside them. */
+.main.wide {
+  width: min(var(--page-width), 1280px);
+}
+
+/* The one way back from a form or detail page: a chevron and the name of
+   the page it returns to. */
 .back {
   display: flex;
   align-items: center;
   justify-self: start;
-  gap: 12px;
-  color: var(--ink);
-  font-size: 18px;
-}
-
-/* An orange arrow link, as on the add and chat pages. */
-.backAccent {
   gap: 8px;
-  color: var(--accent);
+  color: var(--ink);
   font-size: 16px;
 }
 
@@ -48,17 +54,18 @@
   gap: 20px;
 }
 
-/* The main action of a list page, beside its title. */
+/* The main action of a list page, beside its title. The large button
+   size, shared with form buttons (form.module.css .submit). */
 .headAction {
   display: inline-flex;
   align-items: center;
-  gap: 14px;
-  height: 64px;
-  padding: 0 44px;
+  gap: 12px;
+  height: 56px;
+  padding: 0 32px;
   border-radius: 4px;
   background: var(--accent);
   color: white;
-  font-size: 21px;
+  font-size: 19px;
   font-weight: 700;
 }
 

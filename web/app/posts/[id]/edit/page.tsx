@@ -21,7 +21,7 @@ const EditPost = () => {
 };
 
 const EditPostPage = () => (
-  <main className={layoutStyles.main}>
+  <main className={`${layoutStyles.main} ${layoutStyles.reading}`}>
     <Link href="/posts" className={layoutStyles.back}>
       <ChevronLeft />
       게시판
