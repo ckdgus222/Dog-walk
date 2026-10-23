@@ -82,7 +82,7 @@ const CommentItem = ({ comment }: { comment: Comment }) => {
     <article className={styles.comment}>
       <p className={styles.author}>{comment.author.nickname}</p>
       <time dateTime={comment.createdAt}>
-        {new Date(comment.createdAt).toLocaleString("ko-KR")}
+        {new Date(comment.createdAt).toLocaleDateString("ko-KR")}
       </time>
       {editing ? (
         <CommentEditForm comment={comment} onDone={() => setEditing(false)} />
@@ -148,8 +148,13 @@ export const Comments = ({ postId }: { postId: number }) => {
         <CommentItem key={comment.id} comment={comment} />
       ))}
       <form className={styles.commentForm} onSubmit={handleSubmit}>
-        <label>
+        <label className={formStyles.counted}>
           <span className={formStyles.visuallyHidden}>댓글 내용</span>
+          <span
+            className={formStyles.count}
+            aria-hidden="true"
+            data-count={`${content.length} / 300`}
+          />
           <textarea
             placeholder="댓글을 입력해주세요. (최대 300자)"
             required

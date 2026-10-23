@@ -7,6 +7,7 @@ import { AuthGate } from "../../_components/auth-gate";
 import layoutStyles from "../../_components/layout.module.css";
 import { useDeletePost, usePost } from "../../../lib/api/posts";
 import { useAuthStore } from "../../../lib/auth-store";
+import { ChevronLeft } from "../../_components/icons";
 import { Comments } from "../comments";
 import styles from "../posts.module.css";
 
@@ -27,7 +28,7 @@ const PostDetail = () => {
         <div className={styles.byline}>
           <p className={styles.author}>{post.author.nickname}</p>
           <time dateTime={post.createdAt}>
-            {new Date(post.createdAt).toLocaleString("ko-KR")}
+            {new Date(post.createdAt).toLocaleDateString("ko-KR")}
           </time>
         </div>
         {userId === post.author.id && (
@@ -36,7 +37,7 @@ const PostDetail = () => {
               href={`/posts/${post.id}/edit`}
               className={styles.primary}
             >
-              수정
+              글 수정
             </Link>
             <button
               className={styles.secondary}
@@ -62,8 +63,12 @@ const PostDetail = () => {
 
 const PostPage = () => (
   <main className={layoutStyles.main}>
-    <Link href="/posts" className={layoutStyles.back}>
-      <span aria-hidden="true">‹</span>게시판 목록
+    <Link
+      href="/posts"
+      className={`${layoutStyles.back} ${styles.detailBack}`}
+    >
+      <ChevronLeft />
+      게시판 목록
     </Link>
     <AuthGate>
       <Suspense fallback={<p role="status">글을 불러오고 있어요.</p>}>

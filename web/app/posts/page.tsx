@@ -5,10 +5,27 @@ import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { AuthGate } from "../_components/auth-gate";
 import formStyles from "../_components/form.module.css";
+import {
+  ArrowLeft,
+  ArrowRight,
+  ChatIcon,
+  ChevronRight,
+} from "../_components/icons";
 import headingStyles from "../_components/heading.module.css";
 import layoutStyles from "../_components/layout.module.css";
 import { usePosts } from "../../lib/api/posts";
 import styles from "./posts.module.css";
+
+// "2026.10.22", as in the list mockup.
+const listDate = (iso: string) =>
+  new Date(iso)
+    .toLocaleDateString("ko-KR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    })
+    .replaceAll(" ", "")
+    .replace(/\.$/, "");
 
 const PostList = () => {
   const searchParams = useSearchParams();
@@ -41,11 +58,13 @@ const PostList = () => {
             </h2>
             <p className={styles.author}>{post.author.nickname}</p>
             <time className={styles.date} dateTime={post.createdAt}>
-              {new Date(post.createdAt).toLocaleDateString("ko-KR")}
+              {listDate(post.createdAt)}
             </time>
             <span className={styles.count} aria-hidden="true">
+              <ChatIcon />
               {post.commentCount}
             </span>
+            <ChevronRight size={22} />
           </article>
         ))}
       </div>
@@ -62,13 +81,32 @@ const PostList = () => {
             {page === 1 && query.data.posts.length === 0 && (
               <p>아직 글이 없어요.</p>
             )}
+            {/* An unusable step stays visible but is not a link. */}
             <nav aria-label="게시판 페이지" className={styles.pages}>
-              {page > 1 && <Link href={`/posts?page=${page - 1}`}>이전</Link>}
+              {page > 1 ? (
+                <Link href={`/posts?page=${page - 1}`}>
+                  <ArrowLeft />
+                  이전
+                </Link>
+              ) : (
+                <span className={styles.off}>
+                  <ArrowLeft />
+                  이전
+                </span>
+              )}
               <span>
                 <strong>{page}</strong> / {query.data.totalPages}
               </span>
-              {page < query.data.totalPages && (
-                <Link href={`/posts?page=${page + 1}`}>다음</Link>
+              {page < query.data.totalPages ? (
+                <Link href={`/posts?page=${page + 1}`}>
+                  다음
+                  <ArrowRight size={18} />
+                </Link>
+              ) : (
+                <span className={styles.off}>
+                  다음
+                  <ArrowRight size={18} />
+                </span>
               )}
             </nav>
           </>
@@ -86,8 +124,12 @@ const PostsPage = () => (
           우리 동네 반려인들과 자유롭게 이야기를 나눠요.
         </p>
       </div>
-      <Link href="/posts/new" className={layoutStyles.headAction}>
-        글쓰기<span aria-hidden="true">→</span>
+      <Link
+        href="/posts/new"
+        className={`${layoutStyles.headAction} ${styles.write}`}
+      >
+        글쓰기
+        <ArrowRight />
       </Link>
     </div>
     <AuthGate>
@@ -95,9 +137,6 @@ const PostsPage = () => (
         <PostList />
       </Suspense>
     </AuthGate>
-    <Link href="/" className={layoutStyles.home}>
-      홈으로
-    </Link>
   </main>
 );
 export default PostsPage;

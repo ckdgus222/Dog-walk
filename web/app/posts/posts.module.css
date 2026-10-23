@@ -1,27 +1,42 @@
 /* List */
 .head {
+  align-items: center;
+  margin-top: 6px;
   padding-bottom: 8px;
+}
+
+.head p {
+  margin-top: 8px;
+  font-size: 20px;
+}
+
+.write {
+  width: 177px;
+  height: 53px;
+  justify-content: center;
+  font-size: 21px;
+  font-weight: 500;
 }
 
 .columns,
 .row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 150px 130px 64px 20px;
+  grid-template-columns: minmax(0, 1fr) 140px 130px 64px 30px;
   align-items: center;
   gap: 16px;
-  padding: 0 20px;
+  padding: 0 16px;
 }
 
 .columns {
-  padding-block: 14px;
+  padding-block: 10px;
   border-bottom: 1px solid var(--line);
   color: var(--muted);
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .row {
   position: relative;
-  min-height: 64px;
+  min-height: 51px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -29,11 +44,9 @@
   background: var(--surface);
 }
 
-.row::after {
-  content: "›" / "";
-  grid-column: 5;
+.row > svg {
+  justify-self: end;
   color: var(--ink);
-  font-size: 22px;
 }
 
 .row h2 {
@@ -52,6 +65,7 @@
 /* A long nickname is cut with an ellipsis instead of running into the date. */
 .row .author {
   min-width: 0;
+  font-size: 15px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -63,37 +77,52 @@
 }
 
 .count {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   color: var(--accent);
-  font-weight: 700;
+  font-size: 16px;
+}
+
+/* The bubble icon only shows in the phone layout, where the count has no
+   column heading. */
+.count svg {
+  display: none;
 }
 
 .pages {
-  display: flex;
+  display: grid;
+  grid-template-columns: 108px auto 108px;
   align-items: center;
   justify-content: center;
   gap: 40px;
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
-.pages a {
+.pages > a,
+.pages > .off {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 108px;
+  gap: 8px;
   height: 48px;
   border: 1px solid var(--line);
   border-radius: 4px;
-  background: var(--field);
   color: var(--ink);
-  font-weight: 700;
+  font-size: 16px;
 }
 
-.pages span {
+.pages > .off {
+  color: var(--muted);
+}
+
+.pages > span:not(.off) {
   font-size: 19px;
 }
 
 .pages strong {
   color: var(--accent);
+  font-weight: 500;
 }
 
 /* Detail */
@@ -107,7 +136,7 @@
 .post > h1 {
   grid-column: 1 / -1;
   color: var(--ink);
-  font-size: 44px;
+  font-size: 40px;
   font-weight: 800;
   letter-spacing: -0.02em;
   overflow-wrap: anywhere;
@@ -120,11 +149,13 @@
 
 .byline time {
   color: var(--muted);
+  font-size: 17px;
 }
 
 .post .author,
 .comment .author {
   color: var(--ink);
+  font-size: 18px;
   font-weight: 700;
 }
 
@@ -142,8 +173,8 @@
   grid-column: 1 / -1;
   padding: 28px 0;
   border-block: 1px solid var(--line);
-  font-size: 20px;
-  line-height: 1.75;
+  font-size: 19px;
+  line-height: 1.55;
 }
 
 .post > [role="alert"] {
@@ -250,6 +281,7 @@
 .commentForm textarea {
   width: 100%;
   height: 100%;
+  padding-bottom: 28px;
   min-height: 90px;
   padding: 14px 18px;
   border: 1px solid var(--line);
@@ -274,9 +306,170 @@
   grid-column: 1 / -1;
 }
 
+.detailBack {
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+  font-size: 16px;
+}
+
+/* Write and edit forms */
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.crumbs [aria-current] {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.fields {
+  display: grid;
+  gap: 22px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.fields label {
+  font-size: 18px;
+}
+
+.fieldLabel {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.hint::after {
+  content: attr(data-hint);
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 400;
+}
+
+/* In the edit form the counters sit at the right end of the label row. */
+.editForm .hint:last-child {
+  margin-left: auto;
+}
+
+.fields input {
+  height: 57px;
+  font-size: 18px;
+}
+
+.fields textarea {
+  height: 335px;
+  padding-bottom: 30px;
+  font-size: 18px;
+  line-height: 1.7;
+  resize: none;
+}
+
+.editForm .fields textarea {
+  height: 310px;
+  font-size: 19px;
+  line-height: 2;
+}
+
+.formActions {
+  display: grid;
+  grid-template-columns: 247px 217px;
+  gap: 16px;
+}
+
+/* The write form puts saving first; the edit form puts the list link first. */
+.newForm .formActions > button {
+  order: -1;
+}
+
+.formActions > button {
+  height: 60px;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.listButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--field);
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.editForm .formActions {
+  grid-template-columns: 340px 1fr;
+}
+
+.editForm .formActions > * {
+  height: 66px;
+}
+
 @media (max-width: 720px) {
   .columns {
     display: none;
+  }
+
+  .head p {
+    font-size: 15px;
+  }
+
+  .write {
+    width: 100%;
+    height: 46px;
+    font-size: 18px;
+  }
+
+  .count svg {
+    display: block;
+  }
+
+  .formActions,
+  .editForm .formActions {
+    grid-template-columns: 1fr;
+  }
+
+  .formActions > button {
+    order: -1;
+  }
+
+  .formActions > button,
+  .formActions > .listButton {
+    height: 48px;
+    font-size: 17px;
+  }
+
+  .fields input {
+    height: 46px;
+    font-size: 15px;
+  }
+
+  .fields textarea,
+  .editForm .fields textarea {
+    height: 220px;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .fields label {
+    font-size: 15px;
+  }
+
+  .hint::after {
+    font-size: 13px;
+  }
+
+  .pages {
+    grid-template-columns: 90px 1fr 90px;
+    gap: 16px;
   }
 
   .row {
@@ -290,18 +483,23 @@
     font-size: 17px;
   }
 
-  .row::after {
+  .row > svg {
     grid-row: 1 / span 2;
     grid-column: 4;
+  }
+
+  /* "name · date" on the second line, then the comment count. */
+  .row .date::before {
+    content: "· ";
+  }
+
+  .row .count {
+    justify-self: end;
   }
 
   .row > :is(.author, .date, .count) {
     grid-row: 2;
     font-size: 14px;
-  }
-
-  .pages {
-    gap: 16px;
   }
 
   .post {

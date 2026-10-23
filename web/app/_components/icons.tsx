@@ -119,3 +119,9 @@ export const ChevronDown = ({ size = 18 }: { size?: number }) => (
     <path d="m5 9 7 7 7-7" />
   </Icon>
 );
+
+export const ChatIcon = ({ size = 16 }: { size?: number }) => (
+  <Icon size={size}>
+    <path d="M4 5h16v11H9l-5 4V5Z" />
+  </Icon>
+);
