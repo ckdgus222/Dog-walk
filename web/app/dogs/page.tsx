@@ -3,18 +3,31 @@
 import Link from "next/link";
 import { AuthGate } from "../_components/auth-gate";
 import { DogCard } from "../_components/dog-card";
+import headingStyles from "../_components/heading.module.css";
 import { useDeleteDog, useMyDogs } from "../../lib/api/dogs";
 import type { Dog } from "../../lib/types";
-import styles from "../_components/shared.module.css";
+import styles from "./dogs.module.css";
 
 const DogsPage = () => {
   return (
     <main className={styles.main}>
-      <h1>내 반려견</h1>
+      <div className={styles.head}>
+        <div>
+          <h1 className={headingStyles.title}>내 반려견</h1>
+          <p className={headingStyles.lead}>
+            함께 산책하는 소중한 가족을 소개해 주세요.
+          </p>
+        </div>
+        <Link href="/dogs/new" className={styles.add}>
+          <span aria-hidden="true">+</span>반려견 추가
+        </Link>
+      </div>
       <AuthGate>
         <DogList />
       </AuthGate>
-      <Link href="/">홈으로</Link>
+      <Link href="/" className={styles.home}>
+        홈으로
+      </Link>
     </main>
   );
 };
@@ -32,14 +45,12 @@ const DogList = () => {
 
   return (
     <>
-      <Link href="/dogs/new">반려견 추가</Link>
-      {error && <p role="alert">{error}</p>}
       {query.isPending && !error && (
         <p role="status">반려견을 불러오고 있어요.</p>
       )}
-      <div className={styles.cards}>
+      <div className={styles.list}>
         {query.data?.map((dog) => (
-          <DogCard key={dog.id} dog={dog} heading="h2">
+          <DogCard key={dog.id} dog={dog} heading="h2" className={styles.card}>
             <div className={styles.actions}>
               <Link href={`/dogs/${dog.id}/edit`}>수정</Link>
               <button
@@ -55,6 +66,11 @@ const DogList = () => {
           </DogCard>
         ))}
       </div>
+      {error && (
+        <p role="alert" className={styles.notice}>
+          {error}
+        </p>
+      )}
     </>
   );
 };

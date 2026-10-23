@@ -1,18 +1,29 @@
+import Image from "next/image";
 import type { Dog } from "../../lib/types";
+import dogBami from "../../public/illustrations/walking-drawing/dog-bami.png";
+import dogDubu from "../../public/illustrations/walking-drawing/dog-dubu.png";
 import styles from "./shared.module.css";
 
 export const sizeLabels = { SMALL: "소형", MEDIUM: "중형", LARGE: "대형" };
+export const genderLabels = { MALE: "수컷", FEMALE: "암컷" };
+
+// A dog without an uploaded photo gets one of two drawn faces, chosen by id so
+// the same dog shows the same face on every page.
+export const defaultDogFace = (dog: Dog) =>
+  dog.id % 2 === 0 ? dogDubu : dogBami;
 
 export const DogCard = ({
   dog,
   heading: Heading,
+  className = styles.card,
   children,
 }: {
   dog: Dog;
   heading: "h2" | "h3";
+  className?: string;
   children?: React.ReactNode;
 }) => (
-  <article className={styles.card}>
+  <article className={className}>
     {dog.photoUrl ? (
       // The web container cannot fetch nginx uploads for next/image optimization.
       // eslint-disable-next-line @next/next/no-img-element
@@ -22,12 +33,17 @@ export const DogCard = ({
         alt={`${dog.name} 사진`}
       />
     ) : (
-      <p>사진 없음</p>
+      <Image
+        className={styles.photo}
+        src={defaultDogFace(dog)}
+        alt="사진 없음"
+        width={200}
+        height={200}
+      />
     )}
     <Heading>{dog.name}</Heading>
     <p>
-      {dog.breed} · {sizeLabels[dog.size]} ·{" "}
-      {dog.gender === "MALE" ? "수컷" : "암컷"}
+      {dog.breed} · {sizeLabels[dog.size]} · {genderLabels[dog.gender]}
     </p>
     <p>
       {dog.neutered ? "중성화했어요" : "중성화하지 않았어요"} ·{" "}

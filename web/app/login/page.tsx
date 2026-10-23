@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { useAuth } from "../_components/auth-provider";
 import styles from "../_components/auth.module.css";
+import formStyles from "../_components/form.module.css";
+import headingStyles from "../_components/heading.module.css";
 import { ScenePage } from "../_components/walk-scene";
 
 const LoginPage = () => {
@@ -32,14 +34,14 @@ const LoginPage = () => {
 
   return (
     <ScenePage className={styles.content}>
-      <h1 className={styles.title}>로그인</h1>
-      <p className={styles.lead}>
+      <h1 className={headingStyles.title}>로그인</h1>
+      <p className={headingStyles.lead}>
         좋은 산책은 좋은 이웃에서 시작돼요.
         <br />
         강아지 산책에서 가까운 산책 친구를 만나보세요.
       </p>
       <form
-        className={`${styles.form} ${styles.loginForm}`}
+        className={`${formStyles.form} ${styles.loginForm}`}
         onSubmit={handleSubmit}
       >
         <label>
@@ -55,7 +57,7 @@ const LoginPage = () => {
             required
           />
         </label>
-        <button className={styles.submit} disabled={pending || loading}>
+        <button className={formStyles.submit} disabled={pending || loading}>
           {pending ? "로그인 중…" : "로그인"}
           <span aria-hidden="true">→</span>
         </button>

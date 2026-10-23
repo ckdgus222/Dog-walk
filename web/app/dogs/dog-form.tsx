@@ -5,7 +5,8 @@ import { useState, type FormEvent } from "react";
 import { useSaveDog } from "../../lib/api/dogs";
 import type { Dog } from "../../lib/types";
 import { DogFields, readDogFields } from "../_components/dog-fields";
-import styles from "../_components/shared.module.css";
+import formStyles from "../_components/form.module.css";
+import styles from "./dogs.module.css";
 
 const DogForm = ({ dog }: { dog?: Dog }) => {
   const router = useRouter();
@@ -29,20 +30,28 @@ const DogForm = ({ dog }: { dog?: Dog }) => {
   };
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
-      <fieldset disabled={save.isPending}>
-        <legend>내 반려견</legend>
+    <form
+      className={`${formStyles.form} ${styles.dogForm}`}
+      onSubmit={handleSubmit}
+    >
+      <fieldset
+        className={`${formStyles.card} ${formStyles.rows}`}
+        disabled={save.isPending}
+      >
+        <legend>반려견 정보</legend>
         <DogFields dog={dog} />
+      </fieldset>
+      <fieldset className={formStyles.card} disabled={save.isPending}>
         {dog?.photoUrl && (
           // The web container cannot fetch nginx uploads for next/image optimization.
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            className={styles.photo}
+            className={styles.currentPhoto}
             src={dog.photoUrl}
             alt={`${dog.name} 현재 사진`}
           />
         )}
-        <label>
+        <label className={styles.upload}>
           사진 (선택, 5MB 이하)
           <input
             name="photo"
@@ -56,9 +65,10 @@ const DogForm = ({ dog }: { dog?: Dog }) => {
               )
             }
           />
+          <span>JPG · PNG · WebP</span>
         </label>
       </fieldset>
-      <button disabled={save.isPending}>
+      <button className={formStyles.submit} disabled={save.isPending}>
         {save.isPending ? "저장 중…" : "저장하기"}
       </button>
       {(error || save.error) && (

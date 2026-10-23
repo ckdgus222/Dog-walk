@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { signup } from "../../lib/auth";
 import styles from "../_components/auth.module.css";
+import formStyles from "../_components/form.module.css";
+import headingStyles from "../_components/heading.module.css";
 import { DogFields, readDogFields } from "../_components/dog-fields";
 import { ScenePage } from "../_components/walk-scene";
 
@@ -36,9 +38,9 @@ const SignupPage = () => {
   return (
     <ScenePage className={`${styles.content} ${styles.signup}`}>
       <div className={styles.intro}>
-        <p className={styles.eyebrow}>함께 걷는, 더 특별한 하루</p>
-        <h1 className={styles.title}>회원가입</h1>
-        <p className={styles.lead}>
+        <p className={headingStyles.eyebrow}>함께 걷는, 더 특별한 하루</p>
+        <h1 className={headingStyles.title}>회원가입</h1>
+        <p className={headingStyles.lead}>
           근처의 반려인과 산책하고,
           <br />
           소중한 일상을 함께 나눠보세요.
@@ -46,10 +48,13 @@ const SignupPage = () => {
       </div>
       <div>
         <form
-          className={`${styles.form} ${styles.signupForm}`}
+          className={`${formStyles.form} ${styles.signupForm}`}
           onSubmit={handleSubmit}
         >
-          <fieldset disabled={pending}>
+          <fieldset
+            className={`${formStyles.card} ${formStyles.rows}`}
+            disabled={pending}
+          >
             <legend>계정 정보</legend>
             <label>
               이메일
@@ -75,11 +80,14 @@ const SignupPage = () => {
               <input name="nickname" required />
             </label>
           </fieldset>
-          <fieldset disabled={pending}>
+          <fieldset
+            className={`${formStyles.card} ${formStyles.rows}`}
+            disabled={pending}
+          >
             <legend>반려견 정보</legend>
             <DogFields />
           </fieldset>
-          <button className={styles.submit} disabled={pending}>
+          <button className={formStyles.submit} disabled={pending}>
             {pending ? "가입 중…" : "가입하기"}
           </button>
           {error && <p role="alert">{error}</p>}

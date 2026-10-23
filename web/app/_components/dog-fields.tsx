@@ -1,5 +1,6 @@
 import type { Dog } from "../../lib/types";
-import styles from "./shared.module.css";
+import { genderLabels, sizeLabels } from "./dog-card";
+import styles from "./form.module.css";
 
 export const DogFields = ({ dog }: { dog?: Dog }) => (
   <>
@@ -11,27 +12,13 @@ export const DogFields = ({ dog }: { dog?: Dog }) => (
       견종
       <input name="breed" defaultValue={dog?.breed} required />
     </label>
-    <label>
-      크기
-      <select name="size" defaultValue={dog?.size ?? ""} required>
-        <option value="" disabled>
-          선택해 주세요
-        </option>
-        <option value="SMALL">소형</option>
-        <option value="MEDIUM">중형</option>
-        <option value="LARGE">대형</option>
-      </select>
-    </label>
-    <label>
-      성별
-      <select name="gender" defaultValue={dog?.gender ?? ""} required>
-        <option value="" disabled>
-          선택해 주세요
-        </option>
-        <option value="MALE">수컷</option>
-        <option value="FEMALE">암컷</option>
-      </select>
-    </label>
+    <Choices name="size" legend="크기" labels={sizeLabels} value={dog?.size} />
+    <Choices
+      name="gender"
+      legend="성별"
+      labels={genderLabels}
+      value={dog?.gender}
+    />
     <label className={styles.checkbox}>
       <input
         name="neutered"
@@ -63,6 +50,37 @@ export const DogFields = ({ dog }: { dog?: Dog }) => (
       />
     </label>
   </>
+);
+
+// One required radio group drawn as a row of buttons.
+const Choices = ({
+  name,
+  legend,
+  labels,
+  value,
+}: {
+  name: string;
+  legend: string;
+  labels: Record<string, string>;
+  value?: string;
+}) => (
+  <fieldset className={styles.choices}>
+    <legend>{legend}</legend>
+    <div>
+      {Object.entries(labels).map(([option, label]) => (
+        <label key={option}>
+          <input
+            name={name}
+            type="radio"
+            value={option}
+            defaultChecked={value === option}
+            required
+          />
+          {label}
+        </label>
+      ))}
+    </div>
+  </fieldset>
 );
 
 export const readDogFields = (form: FormData) => ({

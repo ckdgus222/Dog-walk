@@ -477,8 +477,8 @@ test("회원가입에서 입력한 반려견 필드를 로그인 후 카드에 �
   await main.getByLabel("닉네임").fill(account.nickname);
   await main.getByLabel("이름", { exact: true }).fill("가입두부");
   await main.getByLabel("견종").fill("진돗개");
-  await main.getByLabel("크기").selectOption("MEDIUM");
-  await main.getByLabel("성별").selectOption("MALE");
+  await main.getByRole("radio", { name: "중형", exact: true }).check();
+  await main.getByRole("radio", { name: "수컷", exact: true }).check();
   await main.getByLabel("중성화했어요").check();
   await main.getByLabel("태어난 해").fill("2022");
   await main.getByLabel("성격 소개").fill("천천히 걷는 걸 좋아해요.");

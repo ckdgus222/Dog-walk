@@ -6,10 +6,8 @@ import { useMyDogs } from "../lib/api/dogs";
 import type { Dog } from "../lib/types";
 import communityChat from "../public/illustrations/walking-drawing/community-chat.svg";
 import diaryBook from "../public/illustrations/walking-drawing/diary-book.svg";
-import dogBami from "../public/illustrations/walking-drawing/dog-bami.png";
-import dogDubu from "../public/illustrations/walking-drawing/dog-dubu.png";
 import { useAuth } from "./_components/auth-provider";
-import { sizeLabels } from "./_components/dog-card";
+import { defaultDogFace, sizeLabels } from "./_components/dog-card";
 import { ScenePage } from "./_components/walk-scene";
 import styles from "./page.module.css";
 
@@ -121,9 +119,9 @@ const MyDogs = () => {
   }
   return (
     <ul className={styles.dogs}>
-      {query.data.map((dog, index) => (
+      {query.data.map((dog) => (
         <li key={dog.id} className={styles.dog}>
-          <DogFace dog={dog} index={index} />
+          <DogFace dog={dog} />
           <div>
             <p className={styles.dogName}>{dog.name}</p>
             <p className={styles.dogMeta}>
@@ -136,10 +134,7 @@ const MyDogs = () => {
   );
 };
 
-// Dogs without an uploaded photo alternate between the two drawn faces.
-const defaultFaces = [dogDubu, dogBami];
-
-const DogFace = ({ dog, index }: { dog: Dog; index: number }) =>
+const DogFace = ({ dog }: { dog: Dog }) =>
   dog.photoUrl ? (
     // The web container cannot fetch nginx uploads for next/image optimization.
     // eslint-disable-next-line @next/next/no-img-element
@@ -147,7 +142,7 @@ const DogFace = ({ dog, index }: { dog: Dog; index: number }) =>
   ) : (
     <Image
       className={styles.face}
-      src={defaultFaces[index % defaultFaces.length]}
+      src={defaultDogFace(dog)}
       alt=""
       width={80}
       height={80}
