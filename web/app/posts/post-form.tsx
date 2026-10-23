@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { useSavePost } from "../../lib/api/posts";
 import type { Post } from "../../lib/types";
-import styles from "../_components/shared.module.css";
+import formStyles from "../_components/form.module.css";
 
 const PostForm = ({ post }: { post?: Post }) => {
   const router = useRouter();
@@ -31,8 +31,11 @@ const PostForm = ({ post }: { post?: Post }) => {
   };
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
-      <fieldset disabled={save.isPending}>
+    <form
+      className={`${formStyles.form} ${formStyles.pageForm}`}
+      onSubmit={handleSubmit}
+    >
+      <fieldset className={formStyles.card} disabled={save.isPending}>
         <legend>게시글</legend>
         <label>
           제목
@@ -49,12 +52,12 @@ const PostForm = ({ post }: { post?: Post }) => {
             name="content"
             required
             maxLength={2000}
-            rows={8}
+            rows={12}
             defaultValue={post?.content ?? ""}
           />
         </label>
       </fieldset>
-      <button disabled={save.isPending}>
+      <button className={formStyles.submit} disabled={save.isPending}>
         {save.isPending ? "저장 중…" : "저장하기"}
       </button>
       {(error || save.error) && (

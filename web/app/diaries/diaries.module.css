@@ -203,10 +203,6 @@
 }
 
 /* Write and edit form */
-.diaryForm > button {
-  width: 310px;
-}
-
 .fields {
   grid-template-columns: 1fr 1fr;
   column-gap: 24px;
@@ -263,10 +259,6 @@
   .actions button {
     flex: 1;
     min-width: 0;
-  }
-
-  .diaryForm > button {
-    width: 100%;
   }
 
   .fields {

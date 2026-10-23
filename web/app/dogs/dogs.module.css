@@ -126,10 +126,6 @@
   grid-column: 1 / -1;
 }
 
-.dogForm > button {
-  width: 310px;
-}
-
 .currentPhoto {
   width: 100%;
   aspect-ratio: 1;
@@ -183,9 +179,5 @@
 
   .dogForm {
     grid-template-columns: 1fr;
-  }
-
-  .dogForm > button {
-    width: 100%;
   }
 }

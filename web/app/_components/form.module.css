@@ -218,6 +218,22 @@
   cursor: pointer;
 }
 
+/* A page form ends with a fixed-width save button on wide screens. */
+.pageForm > .submit {
+  width: 310px;
+}
+
+/* Hidden on screen but still read by screen readers, e.g. a label whose
+   input shows a placeholder instead. */
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .submit:disabled {
   opacity: 0.6;
   cursor: default;
@@ -256,5 +272,9 @@
 
   .submit {
     font-size: 18px;
+  }
+
+  .pageForm > .submit {
+    width: 100%;
   }
 }

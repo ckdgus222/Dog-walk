@@ -1,4 +1,322 @@
+/* List */
+.head {
+  padding-bottom: 8px;
+}
+
+.columns,
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px 130px 64px 20px;
+  align-items: center;
+  gap: 16px;
+  padding: 0 20px;
+}
+
+.columns {
+  padding-block: 14px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.row {
+  position: relative;
+  min-height: 64px;
+  border-bottom: 1px solid var(--line);
+}
+
+.row:hover {
+  background: var(--surface);
+}
+
+.row::after {
+  content: "›" / "";
+  grid-column: 5;
+  color: var(--ink);
+  font-size: 22px;
+}
+
+.row h2 {
+  font-size: 19px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+/* The title link stretches over the row, so the whole row is clickable. */
+.row h2 a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+/* A long nickname is cut with an ellipsis instead of running into the date. */
+.row .author {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.date {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.count {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.pages {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  margin-top: 8px;
+}
+
+.pages a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 108px;
+  height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--field);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.pages span {
+  font-size: 19px;
+}
+
+.pages strong {
+  color: var(--accent);
+}
+
+/* Detail */
+.post {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 18px 24px;
+}
+
+.post > h1 {
+  grid-column: 1 / -1;
+  color: var(--ink);
+  font-size: 44px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+.byline {
+  display: grid;
+  gap: 4px;
+}
+
+.byline time {
+  color: var(--muted);
+}
+
+.post .author,
+.comment .author {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
 .content {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+.post > .content {
+  grid-column: 1 / -1;
+  padding: 28px 0;
+  border-block: 1px solid var(--line);
+  font-size: 20px;
+  line-height: 1.75;
+}
+
+.post > [role="alert"] {
+  grid-column: 1 / -1;
+}
+
+.primary,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 100px;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: 4px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary {
+  border: 0;
+  background: var(--accent);
+  color: white;
+}
+
+.secondary {
+  border: 1px solid var(--accent);
+  background: var(--field);
+  color: var(--accent);
+}
+
+.primary:disabled,
+.secondary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Comments */
+.comments > h2 {
+  margin-bottom: 4px;
+  color: var(--ink);
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.comments > h2 span {
+  color: var(--accent);
+}
+
+.comment {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+
+.comment time {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.comment > :is(.content, form, [role="alert"]) {
+  grid-column: 1 / -1;
+}
+
+.comment > .content {
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.commentActions {
+  display: flex;
+  gap: 8px;
+}
+
+.comment > .commentActions {
+  grid-row: 1;
+  grid-column: 3;
+}
+
+.commentActions .primary,
+.commentActions .secondary {
+  min-width: 72px;
+  height: 38px;
+  padding: 0 14px;
+  font-size: 15px;
+}
+
+.commentEdit textarea {
+  min-height: 90px;
+}
+
+.commentForm {
+  display: grid;
+  grid-template-columns: 1fr 160px;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.commentForm textarea {
+  width: 100%;
+  height: 100%;
+  min-height: 90px;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--field);
+  color: var(--foreground);
+  font: inherit;
+  resize: vertical;
+}
+
+.commentForm textarea:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+
+.commentForm > button {
+  height: auto;
+  min-height: 56px;
+}
+
+.commentForm > [role="alert"] {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 720px) {
+  .columns {
+    display: none;
+  }
+
+  .row {
+    grid-template-columns: auto auto 1fr 20px;
+    gap: 4px 10px;
+    padding: 14px 4px;
+  }
+
+  .row h2 {
+    grid-column: 1 / 4;
+    font-size: 17px;
+  }
+
+  .row::after {
+    grid-row: 1 / span 2;
+    grid-column: 4;
+  }
+
+  .row > :is(.author, .date, .count) {
+    grid-row: 2;
+    font-size: 14px;
+  }
+
+  .pages {
+    gap: 16px;
+  }
+
+  .post {
+    grid-template-columns: 1fr;
+  }
+
+  .post > h1 {
+    font-size: 28px;
+  }
+
+  .post > .content {
+    font-size: 17px;
+  }
+
+  .commentForm {
+    grid-template-columns: 1fr;
+  }
 }

@@ -31,7 +31,7 @@ const DogForm = ({ dog }: { dog?: Dog }) => {
 
   return (
     <form
-      className={`${formStyles.form} ${styles.dogForm}`}
+      className={`${formStyles.form} ${formStyles.pageForm} ${styles.dogForm}`}
       onSubmit={handleSubmit}
     >
       <fieldset

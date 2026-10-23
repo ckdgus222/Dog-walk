@@ -4,8 +4,11 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { AuthGate } from "../_components/auth-gate";
+import formStyles from "../_components/form.module.css";
+import headingStyles from "../_components/heading.module.css";
+import layoutStyles from "../_components/layout.module.css";
 import { usePosts } from "../../lib/api/posts";
-import styles from "../_components/shared.module.css";
+import styles from "./posts.module.css";
 
 const PostList = () => {
   const searchParams = useSearchParams();
@@ -14,22 +17,35 @@ const PostList = () => {
 
   return (
     <>
-      <Link href="/posts/new">글쓰기</Link>
       {query.error && <p role="alert">{query.error.message}</p>}
       {query.isPending && <p role="status">글을 불러오고 있어요.</p>}
-      <div className={styles.cards}>
+      <div>
+        <div className={styles.columns} aria-hidden="true">
+          <span>제목</span>
+          <span>작성자</span>
+          <span>작성일</span>
+          <span>댓글</span>
+        </div>
         {query.data?.posts.map((post) => (
-          <article key={post.id} className={styles.card}>
+          <article key={post.id} className={styles.row}>
             <h2>
               <Link href={`/posts/${post.id}`}>
                 {post.title}
-                {post.commentCount > 0 ? ` [${post.commentCount}]` : ""}
+                {/* Kept in the link name; the count column shows it on screen. */}
+                {post.commentCount > 0 && (
+                  <span className={formStyles.visuallyHidden}>
+                    {` [${post.commentCount}]`}
+                  </span>
+                )}
               </Link>
             </h2>
-            <p>{post.author.nickname}</p>
-            <time dateTime={post.createdAt}>
-              {new Date(post.createdAt).toLocaleString("ko-KR")}
+            <p className={styles.author}>{post.author.nickname}</p>
+            <time className={styles.date} dateTime={post.createdAt}>
+              {new Date(post.createdAt).toLocaleDateString("ko-KR")}
             </time>
+            <span className={styles.count} aria-hidden="true">
+              {post.commentCount}
+            </span>
           </article>
         ))}
       </div>
@@ -46,10 +62,10 @@ const PostList = () => {
             {page === 1 && query.data.posts.length === 0 && (
               <p>아직 글이 없어요.</p>
             )}
-            <nav aria-label="게시판 페이지" className={styles.actions}>
+            <nav aria-label="게시판 페이지" className={styles.pages}>
               {page > 1 && <Link href={`/posts?page=${page - 1}`}>이전</Link>}
               <span>
-                {page} / {query.data.totalPages}
+                <strong>{page}</strong> / {query.data.totalPages}
               </span>
               {page < query.data.totalPages && (
                 <Link href={`/posts?page=${page + 1}`}>다음</Link>
@@ -62,14 +78,26 @@ const PostList = () => {
 };
 
 const PostsPage = () => (
-  <main className={styles.main}>
-    <h1>게시판</h1>
+  <main className={layoutStyles.main}>
+    <div className={`${layoutStyles.head} ${styles.head}`}>
+      <div>
+        <h1 className={headingStyles.title}>게시판</h1>
+        <p className={headingStyles.lead}>
+          우리 동네 반려인들과 자유롭게 이야기를 나눠요.
+        </p>
+      </div>
+      <Link href="/posts/new" className={layoutStyles.headAction}>
+        글쓰기<span aria-hidden="true">→</span>
+      </Link>
+    </div>
     <AuthGate>
       <Suspense fallback={<p role="status">글을 불러오고 있어요.</p>}>
         <PostList />
       </Suspense>
     </AuthGate>
-    <Link href="/">홈으로</Link>
+    <Link href="/" className={layoutStyles.home}>
+      홈으로
+    </Link>
   </main>
 );
 export default PostsPage;

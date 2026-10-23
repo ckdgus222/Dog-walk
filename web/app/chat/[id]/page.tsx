@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useChatHistory, useSendChatMessage } from "../../../lib/api/chat";
 import { AuthGate } from "../../_components/auth-gate";
 import { useAuth } from "../../_components/auth-provider";
+import formStyles from "../../_components/form.module.css";
 import layoutStyles from "../../_components/layout.module.css";
 import { useNotifications } from "../../_components/notifications-provider";
 import styles from "./chat.module.css";
@@ -126,7 +127,7 @@ const ChatRoom = ({ walkRequestId }: { walkRequestId: number }) => {
       </ol>
       <form className={styles.composer} onSubmit={submit}>
         <label>
-          <span className={styles.visuallyHidden}>메시지</span>
+          <span className={formStyles.visuallyHidden}>메시지</span>
           <input
             placeholder="메시지를 입력하세요. (최대 500자)"
             value={content}

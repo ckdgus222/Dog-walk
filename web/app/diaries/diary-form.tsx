@@ -60,7 +60,7 @@ const DiaryForm = ({ diary }: { diary?: Diary }) => {
 
   return (
     <form
-      className={`${formStyles.form} ${styles.diaryForm}`}
+      className={`${formStyles.form} ${formStyles.pageForm}`}
       onSubmit={handleSubmit}
     >
       <fieldset
