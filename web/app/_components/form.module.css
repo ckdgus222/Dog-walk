@@ -44,11 +44,6 @@
   outline-offset: 1px;
 }
 
-.form [role="alert"] {
-  color: var(--accent);
-  font-weight: 700;
-}
-
 .form .checkbox {
   display: flex;
   align-items: center;

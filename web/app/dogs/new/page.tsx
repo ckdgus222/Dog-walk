@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { AuthGate } from "../../_components/auth-gate";
 import headingStyles from "../../_components/heading.module.css";
+import layoutStyles from "../../_components/layout.module.css";
 import DogForm from "../dog-form";
-import styles from "../dogs.module.css";
 
 const NewDogPage = () => {
   return (
-    <main className={styles.main}>
-      <Link href="/dogs" className={styles.back}>
+    <main className={layoutStyles.main}>
+      <Link href="/dogs" className={layoutStyles.back}>
         <span aria-hidden="true">‹</span>내 반려견
       </Link>
       <div>

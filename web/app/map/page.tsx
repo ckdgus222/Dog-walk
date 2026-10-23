@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useLayoutEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { AuthGate } from "../_components/auth-gate";
+import headingStyles from "../_components/heading.module.css";
+import layoutStyles from "../_components/layout.module.css";
 import {
   useChangeLocationConsent,
   useMyLocation,
@@ -11,22 +13,29 @@ import {
   useUpdateMyLocation,
 } from "../../lib/api/location";
 import type { MyLocation, Neighbor } from "../../lib/types";
-import styles from "../_components/shared.module.css";
 import KakaoMap from "./kakao-map";
 import { NeighborList } from "./neighbor-list";
 import { NeighborDetail } from "./neighbor-detail";
+import styles from "./map.module.css";
 
 // Keep marker inputs stable while the nearby list is unavailable.
 const noNeighbors: Neighbor[] = [];
 
 const MapPage = () => {
   return (
-    <main className={styles.main}>
-      <h1>지도</h1>
+    <main className={layoutStyles.main}>
+      <div>
+        <h1 className={headingStyles.title}>내 주변 산책 친구</h1>
+        <p className={headingStyles.lead}>
+          지금 이 근처에서 함께 산책할 수 있는 이웃을 찾아보세요.
+        </p>
+      </div>
       <AuthGate>
         <LocationPanel />
       </AuthGate>
-      <Link href="/">홈으로</Link>
+      <Link href="/" className={layoutStyles.home}>
+        홈으로
+      </Link>
     </main>
   );
 };
@@ -138,7 +147,7 @@ const LocationPanel = () => {
 
   if (!location.consented) {
     return (
-      <>
+      <div className={styles.consent}>
         {error && <p role="alert">{error}</p>}
         <p>
           지도 화면을 보고 있는 동안 내 위치를 약 200m 단위로 흐려서 1분마다
@@ -153,28 +162,31 @@ const LocationPanel = () => {
         >
           동의하고 위치 공개
         </button>
-      </>
+      </div>
     );
   }
 
   return (
     <>
       {error && <p role="alert">{error}</p>}
-      {location.updatedAt && (
-        <p>
-          마지막 갱신:{" "}
-          <time dateTime={location.updatedAt}>
-            {new Date(location.updatedAt).toLocaleString("ko-KR")}
-          </time>
-        </p>
-      )}
-      <button
-        type="button"
-        disabled={consent.isPending}
-        onClick={() => changeConsent(false)}
-      >
-        위치 공개 끄기
-      </button>
+      <div className={styles.status}>
+        <span className={styles.live}>위치 공개 중</span>
+        <button
+          type="button"
+          disabled={consent.isPending}
+          onClick={() => changeConsent(false)}
+        >
+          위치 공개 끄기
+        </button>
+        {location.updatedAt && (
+          <p>
+            마지막 갱신:{" "}
+            <time dateTime={location.updatedAt}>
+              {new Date(location.updatedAt).toLocaleString("ko-KR")}
+            </time>
+          </p>
+        )}
+      </div>
       {mapStarted && location.lat !== null && location.lng !== null && (
         <KakaoMap
           lat={location.lat}
@@ -183,20 +195,22 @@ const LocationPanel = () => {
           onSelect={setSelectedId}
         />
       )}
-      {!sentWhileVisible ? (
-        <p role="status">내 위치를 받아 오고 있어요.</p>
-      ) : nearbyError ? (
-        <p role="alert">{nearbyError}</p>
-      ) : neighbors === undefined ? (
-        <p role="status">주변 사용자를 불러오고 있어요.</p>
-      ) : (
-        <NeighborList
-          neighbors={neighbors}
-          selectedId={selectedId}
-          onSelect={setSelectedId}
-        />
-      )}
-      {selected && <NeighborDetail neighbor={selected} />}
+      <div className={styles.columns}>
+        {!sentWhileVisible ? (
+          <p role="status">내 위치를 받아 오고 있어요.</p>
+        ) : nearbyError ? (
+          <p role="alert">{nearbyError}</p>
+        ) : neighbors === undefined ? (
+          <p role="status">주변 사용자를 불러오고 있어요.</p>
+        ) : (
+          <NeighborList
+            neighbors={neighbors}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+          />
+        )}
+        {selected && <NeighborDetail neighbor={selected} />}
+      </div>
     </>
   );
 };

@@ -6,8 +6,10 @@ import {
   useWalkRequests,
 } from "../../lib/api/walk-requests";
 import { AuthGate } from "../_components/auth-gate";
+import headingStyles from "../_components/heading.module.css";
+import layoutStyles from "../_components/layout.module.css";
 import { useNotifications } from "../_components/notifications-provider";
-import styles from "../_components/shared.module.css";
+import styles from "./walk-requests.module.css";
 
 const statusLabels = {
   PENDING: "대기 중",
@@ -18,12 +20,19 @@ const statusLabels = {
 
 const WalkRequestsPage = () => {
   return (
-    <main className={styles.main}>
-      <h1>산책 요청</h1>
+    <main className={layoutStyles.main}>
+      <div>
+        <h1 className={headingStyles.title}>산책 요청</h1>
+        <p className={headingStyles.lead}>
+          주변의 반려인과 산책을 요청하고, 받은 요청을 확인할 수 있어요.
+        </p>
+      </div>
       <AuthGate>
         <RequestLists />
       </AuthGate>
-      <Link href="/">홈으로</Link>
+      <Link href="/" className={layoutStyles.home}>
+        홈으로
+      </Link>
     </main>
   );
 };
@@ -63,30 +72,44 @@ const RequestLists = () => {
         <section
           key={box}
           aria-label={box === "received" ? "받은 요청" : "보낸 요청"}
-          className={styles.cards}
+          className={styles.box}
         >
-          <h2>{box === "received" ? "받은 요청" : "보낸 요청"}</h2>
-          {requests[box]?.length === 0 && <p>아직 요청이 없어요.</p>}
+          <h2>
+            {box === "received" ? "받은 요청" : "보낸 요청"}{" "}
+            {requests[box] && <span>{requests[box].length}</span>}
+          </h2>
+          {requests[box]?.length === 0 && (
+            <p className={styles.empty}>아직 요청이 없어요.</p>
+          )}
           {requests[box]?.map((request) => (
-            <article key={request.id} className={styles.card}>
-              <h3>{request.counterpart.nickname}</h3>
-              <p>
-                {request.counterpart.dogs.map((dog) => dog.name).join(", ")}
-              </p>
-              {request.message && <p>{request.message}</p>}
-              <p>{statusLabels[request.status]}</p>
-              <time dateTime={request.createdAt}>
-                {new Date(request.createdAt).toLocaleString("ko-KR")}
-              </time>
-              {request.status === "ACCEPTED" && (
-                <Link href={`/chat/${request.id}`}>채팅하기</Link>
-              )}
-              {request.status === "PENDING" && (
-                <div className={styles.actions}>
-                  {box === "received" ? (
+            <article key={request.id} className={styles.request}>
+              <div className={styles.info}>
+                <h3>{request.counterpart.nickname}</h3>
+                <p className={styles.dogNames}>
+                  {request.counterpart.dogs.map((dog) => dog.name).join(", ")}
+                </p>
+                {request.message && (
+                  <p className={styles.message}>{request.message}</p>
+                )}
+                <time dateTime={request.createdAt}>
+                  {new Date(request.createdAt).toLocaleString("ko-KR")}
+                </time>
+              </div>
+              <div className={styles.side}>
+                <p className={`${styles.status} ${styles[request.status]}`}>
+                  {statusLabels[request.status]}
+                </p>
+                {request.status === "ACCEPTED" && (
+                  <Link href={`/chat/${request.id}`} className={styles.primary}>
+                    채팅하기
+                  </Link>
+                )}
+                {request.status === "PENDING" &&
+                  (box === "received" ? (
                     <>
                       <button
                         type="button"
+                        className={styles.primary}
                         disabled={respondMutation.isPending}
                         onClick={() => respond(request.id, "accept")}
                       >
@@ -94,6 +117,7 @@ const RequestLists = () => {
                       </button>
                       <button
                         type="button"
+                        className={styles.secondary}
                         disabled={respondMutation.isPending}
                         onClick={() => respond(request.id, "reject")}
                       >
@@ -103,14 +127,14 @@ const RequestLists = () => {
                   ) : (
                     <button
                       type="button"
+                      className={styles.secondary}
                       disabled={respondMutation.isPending}
                       onClick={() => respond(request.id, "cancel")}
                     >
                       취소
                     </button>
-                  )}
-                </div>
-              )}
+                  ))}
+              </div>
             </article>
           ))}
         </section>

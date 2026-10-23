@@ -10,7 +10,7 @@ export const NeighborList = ({
   selectedId: number | null;
   onSelect: (userId: number) => void;
 }) => (
-  <section aria-label="주변 산책 친구">
+  <section aria-label="주변 산책 친구" className={styles.neighborList}>
     <h2>주변 산책 친구 {neighbors.length}명</h2>
     {neighbors.length === 0 && <p>1km 안에 아직 아무도 없어요.</p>}
     <ul className={styles.neighbors}>
@@ -22,8 +22,10 @@ export const NeighborList = ({
             aria-pressed={selectedId === neighbor.userId}
           >
             <strong>{neighbor.nickname}</strong>
-            <span>약 {neighbor.distanceM}m</span>
-            <span>{neighbor.dogs.map((dog) => dog.name).join(", ")}</span>
+            <span className={styles.distance}>약 {neighbor.distanceM}m</span>
+            <span className={styles.dogNames}>
+              {neighbor.dogs.map((dog) => dog.name).join(", ")}
+            </span>
           </button>
         </li>
       ))}

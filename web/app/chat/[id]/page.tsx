@@ -7,19 +7,24 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useChatHistory, useSendChatMessage } from "../../../lib/api/chat";
 import { AuthGate } from "../../_components/auth-gate";
 import { useAuth } from "../../_components/auth-provider";
+import layoutStyles from "../../_components/layout.module.css";
 import { useNotifications } from "../../_components/notifications-provider";
-import shared from "../../_components/shared.module.css";
 import styles from "./chat.module.css";
 
 const ChatPage = () => {
   return (
-    <main className={shared.main}>
+    <main className={layoutStyles.main}>
+      <Link
+        href="/walk-requests"
+        className={`${layoutStyles.back} ${styles.back}`}
+      >
+        <span aria-hidden="true">←</span>산책 요청 보기
+      </Link>
       <AuthGate>
         <Suspense fallback={<p role="status">메시지를 불러오고 있어요.</p>}>
           <ChatRoute />
         </Suspense>
       </AuthGate>
-      <Link href="/walk-requests">산책 요청 보기</Link>
     </main>
   );
 };
@@ -97,8 +102,10 @@ const ChatRoom = ({ walkRequestId }: { walkRequestId: number }) => {
 
   return (
     <>
-      <h1>{history.data.counterpart.nickname}님과의 채팅</h1>
-      <p>최근 50개 메시지만 보여요.</p>
+      <div className={`${layoutStyles.head} ${styles.head}`}>
+        <h1>{history.data.counterpart.nickname}님과의 채팅</h1>
+        <p>최근 50개 메시지만 보여요.</p>
+      </div>
       <ol ref={list} aria-label="채팅 메시지" className={styles.messages}>
         {history.data.messages.slice(-50).map((message) => (
           <li
@@ -117,10 +124,11 @@ const ChatRoom = ({ walkRequestId }: { walkRequestId: number }) => {
           </li>
         ))}
       </ol>
-      <form className={shared.form} onSubmit={submit}>
+      <form className={styles.composer} onSubmit={submit}>
         <label>
-          메시지
+          <span className={styles.visuallyHidden}>메시지</span>
           <input
+            placeholder="메시지를 입력하세요. (최대 500자)"
             value={content}
             onChange={(event) => setContent(event.target.value)}
             onKeyDown={(event) => {

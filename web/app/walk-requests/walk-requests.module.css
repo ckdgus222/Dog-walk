@@ -1,0 +1,160 @@
+.box {
+  display: grid;
+  gap: 12px;
+}
+
+.box > h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 24px;
+  border-radius: 4px;
+  background: var(--sage-soft);
+  color: var(--ink);
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.empty {
+  padding: 24px;
+  border: 1px dashed var(--line);
+  border-radius: 4px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.request {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 16px 28px;
+  padding: 22px 28px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface);
+  overflow-wrap: anywhere;
+}
+
+.info {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.info h3 {
+  color: var(--ink);
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.dogNames {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.message {
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.message::before {
+  content: "“";
+}
+
+.message::after {
+  content: "”";
+}
+
+.info time {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.side {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.status {
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.PENDING {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.ACCEPTED {
+  background: var(--sage);
+  color: var(--ink);
+}
+
+.REJECTED,
+.CANCELED {
+  background: var(--line);
+  color: var(--muted);
+}
+
+.primary,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  height: 52px;
+  padding: 0 22px;
+  border-radius: 4px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary {
+  border: 0;
+  background: var(--accent);
+  color: white;
+}
+
+.secondary {
+  border: 1px solid var(--accent);
+  background: var(--field);
+  color: var(--accent);
+}
+
+.primary:disabled,
+.secondary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+@media (max-width: 720px) {
+  .box > h2 {
+    padding: 12px 16px;
+    font-size: 18px;
+  }
+
+  .request {
+    grid-template-columns: 1fr;
+    padding: 18px 16px;
+  }
+
+  .message {
+    font-size: 16px;
+  }
+
+  .side {
+    justify-content: flex-start;
+  }
+
+  .primary,
+  .secondary {
+    flex: 1;
+    height: 46px;
+  }
+}

@@ -4,14 +4,15 @@ import Link from "next/link";
 import { AuthGate } from "../_components/auth-gate";
 import { DogCard } from "../_components/dog-card";
 import headingStyles from "../_components/heading.module.css";
+import layoutStyles from "../_components/layout.module.css";
 import { useDeleteDog, useMyDogs } from "../../lib/api/dogs";
 import type { Dog } from "../../lib/types";
 import styles from "./dogs.module.css";
 
 const DogsPage = () => {
   return (
-    <main className={styles.main}>
-      <div className={styles.head}>
+    <main className={layoutStyles.main}>
+      <div className={`${layoutStyles.head} ${styles.head}`}>
         <div>
           <h1 className={headingStyles.title}>내 반려견</h1>
           <p className={headingStyles.lead}>
@@ -25,7 +26,7 @@ const DogsPage = () => {
       <AuthGate>
         <DogList />
       </AuthGate>
-      <Link href="/" className={styles.home}>
+      <Link href="/" className={layoutStyles.home}>
         홈으로
       </Link>
     </main>

@@ -1,37 +1,161 @@
+.back {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.head {
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--line);
+}
+
+.head h1 {
+  color: var(--ink);
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.head p {
+  color: var(--muted);
+  font-size: 15px;
+}
+
 .messages {
-  height: min(50vh, 480px);
-  overflow-y: auto;
-  list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 12px;
-  border: 1px solid #888;
-  border-radius: 8px;
+  gap: 18px;
+  height: min(55vh, 520px);
+  padding: 8px 4px;
+  overflow-y: auto;
+  list-style: none;
 }
 
 .mine,
 .theirs {
-  max-width: 85%;
-  padding: 12px;
-  border: 1px solid #888;
-  border-radius: 8px;
+  display: grid;
+  gap: 6px;
+  max-width: min(75%, 520px);
   overflow-wrap: anywhere;
 }
 
 .mine {
   align-self: flex-end;
+  justify-items: end;
 }
 
 .theirs {
   align-self: flex-start;
+  justify-items: start;
+}
+
+.messages strong {
+  color: var(--ink);
 }
 
 .messages p {
-  margin: 8px 0;
+  padding: 14px 20px;
+  border-radius: 10px;
+  font-size: 17px;
+  line-height: 1.55;
   white-space: pre-wrap;
 }
 
+.theirs p {
+  border: 1px solid var(--line);
+  background: var(--field);
+}
+
+.mine p {
+  background: var(--accent);
+  color: white;
+}
+
 .messages time {
-  font-size: 0.8rem;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* The message box and the send button share one bordered row. */
+.composer {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px 10px 22px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--field);
+}
+
+.composer:focus-within {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+
+.composer input {
+  width: 100%;
+  min-width: 0;
+  height: 52px;
+  border: 0;
+  outline: none;
+  background: none;
+  color: var(--foreground);
+  font: inherit;
+  font-size: 17px;
+}
+
+.composer button {
+  height: 56px;
+  padding: 0 32px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--accent);
+  color: white;
+  font: inherit;
+  font-size: 19px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.composer button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.composer > p {
+  grid-column: 1 / -1;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .head h1 {
+    font-size: 26px;
+  }
+
+  .mine,
+  .theirs {
+    max-width: 85%;
+  }
+
+  .messages p {
+    font-size: 15px;
+  }
+
+  .composer {
+    padding-left: 14px;
+  }
+
+  .composer button {
+    height: 48px;
+    padding: 0 20px;
+    font-size: 16px;
+  }
 }

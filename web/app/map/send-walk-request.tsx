@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useSendWalkRequest } from "../../lib/api/walk-requests";
-import styles from "../_components/shared.module.css";
+import formStyles from "../_components/form.module.css";
 
 export const SendWalkRequest = ({ receiverId }: { receiverId: number }) => {
   const request = useSendWalkRequest();
@@ -20,7 +20,7 @@ export const SendWalkRequest = ({ receiverId }: { receiverId: number }) => {
   };
 
   return (
-    <form className={styles.form} onSubmit={send}>
+    <form className={formStyles.form} onSubmit={send}>
       <label>
         메시지 (선택)
         <input
@@ -29,7 +29,11 @@ export const SendWalkRequest = ({ receiverId }: { receiverId: number }) => {
           maxLength={100}
         />
       </label>
-      <button type="submit" disabled={request.isPending}>
+      <button
+        type="submit"
+        className={formStyles.submit}
+        disabled={request.isPending}
+      >
         산책 요청 보내기
       </button>
       {request.isSuccess && <p role="status">산책 요청을 보냈어요.</p>}
