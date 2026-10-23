@@ -51,8 +51,9 @@
   font-weight: 400;
 }
 
-/* Choices: radio buttons drawn as a row of buttons. The radio stays on top
-   of its button, transparent, so clicks, keys and focus work as usual. */
+/* Choices: one radio group, drawn as round radios or as a row of buttons.
+   In the button looks the radio stays on top of its button, transparent, so
+   clicks, keys and focus work as usual. */
 .choices {
   display: grid;
   gap: 10px;
@@ -77,13 +78,29 @@
   gap: 8px;
 }
 
-.form .choices label {
+.form .radioChoices label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 110px;
+  color: var(--foreground);
+  font-weight: 400;
+}
+
+.form .radioChoices input {
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--accent);
+}
+
+.form :is(.buttonChoices, .sageChoices) label {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 96px;
-  height: 44px;
+  height: var(--field-height, 44px);
   padding: 0 16px;
   border: 1px solid var(--line);
   border-radius: 4px;
@@ -92,7 +109,15 @@
   font-weight: 400;
 }
 
-.form .choices input {
+.form .buttonChoices label {
+  min-width: 124px;
+}
+
+.form .sageChoices label {
+  flex: 1;
+}
+
+.form :is(.buttonChoices, .sageChoices) input {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -102,16 +127,82 @@
   cursor: pointer;
 }
 
-.form .choices label:has(:checked) {
+.form .buttonChoices label:has(:checked) {
   border-color: var(--accent);
   background: var(--accent-soft);
   color: var(--accent);
+  font-weight: 500;
+}
+
+.form .sageChoices label:has(:checked) {
+  border: 2px solid var(--ink);
+  background: var(--sage);
+  color: var(--ink);
   font-weight: 700;
 }
 
-.form .choices label:has(:focus-visible) {
+.form :is(.buttonChoices, .sageChoices) label:has(:focus-visible) {
   outline: 2px solid var(--ink);
   outline-offset: 1px;
+}
+
+.required::after {
+  content: "*";
+  margin-left: 8px;
+  color: var(--accent);
+}
+
+.optional {
+  color: var(--muted);
+}
+
+/* A text field with "length/max" in its right corner. */
+.counted {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+
+.form .counted input {
+  padding-right: 72px;
+}
+
+.count::after {
+  content: attr(data-count);
+}
+
+.count {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  translate: 0 -50%;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.counted:has(textarea) .count {
+  top: auto;
+  bottom: 12px;
+  translate: none;
+}
+
+/* A field with a short hint written to its right. */
+.withHint {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.form .withHint input {
+  flex: 0 1 350px;
+}
+
+.withHint > span {
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 400;
+  white-space: nowrap;
 }
 
 /* Card: a fieldset drawn as a titled card. */
@@ -134,33 +225,72 @@
   font-weight: 700;
 }
 
-/* Rows: labels in a left column beside their inputs. */
+/* Rows: labels in a left column beside their inputs. Each form sets the
+   column width and field height measured from its mockup. */
 .rows > label,
-.rows > .choices {
-  grid-template-columns: 128px 1fr;
+.rows > .choices,
+.rows > .fieldRow {
+  display: grid;
+  grid-template-columns: var(--label-col, 128px) 1fr;
   align-items: center;
   gap: 12px;
-  font-size: 16px;
+  color: var(--ink);
+  font-size: var(--label-size, 16px);
+  font-weight: 700;
 }
 
 .rows > label:has(textarea) {
   align-items: start;
 }
 
-.rows > .checkbox,
-.rows > p {
-  padding-left: 140px;
-}
-
-.rows > p {
-  margin-top: -4px;
-  color: var(--muted);
-  font-size: 14px;
+.rows > label:has(textarea) > span:first-child {
+  padding-top: 12px;
 }
 
 .rows input,
 .rows select {
-  height: 44px;
+  height: var(--field-height, 44px);
+}
+
+.fieldRow .checkbox {
+  gap: 12px;
+}
+
+.signupFields {
+  --label-col: 116px;
+  --field-height: 42px;
+  gap: 13px;
+}
+
+.addFields {
+  --label-col: 137px;
+  --field-height: 44px;
+  --label-size: 18px;
+  gap: 18px;
+}
+
+.editFields {
+  --label-col: 113px;
+  --field-height: 50px;
+  --label-size: 18px;
+  gap: 20px;
+}
+
+.signupFields textarea {
+  height: 62px;
+}
+
+.addFields textarea {
+  height: 112px;
+}
+
+.editFields textarea {
+  height: 130px;
+}
+
+.editFields input[type="checkbox"] {
+  width: 28px;
+  height: 28px;
 }
 
 /* Upload: a file input drawn as a dashed drop box. The browser's own picker
@@ -239,9 +369,11 @@
   cursor: default;
 }
 
-.submit span {
+.submit svg {
   position: absolute;
+  top: 50%;
   right: 28px;
+  translate: 0 -50%;
 }
 
 @media (max-width: 720px) {
@@ -253,21 +385,77 @@
     font-size: 19px;
   }
 
-  .rows > label,
-  .rows > .choices {
-    grid-template-columns: 84px 1fr;
-    gap: 10px;
-    font-size: 14px;
+  .rows {
+    --label-col: 84px;
   }
 
-  .rows > .checkbox,
-  .rows > p {
-    padding-left: 94px;
+  .rows > label,
+  .rows > .choices,
+  .rows > .fieldRow {
+    gap: 10px;
+    font-size: 14px;
   }
 
   .form .choices label {
     flex: 1;
     min-width: 0;
+  }
+
+  .form .withHint input {
+    flex: 1;
+  }
+
+  /* Phone mockups are much denser: 351px artboards scaled by 1.11. */
+  .addFields,
+  .editFields {
+    --field-height: 38px;
+    --label-size: 15px;
+    gap: 12px;
+    padding: 14px 14px 16px;
+    font-size: 14px;
+  }
+
+  .editFields {
+    --label-col: 78px;
+    gap: 10px;
+  }
+
+  .addFields input,
+  .addFields select,
+  .addFields textarea,
+  .editFields input,
+  .editFields select,
+  .editFields textarea {
+    padding-inline: 12px;
+    font-size: 14px;
+  }
+
+  .addFields textarea,
+  .editFields textarea {
+    height: 84px;
+  }
+
+  .form :is(.addFields, .editFields) .choices label {
+    height: 36px;
+  }
+
+  .editFields input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+  }
+
+  .count {
+    font-size: 12px;
+  }
+
+  /* The add form stacks each label above its field on phones. */
+  .addFields > :is(label, .choices, .fieldRow) {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .addFields > .fieldRow {
+    grid-template-columns: 78px 1fr;
   }
 
   .submit {

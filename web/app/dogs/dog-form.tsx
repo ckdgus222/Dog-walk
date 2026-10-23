@@ -1,16 +1,23 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { useSaveDog } from "../../lib/api/dogs";
 import type { Dog } from "../../lib/types";
+import { DogFace } from "../_components/dog-card";
 import { DogFields, readDogFields } from "../_components/dog-fields";
 import formStyles from "../_components/form.module.css";
+import { PictureIcon } from "../_components/icons";
 import styles from "./dogs.module.css";
 
-const DogForm = ({ dog }: { dog?: Dog }) => {
+const tooBig = (file?: File) => (file?.size ?? 0) > 5 * 1024 * 1024;
+const tooBigMessage = "사진은 5MB 이하로 골라 주세요.";
+
+const DogForm = ({ dog, order }: { dog?: Dog; order?: number }) => {
   const router = useRouter();
   const [error, setError] = useState("");
+  const [fileName, setFileName] = useState("");
   const save = useSaveDog(dog?.id);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -19,8 +26,8 @@ const DogForm = ({ dog }: { dog?: Dog }) => {
     setError("");
     save.reset();
     const photo = fields.get("photo");
-    if (photo instanceof File && photo.size > 5 * 1024 * 1024) {
-      setError("사진은 5MB 이하로 골라 주세요.");
+    if (photo instanceof File && tooBig(photo)) {
+      setError(tooBigMessage);
       return;
     }
     const body = new FormData();
@@ -29,48 +36,89 @@ const DogForm = ({ dog }: { dog?: Dog }) => {
     save.mutate(body, { onSuccess: () => router.push("/dogs") });
   };
 
+  // The real file input stays in the page, hidden behind its drawn button,
+  // so keyboard focus and screen readers still reach it by its label.
+  const photoInput = (
+    <input
+      className={formStyles.visuallyHidden}
+      name="photo"
+      type="file"
+      accept="image/jpeg,image/png,image/webp"
+      aria-label="사진 (선택, 5MB 이하)"
+      onChange={(event) => {
+        const file = event.currentTarget.files?.[0];
+        setFileName(file?.name ?? "");
+        setError(tooBig(file) ? tooBigMessage : "");
+      }}
+    />
+  );
+
   return (
     <form
-      className={`${formStyles.form} ${formStyles.pageForm} ${styles.dogForm}`}
+      className={`${formStyles.form} ${dog ? styles.editForm : styles.addForm}`}
       onSubmit={handleSubmit}
     >
       <fieldset
-        className={`${formStyles.card} ${formStyles.rows}`}
+        className={`${formStyles.card} ${formStyles.rows} ${dog ? formStyles.editFields : formStyles.addFields}`}
         disabled={save.isPending}
       >
-        <legend>반려견 정보</legend>
-        <DogFields dog={dog} />
+        <legend className={formStyles.visuallyHidden}>반려견 정보</legend>
+        <DogFields dog={dog} variant={dog ? "edit" : "add"} />
       </fieldset>
-      <fieldset className={formStyles.card} disabled={save.isPending}>
-        {dog?.photoUrl && (
-          // The web container cannot fetch nginx uploads for next/image optimization.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            className={styles.currentPhoto}
-            src={dog.photoUrl}
-            alt={`${dog.name} 현재 사진`}
-          />
+      <fieldset
+        className={`${formStyles.card} ${styles.photoCard}`}
+        disabled={save.isPending}
+      >
+        {dog ? (
+          <>
+            <legend className={formStyles.visuallyHidden}>사진</legend>
+            {dog.photoUrl ? (
+              // The web container cannot fetch nginx uploads for next/image optimization.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                className={styles.currentPhoto}
+                src={dog.photoUrl}
+                alt={`${dog.name} 현재 사진`}
+              />
+            ) : (
+              <DogFace
+                dog={dog}
+                className={styles.currentPhoto}
+                size={320}
+                order={order}
+              />
+            )}
+            <label className={styles.photoButton}>
+              {photoInput}새 사진 선택
+            </label>
+            <p className={styles.photoHint}>
+              {fileName || "JPG, PNG, WebP 파일 (최대 5MB, 1장만 가능)"}
+            </p>
+          </>
+        ) : (
+          <>
+            <legend>
+              사진 <span className={formStyles.optional}>(선택사항)</span>
+            </legend>
+            <label className={styles.photoBox}>
+              {photoInput}
+              <PictureIcon />
+              <strong>사진 선택</strong>
+              <span>{fileName || "JPG · PNG · WebP, 5MB 이하"}</span>
+            </label>
+          </>
         )}
-        <label className={formStyles.upload}>
-          사진 (선택, 5MB 이하)
-          <input
-            name="photo"
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            onChange={(event) =>
-              setError(
-                (event.currentTarget.files?.[0]?.size ?? 0) > 5 * 1024 * 1024
-                  ? "사진은 5MB 이하로 골라 주세요."
-                  : "",
-              )
-            }
-          />
-          <span>JPG · PNG · WebP</span>
-        </label>
       </fieldset>
-      <button className={formStyles.submit} disabled={save.isPending}>
-        {save.isPending ? "저장 중…" : "저장하기"}
-      </button>
+      <div className={styles.formActions}>
+        <button className={formStyles.submit} disabled={save.isPending}>
+          {save.isPending ? "저장 중…" : "저장하기"}
+        </button>
+        {!dog && (
+          <Link href="/dogs" className={styles.secondaryButton}>
+            내 반려견으로 돌아가기
+          </Link>
+        )}
+      </div>
       {(error || save.error) && (
         <p role="alert">{error || save.error?.message}</p>
       )}

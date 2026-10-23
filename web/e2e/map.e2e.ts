@@ -198,10 +198,9 @@ test("동의 후 자동 공개·반려견 조회·1분 보내기·30초 주변 �
     detail.getByRole("heading", { name: "주변두부", exact: true }),
   ).toBeVisible();
   await expect(
-    detail.getByText("푸들 · 소형 · 암컷", { exact: true }),
-  ).toBeVisible();
-  await expect(
-    detail.getByText("중성화했어요 · 2021년생", { exact: true }),
+    detail.getByText("푸들 · 소형 · 암컷 · 중성화 · 2021년생", {
+      exact: true,
+    }),
   ).toBeVisible();
   expect(saves).toHaveLength(1);
   // Check the 30-second poll before the first 1-minute send: the nearby

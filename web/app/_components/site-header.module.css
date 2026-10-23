@@ -1,4 +1,9 @@
+/* The same 1170px frame as the mockup, so the logo lines up with the page
+   content on wide screens too. */
 .header {
+  width: 100%;
+  max-width: 1170px;
+  margin: 0 auto;
   padding: 0 30px;
 }
 
@@ -13,7 +18,7 @@
 
 .logo {
   color: var(--ink);
-  font-size: 28px;
+  font-size: 29px;
   font-weight: 800;
   letter-spacing: -0.02em;
   white-space: nowrap;
@@ -83,9 +88,42 @@
   cursor: pointer;
 }
 
-.account a[aria-current="page"] {
+.account a[aria-current="page"],
+.guestMenu a[aria-current="page"] {
   color: var(--accent);
   font-weight: 700;
+}
+
+.guestMenu {
+  display: none;
+  position: relative;
+  margin-left: auto;
+}
+
+.guestMenu summary {
+  display: flex;
+  color: var(--ink);
+  list-style: none;
+  cursor: pointer;
+}
+
+.guestMenu summary::-webkit-details-marker {
+  display: none;
+}
+
+.guestMenu div {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 10;
+  display: grid;
+  gap: 12px;
+  min-width: 120px;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface);
+  font-size: 15px;
 }
 
 .message {
@@ -122,8 +160,12 @@
 
 /* The full menu no longer fits beside the logo, so it moves to its own row. */
 @media (max-width: 1024px) {
+  .header {
+    padding: 0 24px;
+  }
+
   .bar {
-    padding-top: 14px;
+    padding: 14px 0 0;
   }
 
   .menu {
@@ -145,10 +187,6 @@
     padding: 0 16px;
   }
 
-  .bar {
-    padding-inline: 0;
-  }
-
   .logo {
     font-size: 22px;
   }
@@ -167,5 +205,13 @@
   .account button,
   .account a + a {
     padding-left: 12px;
+  }
+
+  .guestLinks {
+    display: none;
+  }
+
+  .guestMenu {
+    display: block;
   }
 }

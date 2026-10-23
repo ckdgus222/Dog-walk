@@ -284,8 +284,11 @@ test("산책 요청 실시간 알림·재접속 동기화·로그아웃 정리",
       await expect(modal).toHaveCount(0);
       await expect(badge).toHaveCount(0);
       await expect(
-        a.getByRole("navigation", { name: "주 메뉴" }),
+        a.getByRole("banner").getByRole("button", { name: "로그아웃" }),
       ).toHaveCount(0);
+      await expect(
+        a.getByRole("banner").getByRole("link", { name: "로그인", exact: true }),
+      ).toBeVisible();
       await expect(
         a.getByRole("main").getByRole("link", { name: "로그인", exact: true }),
       ).toBeVisible();

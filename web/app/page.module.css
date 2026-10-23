@@ -10,16 +10,16 @@
 
 .title {
   color: var(--ink);
-  font-size: 44px;
+  font-size: 48px;
   font-weight: 800;
-  line-height: 1.36;
+  line-height: 60px;
   letter-spacing: -0.02em;
 }
 
 .actions {
   display: flex;
   align-items: center;
-  margin-top: 30px;
+  margin-top: 26px;
 }
 
 .primaryAction {
@@ -28,16 +28,16 @@
   flex: 0 1 536px;
   align-items: center;
   justify-content: center;
-  height: 72px;
+  height: 71px;
   padding: 0 64px;
   border-radius: 4px;
   background: var(--accent);
   color: white;
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 26px;
+  font-weight: 500;
 }
 
-.primaryAction span {
+.primaryAction svg {
   position: absolute;
   right: 32px;
 }
@@ -51,20 +51,21 @@
   padding-left: 34px;
   border-left: 1px solid var(--line);
   color: var(--accent);
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .cards {
   display: grid;
   grid-template-columns: 1.6fr 1fr 1fr;
   gap: 18px;
-  margin-top: 28px;
+  margin-top: 26px;
 }
 
 .card {
   position: relative;
-  padding: 24px 28px 28px;
+  padding: 20px 28px 14px;
   border: 1px solid var(--line);
   border-radius: 4px;
   background: var(--surface);
@@ -75,7 +76,7 @@
   align-items: center;
   justify-content: space-between;
   color: var(--ink);
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
 }
 
@@ -87,8 +88,8 @@
 
 .dogs {
   display: grid;
-  gap: 6px;
-  margin-top: 16px;
+  gap: 10px;
+  margin-top: 6px;
   list-style: none;
 }
 
@@ -109,14 +110,14 @@
 
 .dogName {
   color: var(--ink);
-  font-size: 19px;
+  font-size: 22px;
   font-weight: 700;
 }
 
 .dogMeta {
   margin-top: 4px;
   color: var(--muted);
-  font-size: 15px;
+  font-size: 17px;
 }
 
 .linkCard {
@@ -131,30 +132,42 @@
 }
 
 .icon {
-  margin: 26px 0 18px;
+  margin: 8px 0 0;
 }
 
 .description {
   max-width: 10em;
-  color: var(--muted);
-  font-size: 15px;
+  color: var(--foreground);
+  font-size: 17px;
   line-height: 1.6;
   text-wrap: balance;
+}
+
+/* Tablets: the dog card takes a full row so its details stay on one line. */
+@media (max-width: 1024px) {
+  .cards {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .cards > :first-child {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 720px) {
   .content {
     width: calc(100% - 32px);
-    padding-top: 24px;
+    padding-top: 26px;
   }
 
   .greeting {
     margin-bottom: 8px;
-    font-size: 14px;
+    font-size: 15px;
   }
 
   .title {
-    font-size: 26px;
+    font-size: 27px;
+    line-height: 37px;
   }
 
   .actions {
@@ -166,67 +179,87 @@
 
   .primaryAction {
     flex: none;
-    height: 54px;
-    font-size: 18px;
+    gap: 12px;
+    height: 60px;
+    font-size: 20px;
   }
 
-  .primaryAction span {
+  .primaryAction svg {
     position: static;
-    margin-left: 12px;
   }
 
   .textAction {
     justify-content: center;
-    height: 50px;
+    height: 55px;
     margin-left: 0;
     padding-left: 0;
     border: 1px solid var(--line);
     border-radius: 4px;
     background: var(--surface);
-    font-size: 18px;
+    font-size: 20px;
   }
 
   .cards {
     grid-template-columns: 1fr;
-    gap: 12px;
-    margin-top: 16px;
+    gap: 13px;
+    margin-top: 20px;
   }
 
   .card {
-    padding: 18px 20px;
+    padding: 15px 22px 18px;
   }
 
   .cardTitle {
-    font-size: 18px;
+    font-size: 19px;
   }
 
   .dogs {
-    margin-top: 14px;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .dog {
+    gap: 28px;
   }
 
   .face {
-    width: 64px;
-    height: 64px;
+    width: 72px;
+    height: 72px;
   }
 
+  .dogName {
+    font-size: 20px;
+  }
+
+  .dogMeta {
+    font-size: 16px;
+  }
+
+  /* Title in a fixed left column, the icon and the text in a column beside
+     it, and the chevron at the far right. */
   .linkCard {
     display: grid;
-    grid-template-columns: 44px 1fr;
-    gap: 12px 14px;
+    grid-template-columns: 94px 1fr;
+    align-items: center;
+    gap: 10px 0;
     text-align: left;
   }
 
-  .linkCard .cardTitle {
-    grid-column: 1 / -1;
+  .linkCard .cardTitle svg {
+    position: absolute;
+    top: 19px;
+    right: 22px;
   }
 
   .icon {
-    width: 44px;
-    height: 44px;
-    margin: 0;
+    width: 58px;
+    height: 58px;
+    margin: -12px 0;
   }
 
   .description {
+    grid-column: 2;
     max-width: none;
+    font-size: 14px;
   }
 }

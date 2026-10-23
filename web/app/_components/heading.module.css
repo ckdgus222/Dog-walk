@@ -11,10 +11,20 @@
   letter-spacing: -0.02em;
 }
 
+/* Form pages use a smaller title and lead than list pages. */
+.formTitle {
+  font-size: 48px;
+}
+
 .lead {
   margin-top: 18px;
   font-size: 19px;
   line-height: 1.6;
+}
+
+.lead.formLead {
+  margin-top: 12px;
+  font-size: 18px;
 }
 
 @media (max-width: 720px) {
@@ -27,8 +37,16 @@
     font-size: 34px;
   }
 
+  .formTitle {
+    font-size: 35px;
+  }
+
   .lead {
     margin-top: 10px;
+    font-size: 15px;
+  }
+
+  .lead.formLead {
     font-size: 15px;
   }
 }

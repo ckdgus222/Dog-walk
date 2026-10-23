@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AuthGate } from "../_components/auth-gate";
 import { DogCard } from "../_components/dog-card";
 import headingStyles from "../_components/heading.module.css";
+import { PlusIcon } from "../_components/icons";
 import layoutStyles from "../_components/layout.module.css";
 import { useDeleteDog, useMyDogs } from "../../lib/api/dogs";
 import type { Dog } from "../../lib/types";
@@ -19,16 +20,17 @@ const DogsPage = () => {
             함께 산책하는 소중한 가족을 소개해 주세요.
           </p>
         </div>
-        <Link href="/dogs/new" className={layoutStyles.headAction}>
-          <span aria-hidden="true">+</span>반려견 추가
+        <Link
+          href="/dogs/new"
+          className={`${layoutStyles.headAction} ${styles.add}`}
+        >
+          <PlusIcon />
+          반려견 추가
         </Link>
       </div>
       <AuthGate>
         <DogList />
       </AuthGate>
-      <Link href="/" className={layoutStyles.home}>
-        홈으로
-      </Link>
     </main>
   );
 };
@@ -50,8 +52,14 @@ const DogList = () => {
         <p role="status">반려견을 불러오고 있어요.</p>
       )}
       <div className={styles.list}>
-        {query.data?.map((dog) => (
-          <DogCard key={dog.id} dog={dog} heading="h2" className={styles.card}>
+        {query.data?.map((dog, index) => (
+          <DogCard
+            key={dog.id}
+            dog={dog}
+            heading="h2"
+            className={styles.card}
+            order={index}
+          >
             <div className={styles.actions}>
               <Link href={`/dogs/${dog.id}/edit`}>수정</Link>
               <button
@@ -67,10 +75,18 @@ const DogList = () => {
           </DogCard>
         ))}
       </div>
-      {error && (
-        <p role="alert" className={styles.notice}>
+      {/* The bar always explains the one-dog rule, and shows the error in
+          its place when something fails. */}
+      {error ? (
+        <p key="error" role="alert" className={styles.notice}>
           {error}
         </p>
+      ) : (
+        query.isSuccess && (
+          <p key="hint" className={styles.notice}>
+            반려견은 최소 한 마리 있어야 해요.
+          </p>
+        )
       )}
     </>
   );

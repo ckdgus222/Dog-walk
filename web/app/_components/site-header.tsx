@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useAuth } from "./auth-provider";
+import { MenuIcon } from "./icons";
 import { useNotifications } from "./notifications-provider";
 import styles from "./site-header.module.css";
 
@@ -36,23 +37,7 @@ export const SiteHeader = () => {
         <Link href="/" className={styles.logo}>
           강아지 산책
         </Link>
-        <nav aria-label="주 메뉴" className={styles.menu}>
-          <MenuLink href="/map">주변 친구</MenuLink>
-          <MenuLink href="/walk-requests">
-            산책 요청{" "}
-            {pendingCount > 0 && (
-              <span
-                className={styles.badge}
-                aria-label={`받은 산책 요청 ${pendingCount}개`}
-              >
-                {pendingCount}
-              </span>
-            )}
-          </MenuLink>
-          <MenuLink href="/dogs">내 반려견</MenuLink>
-          <MenuLink href="/diaries">산책 일기</MenuLink>
-          <MenuLink href="/posts">게시판</MenuLink>
-        </nav>
+        <MainMenu pendingCount={pendingCount} />
         <div className={styles.account}>
           <span className={styles.greeting}>{user.nickname}님, 안녕하세요</span>
           <button type="button" disabled={loggingOut} onClick={handleLogout}>
@@ -85,19 +70,62 @@ export const SiteHeader = () => {
   );
 };
 
-const GuestHeader = () => (
+const MainMenu = ({ pendingCount }: { pendingCount: number }) => (
+  <nav aria-label="주 메뉴" className={styles.menu}>
+    <MenuLink href="/map">주변 친구</MenuLink>
+    <MenuLink href="/walk-requests">
+      산책 요청{" "}
+      {pendingCount > 0 && (
+        <span
+          className={styles.badge}
+          aria-label={`받은 산책 요청 ${pendingCount}개`}
+        >
+          {pendingCount}
+        </span>
+      )}
+    </MenuLink>
+    <MenuLink href="/dogs">내 반려견</MenuLink>
+    <MenuLink href="/diaries">산책 일기</MenuLink>
+    <MenuLink href="/posts">게시판</MenuLink>
+  </nav>
+);
+
+const GuestLinks = () => (
+  <>
+    <MenuLink href="/login">로그인</MenuLink>
+    <MenuLink href="/signup">회원가입</MenuLink>
+    <MenuLink href="/">홈으로</MenuLink>
+  </>
+);
+
+// Guests see the same menu; the account links fold into a menu button on
+// phones, as in the mockup.
+const GuestHeader = () => {
+  // The header stays mounted across pages, so a new key closes the menu after
+  // a link in it is used.
+  const pathname = usePathname();
+  return (
   <header className={styles.header}>
     <div className={styles.bar}>
       <Link href="/" className={styles.logo}>
         강아지 산책
       </Link>
-      <div className={styles.account}>
-        <MenuLink href="/login">로그인</MenuLink>
-        <MenuLink href="/signup">회원가입</MenuLink>
+      <MainMenu pendingCount={0} />
+      <div className={`${styles.account} ${styles.guestLinks}`}>
+        <GuestLinks />
       </div>
+      <details key={pathname} className={styles.guestMenu}>
+        <summary aria-label="계정 메뉴">
+          <MenuIcon />
+        </summary>
+        <div>
+          <GuestLinks />
+        </div>
+      </details>
     </div>
   </header>
-);
+  );
+};
 
 // Rendered only after the login check, which runs in the browser and never
 // while prerendering, so usePathname cannot suspend dynamic routes such as

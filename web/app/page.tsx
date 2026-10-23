@@ -7,6 +7,7 @@ import communityChat from "../public/illustrations/walking-drawing/community-cha
 import diaryBook from "../public/illustrations/walking-drawing/diary-book.svg";
 import { useAuth } from "./_components/auth-provider";
 import { DogFace, sizeLabels } from "./_components/dog-card";
+import { ArrowRight, ChevronRight } from "./_components/icons";
 import { ScenePage } from "./_components/walk-scene";
 import styles from "./page.module.css";
 
@@ -55,10 +56,12 @@ const Dashboard = ({ nickname }: { nickname: string }) => (
     <Title />
     <div className={styles.actions}>
       <Link href="/map" className={styles.primaryAction}>
-        주변 친구 찾기<span aria-hidden="true">→</span>
+        주변 친구 찾기
+        <ArrowRight />
       </Link>
       <Link href="/walk-requests" className={styles.textAction}>
-        산책 요청<span aria-hidden="true">→</span>
+        산책 요청
+        <ArrowRight />
       </Link>
     </div>
     <div className={styles.cards}>
@@ -72,8 +75,8 @@ const Dashboard = ({ nickname }: { nickname: string }) => (
           className={styles.icon}
           src={diaryBook}
           alt=""
-          width={72}
-          height={72}
+          width={96}
+          height={96}
         />
         <p className={styles.description}>우리의 소중한 산책을 기록해요</p>
       </section>
@@ -83,8 +86,8 @@ const Dashboard = ({ nickname }: { nickname: string }) => (
           className={styles.icon}
           src={communityChat}
           alt=""
-          width={72}
-          height={72}
+          width={96}
+          height={96}
         />
         <p className={styles.description}>이웃 반려인들과 이야기를 나눠요</p>
       </section>
@@ -105,7 +108,7 @@ const CardTitle = ({
     <Link href={href} className={styles.cardLink}>
       {children}
     </Link>
-    <span aria-hidden="true">›</span>
+    <ChevronRight />
   </h2>
 );
 
@@ -118,9 +121,14 @@ const MyDogs = () => {
   }
   return (
     <ul className={styles.dogs}>
-      {query.data.map((dog) => (
+      {query.data.map((dog, index) => (
         <li key={dog.id} className={styles.dog}>
-          <DogFace dog={dog} className={styles.face} size={80} />
+          <DogFace
+            dog={dog}
+            className={styles.face}
+            size={80}
+            order={index}
+          />
           <div>
             <p className={styles.dogName}>{dog.name}</p>
             <p className={styles.dogMeta}>

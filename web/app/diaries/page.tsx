@@ -44,7 +44,9 @@ const DiaryList = () => {
       {query.isSuccess && query.data.length === 0 && <p>아직 일기가 없어요.</p>}
       <div className={styles.list}>
         {query.data?.map((diary) => {
-          const dog = dogs.data?.find((dog) => dog.id === diary.dog.id);
+          const order =
+            dogs.data?.findIndex((dog) => dog.id === diary.dog.id) ?? -1;
+          const dog = dogs.data?.[order];
           return (
             <article key={diary.id} className={styles.entry}>
               <Link href={`/diaries/${diary.id}`}>
@@ -52,7 +54,12 @@ const DiaryList = () => {
                   <h2>{formatDiaryDate(diary.walkedOn)}</h2>
                   <div className={styles.dog}>
                     {dog && (
-                      <DogFace dog={dog} className={styles.face} size={64} />
+                      <DogFace
+                        dog={dog}
+                        className={styles.face}
+                        size={64}
+                        order={order}
+                      />
                     )}
                     <p>{diary.dog.name}</p>
                   </div>

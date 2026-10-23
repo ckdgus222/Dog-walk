@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { useAuth } from "../_components/auth-provider";
+import { ArrowRight } from "../_components/icons";
 import styles from "../_components/auth.module.css";
 import formStyles from "../_components/form.module.css";
 import headingStyles from "../_components/heading.module.css";
@@ -33,7 +34,7 @@ const LoginPage = () => {
   };
 
   return (
-    <ScenePage className={styles.content}>
+    <ScenePage className={`${styles.content} ${styles.login}`}>
       <h1 className={headingStyles.title}>로그인</h1>
       <p className={headingStyles.lead}>
         좋은 산책은 좋은 이웃에서 시작돼요.
@@ -59,7 +60,7 @@ const LoginPage = () => {
         </label>
         <button className={formStyles.submit} disabled={pending || loading}>
           {pending ? "로그인 중…" : "로그인"}
-          <span aria-hidden="true">→</span>
+          <ArrowRight size={24} />
         </button>
         {loading && <p role="status">로그인 상태를 확인하고 있어요.</p>}
         {error && <p role="alert">{error}</p>}

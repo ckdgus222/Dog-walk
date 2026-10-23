@@ -133,7 +133,11 @@ test("계정 전환 중 이전 계정의 반려견 캐시를 보여 주지 않�
   await expect(
     main.getByRole("heading", { name: a.dog.name, exact: true }),
   ).toBeVisible();
-  await main.getByRole("link", { name: "홈으로" }).click();
+  await page
+    .getByRole("banner")
+    .getByRole("link", { name: "강아지 산책", exact: true })
+    .click();
+  await expect(page).toHaveURL("/");
   await page
     .getByRole("banner")
     .getByRole("button", { name: "로그아웃" })
@@ -201,7 +205,9 @@ test("수정 폼은 재진입과 목록 삭제 중에도 최신 값을 읽고 �
     await main.getByRole("link", { name: "내 반려견", exact: true }).click();
     await listResponse;
     await expect(
-      firstCard.getByText(`${breed} · 소형 · 암컷`, { exact: true }),
+      firstCard.getByText(`${breed} · 소형 · 암컷 · 중성화 · 2021년생`, {
+        exact: true,
+      }),
     ).toBeVisible();
   }
 
@@ -480,7 +486,7 @@ test("회원가입에서 입력한 반려견 필드를 로그인 후 카드에 �
   await main.getByRole("radio", { name: "중형", exact: true }).check();
   await main.getByRole("radio", { name: "수컷", exact: true }).check();
   await main.getByLabel("중성화했어요").check();
-  await main.getByLabel("태어난 해").fill("2022");
+  await main.getByLabel("태어난 해").selectOption({ label: "2022년" });
   await main.getByLabel("성격 소개").fill("천천히 걷는 걸 좋아해요.");
   await main.getByRole("button", { name: "가입하기", exact: true }).click();
   await expect(page).toHaveURL("/login");
@@ -491,10 +497,9 @@ test("회원가입에서 입력한 반려견 필드를 로그인 후 카드에 �
     card.getByRole("heading", { name: "가입두부", exact: true }),
   ).toBeVisible();
   await expect(
-    card.getByText("진돗개 · 중형 · 수컷", { exact: true }),
-  ).toBeVisible();
-  await expect(
-    card.getByText("중성화했어요 · 2022년생", { exact: true }),
+    card.getByText("진돗개 · 중형 · 수컷 · 중성화 · 2022년생", {
+      exact: true,
+    }),
   ).toBeVisible();
   await expect(
     card.getByText("천천히 걷는 걸 좋아해요.", { exact: true }),

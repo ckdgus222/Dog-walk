@@ -22,14 +22,22 @@ const DiaryDetail = () => {
   if (query.error) return <p role="alert">{query.error.message}</p>;
   if (!query.data) return <p role="status">일기를 불러오고 있어요.</p>;
   const diary = query.data;
-  const dog = dogs.data?.find((dog) => dog.id === diary.dog.id);
+  const order = dogs.data?.findIndex((dog) => dog.id === diary.dog.id) ?? -1;
+  const dog = dogs.data?.[order];
 
   return (
     <>
       <h1 className={headingStyles.title}>{formatDiaryDate(diary.walkedOn)}</h1>
       <div className={styles.meta}>
         <div className={styles.dog}>
-          {dog && <DogFace dog={dog} className={styles.face} size={80} />}
+          {dog && (
+            <DogFace
+              dog={dog}
+              className={styles.face}
+              size={80}
+              order={order}
+            />
+          )}
           <div>
             <p>{diary.dog.name}</p>
             {dog && (

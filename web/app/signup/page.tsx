@@ -7,7 +7,11 @@ import { signup } from "../../lib/auth";
 import styles from "../_components/auth.module.css";
 import formStyles from "../_components/form.module.css";
 import headingStyles from "../_components/heading.module.css";
-import { DogFields, readDogFields } from "../_components/dog-fields";
+import {
+  DogFields,
+  readDogFields,
+  Required,
+} from "../_components/dog-fields";
 import { ScenePage } from "../_components/walk-scene";
 
 const SignupPage = () => {
@@ -52,40 +56,56 @@ const SignupPage = () => {
           onSubmit={handleSubmit}
         >
           <fieldset
-            className={`${formStyles.card} ${formStyles.rows}`}
+            className={`${formStyles.card} ${formStyles.rows} ${formStyles.signupFields}`}
             disabled={pending}
           >
             <legend>계정 정보</legend>
             <label>
-              이메일
+              <span>
+                이메일
+                <Required />
+              </span>
               <input
                 name="email"
                 type="email"
                 maxLength={254}
                 autoComplete="username"
+                placeholder="이메일을 입력해주세요"
                 required
               />
             </label>
             <label>
-              비밀번호 (8~20자)
+              <span>
+                비밀번호
+                <span className={formStyles.visuallyHidden}> (8~20자)</span>
+                <Required />
+              </span>
               <input
                 name="password"
                 type="password"
                 autoComplete="new-password"
+                placeholder="8~20자의 비밀번호를 입력해주세요"
                 required
               />
             </label>
             <label>
-              닉네임
-              <input name="nickname" required />
+              <span>
+                닉네임
+                <Required />
+              </span>
+              <input
+                name="nickname"
+                placeholder="2~20자의 닉네임을 입력해주세요"
+                required
+              />
             </label>
           </fieldset>
           <fieldset
-            className={`${formStyles.card} ${formStyles.rows}`}
+            className={`${formStyles.card} ${formStyles.rows} ${formStyles.signupFields}`}
             disabled={pending}
           >
             <legend>반려견 정보</legend>
-            <DogFields />
+            <DogFields variant="signup" />
           </fieldset>
           <button className={formStyles.submit} disabled={pending}>
             {pending ? "가입 중…" : "가입하기"}

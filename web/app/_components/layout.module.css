@@ -4,15 +4,23 @@
   gap: 24px;
   width: min(100% - 48px, 1060px);
   margin: 0 auto;
-  padding: 48px 0 80px;
+  padding: 36px 0 80px;
 }
 
 .back {
   display: flex;
+  align-items: center;
   justify-self: start;
   gap: 12px;
   color: var(--ink);
   font-size: 18px;
+}
+
+/* An orange arrow link, as on the add and chat pages. */
+.backAccent {
+  gap: 8px;
+  color: var(--accent);
+  font-size: 16px;
 }
 
 /* The title block with an optional action on the right. */
@@ -46,8 +54,9 @@
 
 @media (max-width: 720px) {
   .main {
+    gap: 14px;
     width: calc(100% - 32px);
-    padding-top: 24px;
+    padding-top: 26px;
   }
 
   .headAction {

@@ -18,9 +18,10 @@ export const useDogForEdit = (id: string) =>
     queryKey: ["dogs", "edit", id],
     queryFn: async ({ signal }) => {
       const dogs = await fetchMyDogs(signal);
-      const dog = dogs.find((dog) => String(dog.id) === id);
-      if (!dog) throw new Error("반려견을 찾을 수 없어요.");
-      return dog;
+      // The place in my list picks the same drawn face as the other pages.
+      const order = dogs.findIndex((dog) => String(dog.id) === id);
+      if (order < 0) throw new Error("반려견을 찾을 수 없어요.");
+      return { dog: dogs[order], order };
     },
   });
 

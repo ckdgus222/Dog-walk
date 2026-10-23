@@ -121,7 +121,7 @@ test("반려견 사진 추가·교체와 마지막 한 마리 삭제 제한", as
     await main.getByRole("radio", { name: "중형", exact: true }).check();
     await main.getByRole("radio", { name: "암컷", exact: true }).check();
     await main.getByLabel("중성화했어요").check();
-    await main.getByLabel("태어난 해").fill("2022");
+    await main.getByLabel("태어난 해").selectOption({ label: "2022년" });
     await main.getByLabel("성격 소개").fill("천천히 냄새 맡는 걸 좋아해요.");
     await photoInput.setInputFiles({
       name: "big.png",
@@ -167,10 +167,9 @@ test("반려견 사진 추가·교체와 마지막 한 마리 삭제 제한", as
     await expect(page).toHaveURL("/dogs");
     await expect(cards).toHaveCount(2);
     await expect(
-      secondCard.getByText("진돗개 · 중형 · 암컷", { exact: true }),
-    ).toBeVisible();
-    await expect(
-      secondCard.getByText("중성화했어요 · 2022년생", { exact: true }),
+      secondCard.getByText("진돗개 · 중형 · 암컷 · 중성화 · 2022년생", {
+        exact: true,
+      }),
     ).toBeVisible();
     await expect(
       secondCard.getByText("천천히 냄새 맡는 걸 좋아해요.", { exact: true }),

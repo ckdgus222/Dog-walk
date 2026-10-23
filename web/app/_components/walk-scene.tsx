@@ -13,12 +13,12 @@ export const ScenePage = ({
 }) => (
   <main className={styles.page}>
     <div className={`${styles.content} ${className}`}>{children}</div>
-    {/* Phones show the drawing in a 2:1 frame, about 150% of the screen width. */}
+    {/* Phones show the drawing in a 5:3 frame, 1.8 times the screen width. */}
     <Image
       className={styles.scene}
       src={walkScene}
       alt=""
-      sizes="(max-width: 720px) 150vw, (max-width: 1600px) 100vw, 1600px"
+      sizes="(max-width: 720px) 180vw, (max-width: 1600px) 100vw, 1600px"
       loading="eager"
     />
   </main>
