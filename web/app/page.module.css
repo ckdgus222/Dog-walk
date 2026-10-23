@@ -143,6 +143,104 @@
   text-wrap: balance;
 }
 
+.checking {
+  width: min(100% - 48px, 936px);
+  margin: 0 auto;
+  padding-top: 56px;
+}
+
+/* Guest home: the welcome on the left, the login card on the right, both
+   over the field scene. */
+.guest {
+  display: grid;
+  /* The card and gap narrow with the window down to 900px. */
+  grid-template-columns: minmax(0, 1fr) clamp(380px, 36vw, 420px);
+  align-items: start;
+  column-gap: clamp(40px, 5vw, 64px);
+  width: min(100% - 48px, 1060px);
+  margin: 0 auto;
+  padding: 64px 0 48px;
+}
+
+.welcome {
+  padding-top: 24px;
+}
+
+/* The title shrinks with the window so it stays on two lines above the
+   field beside the card. */
+.welcome .title {
+  font-size: clamp(36px, 3.4vw, 48px);
+  line-height: 1.25;
+}
+
+.features {
+  display: grid;
+  gap: 18px;
+  margin-top: 36px;
+  list-style: none;
+}
+
+.features li {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  column-gap: 16px;
+  align-items: center;
+}
+
+.features svg {
+  grid-row: span 2;
+  box-sizing: content-box;
+  padding: 12px;
+  border-radius: 50%;
+  background: rgb(255 252 245 / 0.8);
+  color: var(--ink);
+}
+
+.features strong {
+  color: var(--ink);
+  font-size: 19px;
+}
+
+.features span {
+  color: var(--foreground);
+  font-size: 16px;
+}
+
+.loginCard {
+  padding: 36px 32px 28px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--background);
+  box-shadow: 0 18px 48px rgb(39 75 73 / 0.16);
+  animation: card-rise 0.5s ease-out both;
+}
+
+/* Tablets in portrait put the card under the welcome. */
+@media (max-width: 900px) {
+  .guest {
+    grid-template-columns: 1fr;
+    row-gap: 32px;
+  }
+
+  .loginCard {
+    justify-self: center;
+    width: min(100%, 440px);
+  }
+}
+
+@keyframes card-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loginCard {
+    animation: none;
+  }
+}
+
 /* Tablets: the dog card takes a full row so its details stay on one line. */
 @media (max-width: 1024px) {
   .cards {
@@ -155,6 +253,51 @@
 }
 
 @media (max-width: 720px) {
+  .guest {
+    width: calc(100% - 32px);
+    padding-top: 28px;
+    row-gap: 24px;
+  }
+
+  .welcome {
+    padding-top: 0;
+  }
+
+  .welcome .title {
+    font-size: 27px;
+    line-height: 37px;
+  }
+
+  .features {
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .features li {
+    grid-template-columns: 36px 1fr;
+    column-gap: 12px;
+  }
+
+  .features svg {
+    grid-row: auto;
+    width: 20px;
+    height: 20px;
+    padding: 8px;
+  }
+
+  .features strong {
+    font-size: 16px;
+  }
+
+  /* Phones keep only the feature names. */
+  .features span {
+    display: none;
+  }
+
+  .loginCard {
+    padding: 24px 18px 20px;
+  }
+
   .content {
     width: calc(100% - 32px);
     padding-top: 26px;

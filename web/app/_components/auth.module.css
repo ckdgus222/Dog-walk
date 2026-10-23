@@ -63,6 +63,21 @@
   margin-top: 28px;
 }
 
+/* "처음이세요? 회원가입" under the guest home's login card. */
+.cardLinks {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.cardLinks a {
+  color: var(--accent);
+  font-weight: 700;
+}
+
 .loginForm + .links {
   width: min(100%, 440px);
   margin-top: 30px;

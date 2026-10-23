@@ -15,7 +15,7 @@ const LoginModalPage = () => {
   return (
     <AuthModal title="로그인" pending={pending}>
       <LoginForm
-        modal
+        variant="modal"
         onPendingChange={setPending}
         onSuccess={() => router.back()}
       />

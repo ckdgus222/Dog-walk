@@ -402,7 +402,7 @@ test("로그아웃 후 다시 지도에 들어오면 동의를 다시 받는다"
   await goHome(page);
   await page.getByRole("button", { name: "로그아웃" }).click();
   await expect(
-    page.getByRole("main").getByRole("link", { name: "로그인", exact: true }),
+    page.getByRole("main").getByRole("button", { name: "로그인", exact: true }),
   ).toBeVisible();
   await login(page, accounts[0]);
   await expect(page.getByText(consentMessage)).toBeVisible();

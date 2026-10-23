@@ -9,12 +9,29 @@ import homeScene from "../public/illustrations/walking-drawing/home-scene.png";
 import homeSceneMobile from "../public/illustrations/walking-drawing/home-scene-mobile.png";
 import { useAuth } from "./_components/auth-provider";
 import { DogFace, sizeLabels } from "./_components/dog-card";
-import { ArrowRight, ChevronRight } from "./_components/icons";
+import { FieldScene } from "./_components/field-scene";
+import {
+  ArrowRight,
+  BookIcon,
+  ChatIcon,
+  ChevronRight,
+  PinLineIcon,
+} from "./_components/icons";
+import { LoginForm } from "./_components/login-form";
 import { SceneImage, ScenePage } from "./_components/walk-scene";
 import styles from "./page.module.css";
 
 const Home = () => {
   const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <main className={styles.checking}>
+        <p role="status">로그인 상태를 확인하고 있어요.</p>
+      </main>
+    );
+  }
+  if (!user) return <GuestHome />;
 
   return (
     <ScenePage
@@ -28,13 +45,7 @@ const Home = () => {
         />
       }
     >
-      {loading ? (
-        <p role="status">로그인 상태를 확인하고 있어요.</p>
-      ) : user ? (
-        <Dashboard nickname={user.nickname} />
-      ) : (
-        <Welcome />
-      )}
+      <Dashboard nickname={user.nickname} />
     </ScenePage>
   );
 };
@@ -48,18 +59,46 @@ const Title = () => (
   </h1>
 );
 
-const Welcome = () => (
-  <>
-    <Title />
-    <nav aria-label="계정" className={styles.actions}>
-      <Link href="/login" className={styles.primaryAction}>
-        로그인
-      </Link>
-      <Link href="/signup" className={styles.textAction}>
-        회원가입
-      </Link>
-    </nav>
-  </>
+const features = [
+  {
+    icon: <PinLineIcon />,
+    name: "주변 산책 친구 찾기",
+    detail: "가까운 반려인을 지도에서 찾아요",
+  },
+  {
+    icon: <BookIcon />,
+    name: "산책 일기",
+    detail: "우리 아이와의 산책을 기록해요",
+  },
+  {
+    icon: <ChatIcon size={24} />,
+    name: "이웃 게시판",
+    detail: "동네 반려인과 이야기를 나눠요",
+  },
+];
+
+// Guests can only sign in or sign up, so their home introduces the service
+// over the intro's field and asks them to log in.
+const GuestHome = () => (
+  <main className={styles.guest}>
+    <FieldScene variant="home" />
+    <div className={styles.welcome}>
+      <Title />
+      <ul className={styles.features}>
+        {features.map(({ icon, name, detail }) => (
+          <li key={name}>
+            {icon}
+            <strong>{name}</strong>
+            <span>{detail}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+    <section className={styles.loginCard}>
+      {/* Logging in turns this same page into the dashboard. */}
+      <LoginForm variant="card" onSuccess={() => {}} />
+    </section>
+  </main>
 );
 
 const Dashboard = ({ nickname }: { nickname: string }) => (

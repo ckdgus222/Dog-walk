@@ -126,6 +126,19 @@ export const ChevronDown = ({ size = 18 }: { size?: number }) => (
   </Icon>
 );
 
+export const PinLineIcon = ({ size = 24 }: { size?: number }) => (
+  <Icon size={size}>
+    <path d="M12 21s-6.5-6.6-6.5-11.5a6.5 6.5 0 0 1 13 0C18.5 14.4 12 21 12 21Z" />
+    <circle cx="12" cy="9.5" r="2.3" />
+  </Icon>
+);
+
+export const BookIcon = ({ size = 24 }: { size?: number }) => (
+  <Icon size={size}>
+    <path d="M12 6.5c-2-1.6-4.6-2-8-1.5v13c3.4-.5 6 0 8 1.5 2-1.5 4.6-2 8-1.5V5c-3.4-.5-6-.1-8 1.5ZM12 6.5V19.5" />
+  </Icon>
+);
+
 export const ChatIcon = ({ size = 16 }: { size?: number }) => (
   <Icon size={size}>
     <path d="M4 5h16v11H9l-5 4V5Z" />

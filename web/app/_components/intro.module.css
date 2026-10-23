@@ -17,68 +17,10 @@
     calc(var(--intro-duration) - var(--leave)) forwards;
 }
 
-/* Each layer rises a little and fades in at its own time. */
+/* The title and skip button rise and fade in like the scene layers. */
 .reveal {
   opacity: 0;
   animation: reveal 0.9s ease-out var(--reveal-delay) forwards;
-}
-
-.sky {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(#cfe5e3 0%, #e4eedf 45%, var(--background) 75%);
-}
-
-.ground {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  width: max(100vw, 180vh);
-  transform: translateX(-50%);
-}
-
-.ground > .reveal {
-  position: absolute;
-  inset: 0;
-}
-/* The field's top edge sits lower than the hills' foot, so the hills show
-     above it. It runs past the bottom of the window, which is clipped. */
-.ground > .field {
-  inset: 24% 0 -24%;
-}
-.grass img {
-  animation: sway 3s ease-in-out infinite alternate;
-  transform-origin: bottom;
-}
-
-/* Keep in step with the cloud sizes in intro.tsx. */
-.cloud {
-  position: absolute;
-  left: 0;
-  width: clamp(150px, 20vw, 320px);
-}
-.cloud img {
-  display: block;
-  width: 100%;
-  height: auto;
-  animation: drift var(--drift) linear var(--drift-delay) infinite;
-}
-.cloud1 {
-  top: 6vh;
-  --drift: 60s;
-  --drift-delay: -22s;
-}
-.cloud2 {
-  top: 17vh;
-  width: clamp(120px, 15vw, 240px);
-  --drift: 80s;
-  --drift-delay: -58s;
-}
-.cloud3 {
-  top: 28vh;
-  width: clamp(110px, 13vw, 210px);
-  --drift: 70s;
-  --drift-delay: -8s;
 }
 
 .title {
@@ -99,32 +41,6 @@
   display: block;
   margin-top: 10px;
   font-size: clamp(16px, 2vw, 22px);
-}
-
-/* Keep in step with the dog sizes in intro.tsx. */
-.dog {
-  position: absolute;
-  left: 0;
-  bottom: 9vh;
-  width: clamp(130px, 15vw, 220px);
-  transform: translateX(-120%);
-  animation: run 2.8s linear var(--run-delay) forwards;
-}
-.dog.bami {
-  bottom: 12vh;
-  width: clamp(120px, 13.5vw, 200px);
-  --run-delay: 2.7s;
-}
-.dog.dubu {
-  --run-delay: 2.4s;
-}
-.dog .body {
-  position: absolute;
-  inset: 0;
-  animation: bounce 0.3s ease-in-out infinite;
-}
-.dog img + img {
-  animation: frame 0.3s steps(1) infinite;
 }
 
 .skip {
@@ -154,65 +70,6 @@
   to {
     opacity: 0;
   }
-}
-@keyframes drift {
-  from {
-    transform: translateX(-40vw);
-  }
-  to {
-    transform: translateX(120vw);
-  }
-}
-@keyframes sway {
-  from {
-    transform: skewX(-1.5deg);
-  }
-  to {
-    transform: skewX(1.5deg);
-  }
-}
-@keyframes run {
-  from {
-    transform: translateX(-120%);
-  }
-  to {
-    transform: translateX(110vw);
-  }
-}
-@keyframes bounce {
-  50% {
-    transform: translateY(-6%);
-  }
-}
-@keyframes frame {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0;
-  }
-}
-
-.sky {
-  --reveal-delay: 0s;
-}
-.hills {
-  --reveal-delay: 0.4s;
-}
-.field {
-  --reveal-delay: 0.8s;
-}
-.cloud1 {
-  --reveal-delay: 1.2s;
-}
-.cloud2 {
-  --reveal-delay: 1.3s;
-}
-.cloud3 {
-  --reveal-delay: 1.4s;
-}
-.grass {
-  --reveal-delay: 1.6s;
 }
 .title {
   --reveal-delay: 2s;

@@ -294,7 +294,7 @@ test("산책 요청 실시간 알림·재접속 동기화·로그아웃 정리",
         a.getByRole("banner").getByRole("link", { name: "로그인", exact: true }),
       ).toBeVisible();
       await expect(
-        a.getByRole("main").getByRole("link", { name: "로그인", exact: true }),
+        a.getByRole("main").getByRole("button", { name: "로그인", exact: true }),
       ).toBeVisible();
       const offline = await request.post("/api/walk-requests", {
         headers: headersB,

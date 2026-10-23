@@ -9,15 +9,21 @@ import formStyles from "./form.module.css";
 import headingStyles from "./heading.module.css";
 import { useAuthRequest } from "./use-auth-request";
 
+// "page" is the full login page, "modal" the login modal and "card" the
+// login card on the guest home, which has its own title beside it.
 export const LoginForm = ({
   onSuccess,
   onPendingChange,
-  modal = false,
+  variant = "page",
 }: {
   onSuccess: () => void;
   onPendingChange?: (pending: boolean) => void;
-  modal?: boolean;
+  variant?: "page" | "modal" | "card";
 }) => {
+  const page = variant === "page";
+  const modal = variant === "modal";
+  const card = variant === "card";
+  const Title = card ? "h2" : "h1";
   const { login, loading } = useAuth();
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
@@ -52,20 +58,22 @@ export const LoginForm = ({
 
   return (
     <>
-      <h1
-        className={`${headingStyles.title} ${modal ? headingStyles.modalTitle : ""}`}
+      <Title
+        className={`${headingStyles.title} ${page ? "" : headingStyles.modalTitle}`}
       >
         로그인
-      </h1>
-      <p
-        className={`${headingStyles.lead} ${modal ? headingStyles.modalLead : ""}`}
-      >
-        좋은 산책은 좋은 이웃에서 시작돼요.
-        <br />
-        강아지 산책에서 가까운 산책 친구를 만나보세요.
-      </p>
+      </Title>
+      {!card && (
+        <p
+          className={`${headingStyles.lead} ${modal ? headingStyles.modalLead : ""}`}
+        >
+          좋은 산책은 좋은 이웃에서 시작돼요.
+          <br />
+          강아지 산책에서 가까운 산책 친구를 만나보세요.
+        </p>
+      )}
       <form
-        className={`${formStyles.form} ${styles.loginForm} ${modal ? styles.modalForm : ""}`}
+        className={`${formStyles.form} ${styles.loginForm} ${page ? "" : styles.modalForm}`}
         onSubmit={handleSubmit}
       >
         <label>
@@ -88,12 +96,19 @@ export const LoginForm = ({
         {loading && <p role="status">로그인 상태를 확인하고 있어요.</p>}
         {error && <p role="alert">{error}</p>}
       </form>
-      <p className={styles.links}>
-        <Link href="/signup" replace={modal}>
-          회원가입
-        </Link>
-        <Link href="/">홈으로</Link>
-      </p>
+      {card ? (
+        <p className={styles.cardLinks}>
+          처음이세요?
+          <Link href="/signup">회원가입</Link>
+        </p>
+      ) : (
+        <p className={styles.links}>
+          <Link href="/signup" replace={modal}>
+            회원가입
+          </Link>
+          <Link href="/">홈으로</Link>
+        </p>
+      )}
     </>
   );
 };
