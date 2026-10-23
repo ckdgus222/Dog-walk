@@ -6,6 +6,7 @@ import { AuthGate } from "../_components/auth-gate";
 import { PinIcon } from "../_components/icons";
 import headingStyles from "../_components/heading.module.css";
 import layoutStyles from "../_components/layout.module.css";
+import { useMyDogs } from "../../lib/api/dogs";
 import {
   useChangeLocationConsent,
   useMyLocation,
@@ -56,6 +57,8 @@ const LocationPanel = () => {
   const error =
     consent.error?.message ?? sendError ?? locationQuery.error?.message;
   const nearbyError = nearby.error?.message;
+  // My own marker shows my first dog, as on the home page.
+  const myDog = useMyDogs().data?.[0];
 
   // A layout effect, because Next.js hides this page with Activity when
   // navigating away. Only a layout cleanup resets the list before it is
@@ -194,6 +197,7 @@ const LocationPanel = () => {
         <KakaoMap
           lat={location.lat}
           lng={location.lng}
+          myDog={myDog}
           neighbors={neighbors ?? noNeighbors}
           selectedId={selectedId}
           onSelect={setSelectedId}
