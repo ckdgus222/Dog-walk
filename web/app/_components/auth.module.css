@@ -22,20 +22,8 @@
   margin-top: 44px;
 }
 
-.loginForm label {
-  font-size: 18px;
-}
-
-.loginForm input {
-  height: 57px;
-  font-size: 20px;
-}
-
 .loginForm button {
-  height: 68px;
-  margin-top: 6px;
-  font-size: 24px;
-  font-weight: 500;
+  margin-top: var(--space-2);
 }
 
 /* In the modal card the form fills the card under a smaller title. */
@@ -73,11 +61,6 @@
   gap: 15px;
 }
 
-.signupForm button {
-  font-size: 22px;
-  font-weight: 500;
-}
-
 .signupLinks {
   margin-top: 18px;
   padding-top: 20px;
@@ -101,20 +84,6 @@
   .loginForm {
     gap: 14px;
     margin-top: 32px;
-  }
-
-  .loginForm label {
-    font-size: 17px;
-  }
-
-  .loginForm input {
-    height: 53px;
-    font-size: 18px;
-  }
-
-  .loginForm button {
-    height: 72px;
-    font-size: 22px;
   }
 
   .loginForm + .links {

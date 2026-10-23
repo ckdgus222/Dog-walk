@@ -9,7 +9,7 @@ import Link from "next/link";
 import { DiaryImage } from "./diary-image";
 import { DogFace } from "../_components/dog-card";
 import formStyles from "../_components/form.module.css";
-import { CameraIcon, ChevronDown, PictureIcon } from "../_components/icons";
+import { CameraIcon, PictureIcon } from "../_components/icons";
 import styles from "./diaries.module.css";
 
 const DiaryForm = ({ diary }: { diary?: Diary }) => {
@@ -101,12 +101,12 @@ const DiaryForm = ({ diary }: { diary?: Diary }) => {
         <div className={styles.dogAndDate}>
           <label>
             반려견
-            <span className={styles.picker}>
+            <span className={`${formStyles.control} ${styles.picker}`}>
               {order >= 0 && (
                 <DogFace
                   dog={dogs.data[order]}
                   className={styles.pickerFace}
-                  size={50}
+                  size={32}
                   order={order}
                 />
               )}
@@ -125,23 +125,24 @@ const DiaryForm = ({ diary }: { diary?: Diary }) => {
                   </option>
                 ))}
               </select>
-              <ChevronDown />
             </span>
           </label>
           <label>
             산책한 날짜
-            <input
-              name="walkedOn"
-              type="date"
-              required
-              defaultValue={diary?.walkedOn ?? today}
-              max={today}
-            />
+            <span className={formStyles.control}>
+              <input
+                name="walkedOn"
+                type="date"
+                required
+                defaultValue={diary?.walkedOn ?? today}
+                max={today}
+              />
+            </span>
           </label>
         </div>
         <label>
           {diary ? "일기 내용" : "글"}
-          <span className={formStyles.counted}>
+          <span className={`${formStyles.control} ${formStyles.counted}`}>
             <textarea
               name="content"
               required

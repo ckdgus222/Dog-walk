@@ -120,12 +120,6 @@ export const CalendarIcon = ({ size = 20 }: { size?: number }) => (
   </Icon>
 );
 
-export const ChevronDown = ({ size = 18 }: { size?: number }) => (
-  <Icon size={size}>
-    <path d="m5 9 7 7 7-7" />
-  </Icon>
-);
-
 export const PinLineIcon = ({ size = 24 }: { size?: number }) => (
   <Icon size={size}>
     <path d="M12 21s-6.5-6.6-6.5-11.5a6.5 6.5 0 0 1 13 0C18.5 14.4 12 21 12 21Z" />

@@ -151,6 +151,7 @@ const ChatRoom = ({ walkRequestId }: { walkRequestId: number }) => {
         </label>
         <button
           type="submit"
+          className={styles.send}
           disabled={
             send.isPending ||
             !connected ||

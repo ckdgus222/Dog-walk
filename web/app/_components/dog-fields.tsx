@@ -2,8 +2,9 @@ import { useState, useSyncExternalStore } from "react";
 import type { Dog } from "../../lib/types";
 import { genderLabels, sizeLabels } from "./dog-card";
 import styles from "./form.module.css";
+import uiStyles from "./ui.module.css";
 
-// The three mockups draw the same dog fields differently, so each form says
+// The three forms word the same dog fields differently, so each form says
 // which one it is.
 type Variant = "signup" | "add" | "edit";
 
@@ -14,7 +15,6 @@ const copy = {
     personality: "1~100자의 성격을 소개해주세요",
     birthYear: "태어난 해를 선택해주세요",
     neutered: "중성화",
-    choices: styles.radioChoices,
   },
   add: {
     name: "1자 이상 20자 이하로 입력해 주세요.",
@@ -22,7 +22,6 @@ const copy = {
     personality: "1자 이상 100자 이하로 입력해 주세요.",
     birthYear: "태어난 해를 선택해 주세요.",
     neutered: "중성화",
-    choices: styles.buttonChoices,
   },
   edit: {
     name: undefined,
@@ -30,7 +29,6 @@ const copy = {
     personality: undefined,
     birthYear: undefined,
     neutered: "중성화 여부",
-    choices: styles.sageChoices,
   },
 };
 
@@ -91,14 +89,12 @@ export const DogFields = ({
         legend="크기"
         labels={sizeLabels}
         value={dog?.size}
-        className={text.choices}
       />
       <Choices
         name="gender"
         legend="성별"
         labels={genderLabels}
         value={dog?.gender}
-        className={text.choices}
       />
       <div className={styles.fieldRow}>
         <span>{text.neutered}</span>
@@ -121,16 +117,18 @@ export const DogFields = ({
             <Required />
           </span>
           <span className={styles.withHint}>
-            <input
-              name="birthYear"
-              type="number"
-              min={firstYear}
-              max={thisYear ?? undefined}
-              step={1}
-              defaultValue={dog?.birthYear}
-              aria-describedby="birth-year-help"
-              required
-            />
+            <span className={styles.control}>
+              <input
+                name="birthYear"
+                type="number"
+                min={firstYear}
+                max={thisYear ?? undefined}
+                step={1}
+                defaultValue={dog?.birthYear}
+                aria-describedby="birth-year-help"
+                required
+              />
+            </span>
             {thisYear && (
               <span id="birth-year-help" aria-hidden="true">
                 {firstYear} - {thisYear}년 사이
@@ -144,24 +142,25 @@ export const DogFields = ({
             태어난 해
             <Required />
           </span>
-          <select
-            name="birthYear"
-            defaultValue=""
-            required
-          >
-            <option value="" disabled>
-              {text.birthYear}
-            </option>
-            {thisYear &&
-              Array.from({ length: thisYear - firstYear + 1 }, (_, index) => {
-                const year = thisYear - index;
-                return (
-                  <option key={year} value={year}>
-                    {year}년
-                  </option>
-                );
-              })}
-          </select>
+          <span className={styles.control}>
+            <select name="birthYear" defaultValue="" required>
+              <option value="" disabled>
+                {text.birthYear}
+              </option>
+              {thisYear &&
+                Array.from(
+                  { length: thisYear - firstYear + 1 },
+                  (_, index) => {
+                    const year = thisYear - index;
+                    return (
+                      <option key={year} value={year}>
+                        {year}년
+                      </option>
+                    );
+                  },
+                )}
+            </select>
+          </span>
         </label>
       )}
       <label>
@@ -218,7 +217,7 @@ const CountedInput = ({
   };
 
   return (
-    <span className={styles.counted}>
+    <span className={`${styles.control} ${styles.counted}`}>
       {multiline ? <textarea rows={3} {...field} /> : <input {...field} />}
       {counted && (
         <span
@@ -231,29 +230,26 @@ const CountedInput = ({
   );
 };
 
-// One required radio group. The look (round radios or buttons) comes from
-// the form that uses it.
+// One required radio group, drawn as a row of chips.
 const Choices = ({
   name,
   legend,
   labels,
   value,
-  className,
 }: {
   name: string;
   legend: string;
   labels: Record<string, string>;
   value?: string;
-  className: string;
 }) => (
-  <fieldset className={`${styles.choices} ${className}`}>
+  <fieldset className={styles.choices}>
     <legend>
       {legend}
       <Required />
     </legend>
     <div>
       {Object.entries(labels).map(([option, label]) => (
-        <label key={option}>
+        <label key={option} className={uiStyles.chip}>
           <input
             name={name}
             type="radio"

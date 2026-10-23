@@ -54,7 +54,7 @@ const PostForm = ({ post }: { post?: Post }) => {
               data-hint={post ? `${titleLength} / 50` : "(최대 50자)"}
             />
           </span>
-          <span className={formStyles.counted}>
+          <span className={`${formStyles.control} ${formStyles.counted}`}>
             <input
               name="title"
               required
@@ -83,7 +83,7 @@ const PostForm = ({ post }: { post?: Post }) => {
               data-hint={post ? `${contentLength} / 2000` : "(최대 2000자)"}
             />
           </span>
-          <span className={formStyles.counted}>
+          <span className={`${formStyles.control} ${formStyles.counted}`}>
             <textarea
               name="content"
               required

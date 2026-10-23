@@ -71,7 +71,7 @@ export const SignupForm = ({
           onSubmit={handleSubmit}
         >
           <fieldset
-            className={`${formStyles.card} ${formStyles.rows} ${formStyles.signupFields}`}
+            className={formStyles.card}
             disabled={pending}
           >
             <legend>계정 정보</legend>
@@ -80,14 +80,16 @@ export const SignupForm = ({
                 이메일
                 <Required />
               </span>
-              <input
-                name="email"
-                type="email"
-                maxLength={254}
-                autoComplete="username"
-                placeholder="이메일을 입력해주세요"
-                required
-              />
+              <span className={formStyles.control}>
+                <input
+                  name="email"
+                  type="email"
+                  maxLength={254}
+                  autoComplete="username"
+                  placeholder="이메일을 입력해주세요"
+                  required
+                />
+              </span>
             </label>
             <label>
               <span>
@@ -95,28 +97,32 @@ export const SignupForm = ({
                 <span className={formStyles.visuallyHidden}> (8~20자)</span>
                 <Required />
               </span>
-              <input
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                placeholder="8~20자의 비밀번호를 입력해주세요"
-                required
-              />
+              <span className={formStyles.control}>
+                <input
+                  name="password"
+                  type="password"
+                  autoComplete="new-password"
+                  placeholder="8~20자의 비밀번호를 입력해주세요"
+                  required
+                />
+              </span>
             </label>
             <label>
               <span>
                 닉네임
                 <Required />
               </span>
-              <input
-                name="nickname"
-                placeholder="2~20자의 닉네임을 입력해주세요"
-                required
-              />
+              <span className={formStyles.control}>
+                <input
+                  name="nickname"
+                  placeholder="2~20자의 닉네임을 입력해주세요"
+                  required
+                />
+              </span>
             </label>
           </fieldset>
           <fieldset
-            className={`${formStyles.card} ${formStyles.rows} ${formStyles.signupFields}`}
+            className={`${formStyles.card} ${formStyles.signupFields}`}
             disabled={pending}
           >
             <legend>반려견 정보</legend>

@@ -412,22 +412,14 @@
   font-size: 15px;
 }
 
-.request label input {
+.request label > span:last-child {
   grid-column: 1 / -1;
-  height: 45px;
-  font-size: 15px;
 }
 
 .requestCount::after {
   content: attr(data-count);
   color: var(--muted);
   font-weight: 400;
-}
-
-.request button {
-  height: 46px;
-  font-size: 18px;
-  font-weight: 500;
 }
 
 /* Wide screens give the wider map more height too. */
@@ -570,17 +562,7 @@
     font-size: 14px;
   }
 
-  .request label,
-  .request label input {
+  .request label {
     font-size: 14px;
-  }
-
-  .request label input {
-    height: 40px;
-  }
-
-  .request button {
-    height: 42px;
-    font-size: 16px;
   }
 }

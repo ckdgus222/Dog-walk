@@ -295,7 +295,7 @@
 
 .fields {
   display: grid;
-  gap: 18px;
+  gap: var(--space-5);
   min-width: 0;
   margin: 0;
   padding: 0;
@@ -304,54 +304,27 @@
 
 .dogAndDate {
   display: grid;
-  gap: 18px;
+  gap: var(--space-5);
 }
 
-.picker {
-  position: relative;
-  display: block;
-}
-
-.picker select {
-  appearance: none;
-  height: 51px;
-  padding-right: 44px;
-  font-size: 18px;
-}
-
+/* The chosen dog's face sits inside the select, on its left. */
 .picker:has(.pickerFace) select {
-  padding-left: 68px;
+  padding-left: 52px;
 }
 
 .pickerFace {
+  composes: face from "../_components/ui.module.css";
   position: absolute;
   top: 50%;
-  left: 12px;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  object-fit: cover;
+  left: var(--space-3);
+  width: 32px;
+  height: 32px;
   translate: 0 -50%;
   pointer-events: none;
-}
-
-.picker > svg {
-  position: absolute;
-  top: 50%;
-  right: 16px;
-  color: var(--ink);
-  translate: 0 -50%;
-  pointer-events: none;
-}
-
-.fields input[type="date"] {
-  height: 44px;
-  font-size: 18px;
 }
 
 .fields textarea {
   height: 115px;
-  padding-bottom: 28px;
   resize: none;
 }
 
@@ -435,19 +408,9 @@
   border-left: 1px solid var(--line);
 }
 
-.editForm .picker select,
-.editForm input[type="date"] {
-  height: 48px;
-}
-
 .editForm textarea {
   height: 145px;
-  font-size: 17px;
   line-height: 1.6;
-}
-
-.editForm label {
-  font-size: 18px;
 }
 
 .photoHead {
@@ -721,29 +684,12 @@
   }
 
   .fields {
-    gap: 12px;
-  }
-
-  .fields label {
-    font-size: 15px;
-  }
-
-  .picker select {
-    height: 45px;
-    font-size: 15px;
-  }
-
-  .fields input[type="date"],
-  .editForm .picker select,
-  .editForm input[type="date"] {
-    height: 42px;
-    font-size: 15px;
+    gap: var(--space-4);
   }
 
   .fields textarea,
   .editForm textarea {
     height: 108px;
-    font-size: 14px;
   }
 
   .fields .dropBox {

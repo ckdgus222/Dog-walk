@@ -45,13 +45,15 @@ const CommentEditForm = ({
     >
       <label>
         댓글 수정
-        <textarea
-          required
-          maxLength={300}
-          value={content}
-          disabled={update.isPending}
-          onChange={(event) => setContent(event.target.value)}
-        />
+        <span className={formStyles.control}>
+          <textarea
+            required
+            maxLength={300}
+            value={content}
+            disabled={update.isPending}
+            onChange={(event) => setContent(event.target.value)}
+          />
+        </span>
       </label>
       <div className={styles.commentActions}>
         <button className={styles.primary} disabled={update.isPending}>
@@ -148,7 +150,7 @@ export const Comments = ({ postId }: { postId: number }) => {
         <CommentItem key={comment.id} comment={comment} />
       ))}
       <form className={styles.commentForm} onSubmit={handleSubmit}>
-        <label className={formStyles.counted}>
+        <label className={`${formStyles.control} ${formStyles.counted}`}>
           <span className={formStyles.visuallyHidden}>댓글 내용</span>
           <span
             className={formStyles.count}

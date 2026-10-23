@@ -271,27 +271,8 @@
 }
 
 .commentForm textarea {
-  width: 100%;
   height: 100%;
-  padding-bottom: 28px;
   min-height: 90px;
-  padding: 14px 18px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: var(--field);
-  color: var(--text);
-  font: inherit;
-  resize: vertical;
-}
-
-.commentForm textarea:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 1px;
-}
-
-.commentForm > button {
-  height: auto;
-  min-height: 56px;
 }
 
 .commentForm > [role="alert"] {
@@ -301,27 +282,23 @@
 /* Write and edit forms */
 .fields {
   display: grid;
-  gap: 22px;
+  gap: var(--space-5);
   min-width: 0;
   margin: 0;
   padding: 0;
   border: 0;
 }
 
-.fields label {
-  font-size: 18px;
-}
-
 .fieldLabel {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .hint::after {
   content: attr(data-hint);
   color: var(--muted);
-  font-size: 15px;
+  font-size: var(--text-sm);
   font-weight: 400;
 }
 
@@ -330,23 +307,14 @@
   margin-left: auto;
 }
 
-.fields input {
-  height: 57px;
-  font-size: 18px;
-}
-
 .fields textarea {
   height: 335px;
-  padding-bottom: 30px;
-  font-size: 18px;
   line-height: 1.7;
   resize: none;
 }
 
 .editForm .fields textarea {
   height: 310px;
-  font-size: 19px;
-  line-height: 2;
 }
 
 .formActions {
@@ -386,24 +354,9 @@
     order: -1;
   }
 
-  .fields input {
-    height: 46px;
-    font-size: 15px;
-  }
-
   .fields textarea,
   .editForm .fields textarea {
     height: 220px;
-    font-size: 15px;
-    line-height: 1.6;
-  }
-
-  .fields label {
-    font-size: 15px;
-  }
-
-  .hint::after {
-    font-size: 13px;
   }
 
   .pages {

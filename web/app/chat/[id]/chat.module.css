@@ -163,51 +163,33 @@
   grid-column: 1;
 }
 
-/* The message box and the send button share one bordered row. */
+/* The message box and the send button share one field outline. Rough is
+   listed too, because composes reaches only two classes deep. */
 .composer {
+  composes: rough from "../../_components/ui.module.css";
+  composes: control from "../../_components/form.module.css";
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
-  gap: 10px;
-  padding: 10px 10px 10px 26px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--field);
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-5);
 }
 
-.composer:focus-within {
-  outline: 2px solid var(--ink);
-  outline-offset: 1px;
-}
-
+/* The input sits in a label, so .control's bare-input rule misses it. */
 .composer input {
   width: 100%;
   min-width: 0;
-  height: 74px;
+  height: var(--field-height);
   border: 0;
   outline: none;
   background: none;
   color: var(--text);
   font: inherit;
-  font-size: 19px;
 }
 
-.composer button {
-  width: 140px;
-  height: 70px;
-  border: 0;
-  border-radius: 4px;
-  background: var(--accent);
-  color: white;
-  font: inherit;
-  font-size: 21px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.composer button:disabled {
-  opacity: 0.6;
-  cursor: default;
+.send {
+  composes: button primary from "../../_components/ui.module.css";
+  width: 120px;
 }
 
 .composer > p {
@@ -281,17 +263,10 @@
   }
 
   .composer {
-    padding-left: 14px;
+    padding-left: var(--space-4);
   }
 
-  .composer input {
-    height: 60px;
-    font-size: 15px;
-  }
-
-  .composer button {
+  .send {
     width: 84px;
-    height: 64px;
-    font-size: 18px;
   }
 }

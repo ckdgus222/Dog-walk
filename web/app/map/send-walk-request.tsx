@@ -32,12 +32,14 @@ export const SendWalkRequest = ({ receiverId }: { receiverId: number }) => {
           aria-hidden="true"
           data-count={`${message.length} / 100`}
         />
-        <input
-          value={message}
-          onChange={(event) => setMessage(event.target.value)}
-          maxLength={100}
-          placeholder="안녕하세요! 함께 산책하고 싶어요 :)"
-        />
+        <span className={formStyles.control}>
+          <input
+            value={message}
+            onChange={(event) => setMessage(event.target.value)}
+            maxLength={100}
+            placeholder="안녕하세요! 함께 산책하고 싶어요 :)"
+          />
+        </span>
       </label>
       <button
         type="submit"

@@ -78,16 +78,20 @@ export const LoginForm = ({
       >
         <label>
           이메일
-          <input name="email" type="email" autoComplete="username" required />
+          <span className={formStyles.control}>
+            <input name="email" type="email" autoComplete="username" required />
+          </span>
         </label>
         <label>
           비밀번호
-          <input
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-          />
+          <span className={formStyles.control}>
+            <input
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+            />
+          </span>
         </label>
         <button className={formStyles.submit} disabled={pending || loading}>
           {pending ? "로그인 중…" : "로그인"}

@@ -59,7 +59,7 @@ const DogForm = ({ dog, order }: { dog?: Dog; order?: number }) => {
       onSubmit={handleSubmit}
     >
       <fieldset
-        className={`${formStyles.card} ${formStyles.rows} ${dog ? formStyles.editFields : formStyles.addFields}`}
+        className={`${formStyles.card} ${dog ? formStyles.editFields : formStyles.addFields}`}
         disabled={save.isPending}
       >
         <legend className={formStyles.visuallyHidden}>반려견 정보</legend>
