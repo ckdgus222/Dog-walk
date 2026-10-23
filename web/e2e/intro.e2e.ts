@@ -40,7 +40,7 @@ test("첫 방문은 모달로 홈을 막고 건너뛰기에 초점을 두며 6�
   page,
 }) => {
   await page.clock.install({ time: new Date("2026-10-23T00:00:00Z") });
-  await page.clock.pauseAt(new Date("2026-10-23T00:00:00Z"));
+  await page.clock.pauseAt(new Date("2026-10-23T00:00:01Z"));
   await page.goto("/");
   const intro = page.getByRole("dialog", { name: "인트로" });
   const skip = intro.getByRole("button", { name: "건너뛰기" });
@@ -290,7 +290,7 @@ test("그림 응답이 오지 않아도 6초 뒤 제거된다", async ({ page })
     return route.continue();
   });
   await page.clock.install({ time: new Date("2026-10-23T00:00:00Z") });
-  await page.clock.pauseAt(new Date("2026-10-23T00:00:00Z"));
+  await page.clock.pauseAt(new Date("2026-10-23T00:00:01Z"));
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await expect(page.locator("html")).toHaveAttribute("data-intro", "playing");
   await expect.poll(() => heldImages.length).toBeGreaterThan(0);
@@ -316,7 +316,7 @@ test("로그인 쿠키 복원이 재생 중 끝나도 같은 인트로가 원래
     times: 1,
   });
   await page.clock.install({ time: new Date("2026-10-23T00:00:00Z") });
-  await page.clock.pauseAt(new Date("2026-10-23T00:00:00Z"));
+  await page.clock.pauseAt(new Date("2026-10-23T00:00:01Z"));
   await page.goto("/");
   const intro = page.locator('dialog[aria-label="인트로"]');
   await expect(page.locator("html")).toHaveAttribute("data-intro", "playing");

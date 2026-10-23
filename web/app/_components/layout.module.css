@@ -1,11 +1,26 @@
+/* Each page's content sits on a cream panel over the field background. */
 .main {
+  --panel-pad-bottom: 48px;
   display: grid;
   align-content: start;
   gap: 24px;
-  width: min(100% - 48px, var(--page-width));
+  width: var(--page-width);
   zoom: var(--wide-zoom);
-  margin: 0 auto;
-  padding: 36px 0 80px;
+  margin: 24px auto 48px;
+  padding: 40px var(--panel-pad-x) var(--panel-pad-bottom);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--background);
+  box-shadow: 0 18px 48px rgb(39 75 73 / 0.12);
+}
+
+/* Login and signup pages hold only a form, so their panel is narrow. */
+.main.narrow {
+  width: min(var(--page-width), 560px);
+}
+
+.main.medium {
+  width: min(var(--page-width), 860px);
 }
 
 .back {
@@ -49,9 +64,10 @@
 
 @media (max-width: 720px) {
   .main {
+    --panel-pad-bottom: 28px;
     gap: 14px;
-    width: calc(100% - 32px);
-    padding-top: 26px;
+    margin: 12px auto 24px;
+    padding-top: 22px;
   }
 
   .headAction {

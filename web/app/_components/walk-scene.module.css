@@ -1,43 +1,12 @@
-/* The content takes the first row and the drawing the rest, so a short page
-   still ends with the drawing at the bottom of the window. Pages may also lay
-   the drawing over the first row. */
-.page {
-  zoom: var(--wide-zoom);
-  display: grid;
-  flex: 1;
-  grid-template-rows: auto 1fr;
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.content {
-  position: relative;
-  z-index: 1;
-  /* Both parts name the one column, so a drawing laid over the content
-     shares it instead of being placed in a new column. */
-  grid-area: 1 / 1;
-  margin: 0 auto;
-}
-
-/* The band under a ScenePage's content. Zero specificity, so a page class can
-   move the drawing whatever order the style sheets load in. */
-:where(.page > .scene) {
-  grid-area: 2 / 1;
-  /* The transparent sky of the drawing slides up behind the content. */
-  margin-top: -48px;
-  align-self: end;
-  justify-self: center;
+/* Zero specificity, so a page class can size the drawing whatever order the
+   style sheets load in. */
+:where(.scene) {
+  display: block;
   width: 100%;
-  max-width: 1600px;
 }
 
 :where(.scene) img {
   display: block;
   width: 100%;
   height: auto;
-}
-
-@media (max-width: 720px) {
-  :where(.page > .scene) {
-    margin-top: 16px;
-  }
 }

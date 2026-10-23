@@ -1,6 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { expect, test, type APIRequestContext } from "@playwright/test";
 
+test.use({ reducedMotion: "no-preference" });
+
+// Decorative scenes have no accessible name; distinguish them by the field asset.
+const fieldSceneSelector = '[aria-hidden="true"]:has(img[src*="field."])';
+const backgroundDogsSelector = ':scope > div:has(img[src*="-run-1."])';
+
 const createAccount = async (request: APIRequestContext) => {
   const id = `${Date.now().toString(36)}${randomUUID().slice(0, 6)}`;
   const account = {
@@ -65,10 +71,7 @@ test("비회원 홈에 소개 세 줄과 로그인 카드가 있고 산책 그�
   ).toHaveAttribute("href", "/signup");
   await expect(card.getByRole("link", { name: "홈으로" })).toHaveCount(0);
 
-  // Decorative images have no accessible name; identify the visible field asset.
-  const scene = main.locator('[aria-hidden="true"]').filter({
-    has: page.locator('img[src*="field."]'),
-  });
+  const scene = page.locator(fieldSceneSelector);
   await expect(scene).toHaveCount(1);
   await expect(scene.locator('img[src*="field."]')).toBeVisible();
   await expect(main.locator('img[src*="home-scene"]')).toHaveCount(0);
@@ -109,7 +112,7 @@ test("홈 카드의 회원가입 링크는 회원가입 모달을 연다", async
   ).toBeVisible();
 });
 
-test("로그인한 홈에는 들판 장면이 없고 기존 산책 그림이 보인다", async ({
+test("로그인한 홈에도 들판 배경이 있고 강변 산책 그림은 없다", async ({
   page,
   context,
 }) => {
@@ -122,6 +125,167 @@ test("로그인한 홈에는 들판 장면이 없고 기존 산책 그림이 보
   const main = page.getByRole("main");
   await expect(main.getByText(`${account.nickname}님, 안녕하세요`)).toBeVisible();
   await expect(main.getByText("홈두부", { exact: true })).toBeVisible();
-  await expect(page.locator('img[src*="field."]')).toHaveCount(0);
-  await expect(main.locator('img[src*="home-scene"]')).toBeVisible();
+  const scene = page.locator(fieldSceneSelector);
+  await expect(scene).toHaveCount(1);
+  await expect(scene.locator('img[src*="field."]')).toBeVisible();
+  await expect(main.locator('img[src*="home-scene"]')).toHaveCount(0);
 });
+
+test("게시판을 직접 열어도 들판 배경은 하나이고 강아지는 숨겨진다", async ({
+  page,
+}) => {
+  await page.goto("/posts");
+  await expect(
+    page.getByRole("main").getByRole("heading", { name: "게시판", exact: true }),
+  ).toBeVisible();
+  const scene = page.locator(fieldSceneSelector);
+  await expect(scene).toHaveCount(1);
+  await expect(scene.locator('img[src*="field."]')).toBeVisible();
+  const dogs = scene.locator(backgroundDogsSelector);
+  await expect(dogs).toHaveCount(2);
+  for (const dog of await dogs.all()) {
+    await expect(dog).toBeHidden();
+    await expect(dog).toHaveCSS("display", "none");
+  }
+});
+
+test("로그인한 홈에서 게시판으로 갔다 뒤로 가면 배경 강아지가 보임·숨김·보임으로 바뀐다", async ({
+  page,
+  context,
+}) => {
+  const account = await createAccount(context.request);
+  const response = await context.request.post("/api/auth/login", {
+    data: { email: account.email, password: account.password },
+  });
+  expect(response.status()).toBe(200);
+  await page.goto("/");
+  const main = page.getByRole("main");
+  await expect(main.getByText(`${account.nickname}님, 안녕하세요`)).toBeVisible();
+  const scene = page.locator(fieldSceneSelector);
+  await expect(scene).toHaveCount(1);
+  const dogs = scene.locator(backgroundDogsSelector);
+  await expect(dogs).toHaveCount(2);
+  // Dogs move outside the viewport between runs; check visibility, not position.
+  for (const dog of await dogs.all()) {
+    await expect(dog).toBeVisible();
+    await expect(dog).toHaveCSS("opacity", "1");
+  }
+
+  await main.getByRole("link", { name: "게시판", exact: true }).click();
+  await expect(page).toHaveURL("/posts");
+  await expect(
+    main.getByRole("heading", { name: "게시판", exact: true }),
+  ).toBeVisible();
+  await expect(scene).toHaveCount(1);
+  await expect(scene.locator('img[src*="field."]')).toBeVisible();
+  await expect(dogs).toHaveCount(2);
+  for (const dog of await dogs.all()) {
+    await expect(dog).toBeHidden();
+    await expect(dog).toHaveCSS("display", "none");
+  }
+
+  await page.goBack();
+  await expect(page).toHaveURL("/");
+  await expect(main.getByText(`${account.nickname}님, 안녕하세요`)).toBeVisible();
+  await expect(scene).toHaveCount(1);
+  await expect(dogs).toHaveCount(2);
+  for (const dog of await dogs.all()) {
+    await expect(dog).toBeVisible();
+    await expect(dog).toHaveCSS("opacity", "1");
+  }
+});
+
+test("로그인·앱 안 이동·로그아웃 뒤에도 들판 배경은 같은 요소로 남는다", async ({
+  page,
+  request,
+}) => {
+  const account = await createAccount(request);
+  await page.goto("/");
+  const main = page.getByRole("main");
+  await expect(main.getByLabel("이메일")).toBeVisible();
+  const scene = page.locator(fieldSceneSelector);
+  await expect(scene).toHaveCount(1);
+  await expect(scene.locator('img[src*="field."]')).toBeVisible();
+  const originalScene = await scene.evaluateHandle((element) => element);
+  const expectSameScene = async () => {
+    await expect(scene).toHaveCount(1);
+    expect(
+      await scene.evaluate(
+        (element, original) => element === original && original.isConnected,
+        originalScene,
+      ),
+    ).toBe(true);
+  };
+
+  try {
+    await main.getByLabel("이메일").fill(account.email);
+    await main.getByLabel("비밀번호").fill(account.password);
+    await main.getByRole("button", { name: "로그인", exact: true }).click();
+    await expect(page).toHaveURL("/");
+    await expect(main.getByText(`${account.nickname}님, 안녕하세요`)).toBeVisible();
+    await expectSameScene();
+
+    await main.getByRole("link", { name: "게시판", exact: true }).click();
+    await expect(page).toHaveURL("/posts");
+    await expect(
+      main.getByRole("heading", { name: "게시판", exact: true }),
+    ).toBeVisible();
+    await expectSameScene();
+
+    await page
+      .getByRole("banner")
+      .getByRole("link", { name: "강아지 산책", exact: true })
+      .click();
+    await expect(page).toHaveURL("/");
+    await expect(main.getByText(`${account.nickname}님, 안녕하세요`)).toBeVisible();
+    await expectSameScene();
+
+    await page
+      .getByRole("banner")
+      .getByRole("button", { name: "로그아웃", exact: true })
+      .click();
+    await expect(main.getByLabel("이메일")).toBeVisible();
+    await expect(
+      main.getByRole("button", { name: "로그인", exact: true }),
+    ).toBeEnabled();
+    await expect(page).toHaveURL("/");
+    await expectSameScene();
+  } finally {
+    await originalScene.dispose();
+  }
+});
+
+for (const width of [1920, 2560]) {
+  test(`${width}px 창에서 로그인한 홈과 게시판 내용 판의 보이는 폭은 1680px 이하이다`, async ({
+    page,
+    context,
+  }) => {
+    await page.setViewportSize({ width, height: 1080 });
+    const account = await createAccount(context.request);
+    const response = await context.request.post("/api/auth/login", {
+      data: { email: account.email, password: account.password },
+    });
+    expect(response.status()).toBe(200);
+    await page.goto("/");
+    const main = page.getByRole("main");
+    await expect(main.getByText(`${account.nickname}님, 안녕하세요`)).toBeVisible();
+
+    // The rendered rectangle includes CSS zoom, unlike the declared CSS width.
+    const homeWidth = await main.evaluate(
+      (element) => element.getBoundingClientRect().width,
+    );
+    expect(homeWidth).toBeGreaterThanOrEqual(1679);
+    expect(homeWidth).toBeLessThanOrEqual(1680);
+
+    await main.getByRole("link", { name: "게시판", exact: true }).click();
+    await expect(page).toHaveURL("/posts");
+    await expect(
+      main.getByRole("heading", { name: "게시판", exact: true }),
+    ).toBeVisible();
+    const postsWidth = await main.evaluate(
+      (element) => element.getBoundingClientRect().width,
+    );
+    expect(postsWidth).toBeGreaterThanOrEqual(1679);
+    expect(postsWidth).toBeLessThanOrEqual(1680);
+  });
+}

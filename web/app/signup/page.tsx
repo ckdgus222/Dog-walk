@@ -1,26 +1,11 @@
 "use client";
 
-import signupScene from "../../public/illustrations/walking-drawing/signup-scene.png";
-import signupSceneMobile from "../../public/illustrations/walking-drawing/signup-scene-mobile.png";
-import styles from "../_components/auth.module.css";
-import { SceneImage, ScenePage } from "../_components/walk-scene";
+import layoutStyles from "../_components/layout.module.css";
 import { SignupForm } from "../_components/signup-form";
 
 const SignupPage = () => {
   return (
-    <ScenePage
-      className={`${styles.content} ${styles.signup}`}
-      scene={
-        <SceneImage
-          className={styles.signupScene}
-          wide={signupScene}
-          narrow={signupSceneMobile}
-          narrowMedia="(max-width: 1024px)"
-          loading="lazy"
-          wideSizes="520px"
-        />
-      }
-    >
+    <main className={`${layoutStyles.main} ${layoutStyles.medium}`}>
       <SignupForm
         onSuccess={() => {
           // A full navigation keeps the login route out of the modal slot.
@@ -28,7 +13,7 @@ const SignupPage = () => {
           window.location.assign("/login");
         }}
       />
-    </ScenePage>
+    </main>
   );
 };
 export default SignupPage;

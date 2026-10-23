@@ -5,11 +5,9 @@ import Link from "next/link";
 import { useMyDogs } from "../lib/api/dogs";
 import communityChat from "../public/illustrations/walking-drawing/community-chat.svg";
 import diaryBook from "../public/illustrations/walking-drawing/diary-book.svg";
-import homeScene from "../public/illustrations/walking-drawing/home-scene.png";
-import homeSceneMobile from "../public/illustrations/walking-drawing/home-scene-mobile.png";
 import { useAuth } from "./_components/auth-provider";
 import { DogFace, sizeLabels } from "./_components/dog-card";
-import { FieldScene } from "./_components/field-scene";
+import { useFieldSceneDogs } from "./_components/field-scene";
 import {
   ArrowRight,
   BookIcon,
@@ -17,16 +15,18 @@ import {
   ChevronRight,
   PinLineIcon,
 } from "./_components/icons";
+import layoutStyles from "./_components/layout.module.css";
 import { LoginForm } from "./_components/login-form";
-import { SceneImage, ScenePage } from "./_components/walk-scene";
 import styles from "./page.module.css";
 
 const Home = () => {
   const { user, loading } = useAuth();
 
+  useFieldSceneDogs();
+
   if (loading) {
     return (
-      <main className={styles.checking}>
+      <main className={layoutStyles.main}>
         <p role="status">로그인 상태를 확인하고 있어요.</p>
       </main>
     );
@@ -34,19 +34,9 @@ const Home = () => {
   if (!user) return <GuestHome />;
 
   return (
-    <ScenePage
-      className={styles.content}
-      scene={
-        <SceneImage
-          wide={homeScene}
-          narrow={homeSceneMobile}
-          narrowMedia="(max-width: 720px)"
-          wideSizes="(max-width: 1600px) 100vw, 1600px"
-        />
-      }
-    >
+    <main className={layoutStyles.main}>
       <Dashboard nickname={user.nickname} />
-    </ScenePage>
+    </main>
   );
 };
 export default Home;
@@ -81,7 +71,6 @@ const features = [
 // over the intro's field and asks them to log in.
 const GuestHome = () => (
   <main>
-    <FieldScene variant="home" />
     <div className={styles.guest}>
       <div className={styles.welcome}>
         <Title />

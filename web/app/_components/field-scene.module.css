@@ -1,4 +1,4 @@
-/* Layer positions shared by the intro and the guest home. */
+/* Layer positions shared by the intro and the background of every page. */
 .scene {
   position: absolute;
   inset: 0;
@@ -139,8 +139,8 @@
   --run-delay: 2.7s;
 }
 
-/* The guest home draws the scene behind the whole window, header included,
-   and keeps it still while the page scrolls. */
+/* The background sits behind the whole window, header included, and keeps
+   still while the page scrolls. */
 .home {
   position: fixed;
   z-index: -1;
@@ -163,6 +163,11 @@
 .home .cloud,
 .home .dog {
   opacity: 0;
+}
+
+/* The dogs run on the home only; see useFieldSceneDogs. */
+:global(body:not([data-home-scene])) .home .dog {
+  display: none;
 }
 
 .home .cloud img,

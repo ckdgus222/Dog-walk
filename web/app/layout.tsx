@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./_components/auth-provider";
+import { FieldScene } from "./_components/field-scene";
 import { QueryProvider } from "./_components/query-provider";
 import { NotificationsProvider } from "./_components/notifications-provider";
 import { SiteHeader } from "./_components/site-header";
@@ -28,6 +29,9 @@ const RootLayout = ({ children, modal }: LayoutProps<"/">) => {
       </head>
       <body>
         <Intro />
+        {/* Outside the providers, which rebuild their children when the
+            account changes, so the background never restarts. */}
+        <FieldScene variant="home" />
         <AuthProvider>
           <QueryProvider>
             <NotificationsProvider>

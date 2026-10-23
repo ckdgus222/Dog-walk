@@ -1,8 +1,3 @@
-.content {
-  width: min(100% - 48px, calc(var(--page-width) - 124px));
-  padding-top: 56px;
-}
-
 .greeting {
   margin-bottom: 14px;
   font-size: 17px;
@@ -143,12 +138,6 @@
   text-wrap: balance;
 }
 
-.checking {
-  width: min(100% - 48px, calc(var(--page-width) - 124px));
-  margin: 0 auto;
-  padding-top: 56px;
-}
-
 /* Guest home: the welcome on the left, the login card on the right, both
    over the field scene. */
 .guest {
@@ -157,9 +146,8 @@
   grid-template-columns: minmax(0, 1fr) clamp(380px, 36vw, 420px);
   align-items: start;
   column-gap: clamp(40px, 5vw, 64px);
-  width: min(100% - 48px, var(--page-width));
-  /* Zoomed here rather than on the page, whose field scene is drawn in
-     window units. */
+  width: var(--page-width);
+  /* No panel here, so the grid takes the wide-screen zoom itself. */
   zoom: var(--wide-zoom);
   margin: 0 auto;
   padding: 64px 0 48px;
@@ -257,7 +245,6 @@
 
 @media (max-width: 720px) {
   .guest {
-    width: calc(100% - 32px);
     padding-top: 28px;
     row-gap: 24px;
   }
@@ -299,11 +286,6 @@
 
   .loginCard {
     padding: 24px 18px 20px;
-  }
-
-  .content {
-    width: calc(100% - 32px);
-    padding-top: 26px;
   }
 
   .greeting {

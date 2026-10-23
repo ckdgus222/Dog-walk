@@ -34,7 +34,7 @@ const WalkRequestsPage = () => {
         <Image
           src={crouchPetHeader}
           alt=""
-          sizes="(max-width: 720px) 290px, 553px"
+          sizes="(max-width: 720px) 230px, 553px"
           loading="eager"
         />
       </div>

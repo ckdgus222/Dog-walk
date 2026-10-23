@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useLayoutEffect } from "react";
 import bamiRun1 from "../../public/illustrations/walking-drawing/intro/bami-run-1.png";
 import bamiRun2 from "../../public/illustrations/walking-drawing/intro/bami-run-2.png";
 import cloud1 from "../../public/illustrations/walking-drawing/intro/cloud-1.png";
@@ -24,8 +27,9 @@ const dogs = [
 ];
 
 // The sky, clouds, field and running dogs behind the first-visit intro and
-// the guest home. Both draw the same layers in the same places, so the intro
-// fades straight into the home; each variant only moves them differently.
+// every page ("home"). Both draw the same layers in the same places, so the
+// intro fades straight into the page; each variant only moves them
+// differently.
 export const FieldScene = ({ variant }: { variant: "intro" | "home" }) => (
   <div aria-hidden="true" className={`${styles.scene} ${styles[variant]}`}>
     <div className={`${styles.sky} ${styles.layer}`} />
@@ -48,7 +52,7 @@ export const FieldScene = ({ variant }: { variant: "intro" | "home" }) => (
     >
       {groundLayers.map(({ image, className }) => (
         <div key={image.src} className={`${className} ${styles.layer}`}>
-          {/* The ground is the first thing a guest sees on the home, so it
+          {/* The ground is the first thing seen behind every page, so it
               loads at once there; the intro's copy stays lazy, as it is
               hidden for anyone who has seen it. */}
           <Image
@@ -83,3 +87,15 @@ export const FieldScene = ({ variant }: { variant: "intro" | "home" }) => (
     ))}
   </div>
 );
+
+// The background's dogs run on the home only. The mark sits on <body> while
+// the calling page is shown, not on the page itself: pages left behind are
+// kept hidden in the document, and a mark inside them would still match.
+export const useFieldSceneDogs = () => {
+  useLayoutEffect(() => {
+    document.body.dataset.homeScene = "";
+    return () => {
+      delete document.body.dataset.homeScene;
+    };
+  }, []);
+};

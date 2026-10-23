@@ -10,15 +10,22 @@
   --field: #fffcf5;
   --line: #e2dcc8;
   --muted: #6b7175;
-  /* Content width of most pages. The mockup's 1170px frame holds 1060px;
-     wide screens get more room. Other widths are worked out from this. */
-  --page-width: 1060px;
+  /* Width of the header and the content panel: the window less about 5% on
+     each side, up to 1680px on screen. Percentages stay true to the window
+     inside the wide-screen zoom, but px grow with it, so the cap is divided
+     back. */
+  --page-width: min(100% - 2 * max(24px, 5%), 1680px / var(--wide-zoom));
+  /* The panel's inner side padding, shared with the header so the logo
+     lines up with the content. */
+  --panel-pad-x: 48px;
   --wide-zoom: 1;
 }
 
-@media (min-width: 1440px) {
+/* Phones keep a thin strip of the field on each side. */
+@media (max-width: 720px) {
   :root {
-    --page-width: 1320px;
+    --page-width: calc(100% - 20px);
+    --panel-pad-x: 14px;
   }
 }
 

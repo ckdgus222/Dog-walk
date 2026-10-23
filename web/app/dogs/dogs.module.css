@@ -134,27 +134,27 @@
   font-weight: 800;
 }
 
-/* The dogs lie on the rug under the list, across the 1170px mockup. Phones
-   get a narrower room with the same plant, dogs and chair. */
+/* The dogs lie on the rug under the list, out to the panel's edges and
+   bottom. Phones get a narrower room with the same plant, dogs and chair. */
 .livingRoom {
   /* Wider than the content column without widening it. */
   min-width: 0;
-  margin: -16px calc(50% - min(50vw, var(--page-width) / 2 + 55px)) -56px;
+  margin: -16px calc(-1 * var(--panel-pad-x))
+    calc(-1 * var(--panel-pad-bottom));
 }
 
-/* Add page: the walker crouches beside the buttons, against the right edge of
-   the window as in the 1170px mockup. Behind the form, which stays usable. */
+/* Add page: the walker crouches beside the buttons, in the panel's bottom
+   right corner. Behind the form, which stays usable. */
 .newPage {
   position: relative;
   isolation: isolate;
+  overflow: clip;
 }
 
 .crouchPet {
   position: absolute;
-  /* The page is centered, so this reaches the right edge of the window.
-     Inside the wide-screen zoom 50vw grows too, so it is divided back. */
-  right: calc(50% - 50vw / var(--wide-zoom));
-  bottom: -34px;
+  right: 0;
+  bottom: 0;
   z-index: -1;
   width: 710px;
   height: auto;
@@ -321,10 +321,6 @@
 }
 
 @media (max-width: 720px) {
-  .livingRoom {
-    margin-bottom: -80px;
-  }
-
   .head {
     margin-top: 0;
     padding-bottom: 0;

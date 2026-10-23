@@ -1,8 +1,3 @@
-.content {
-  width: min(100% - 48px, calc(var(--page-width) - 40px));
-  padding-top: 96px;
-}
-
 .links {
   display: flex;
   flex-wrap: wrap;
@@ -19,20 +14,6 @@
 
 .links a + a {
   border-left: 1px solid var(--line);
-}
-
-/* Login: one narrow form under the title, at x113 of the 1170px mockup. */
-.login {
-  width: min(100% - 48px, calc(var(--page-width) - 116px));
-  padding-top: 103px;
-}
-
-.login > h1 {
-  font-size: 58px;
-}
-
-.login > h1 + p {
-  font-size: 20px;
 }
 
 .loginForm {
@@ -84,31 +65,6 @@
   font-size: 19px;
 }
 
-/* Wide screens lay the login drawing over the whole page, from just under the
-   header; the form sits in its empty top-left corner. */
-@media (min-width: 1025px) {
-  .loginScene {
-    grid-row: 1 / -1;
-    margin-top: 50px;
-  }
-}
-
-/* Signup: an introduction beside a form of two cards. In the 1170px mockup
-   the text starts at x118 and the form ends 37px before the right edge. */
-.content.signup {
-  display: grid;
-  grid-template-columns: 1fr 618px;
-  align-items: start;
-  gap: 48px;
-  width: min(100% - 48px, calc(var(--page-width) - 45px));
-  margin-left: max(24px, calc(50% - var(--page-width) / 2 + 63px));
-  padding-top: 48px;
-}
-
-.intro {
-  padding-top: 24px;
-}
-
 .intro > p:first-child {
   font-size: 18px;
 }
@@ -141,46 +97,7 @@
   margin-left: 12px;
 }
 
-/* The walker stands under the introduction, from the left edge of the window
-   as in the 1170px mockup, behind the form cards. */
-@media (min-width: 1025px) {
-  .signupScene {
-    grid-row: 1 / -1;
-    align-self: start;
-    justify-self: start;
-    width: 520px;
-    margin-top: 235px;
-  }
-}
-
-/* Below the mockup width the two columns stop fitting, so the form moves
-   under the introduction. */
-@media (max-width: 1024px) {
-  .content.signup {
-    grid-template-columns: 1fr;
-    gap: 24px;
-    margin-left: auto;
-  }
-}
-
 @media (max-width: 720px) {
-  .content {
-    width: calc(100% - 32px);
-    padding-top: 32px;
-  }
-
-  .login {
-    padding-top: 40px;
-  }
-
-  .login > h1 {
-    font-size: 40px;
-  }
-
-  .login > h1 + p {
-    font-size: 16px;
-  }
-
   .loginForm {
     gap: 14px;
     margin-top: 32px;
@@ -203,13 +120,5 @@
   .loginForm + .links {
     margin-top: 22px;
     font-size: 17px;
-  }
-
-  .content.signup {
-    padding-top: 32px;
-  }
-
-  .intro {
-    padding-top: 0;
   }
 }
