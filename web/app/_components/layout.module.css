@@ -1,16 +1,15 @@
 /* Each page's content sits on a cream panel over the field background. */
 .main {
-  --panel-pad-bottom: 48px;
+  --panel-pad-bottom: var(--space-7);
   display: grid;
   align-content: start;
-  gap: 24px;
+  gap: var(--space-5);
   width: var(--page-width);
-  margin: 24px auto 48px;
-  padding: 40px var(--panel-pad-x) var(--panel-pad-bottom);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--paper);
-  box-shadow: 0 18px 48px rgb(39 75 73 / 0.12);
+  margin: var(--space-5) auto var(--space-7);
+  padding: var(--space-7) var(--panel-pad-x) var(--panel-pad-bottom);
+  border-radius: var(--radius-md);
+  background: var(--paper) var(--paper-grain);
+  box-shadow: var(--shadow-panel);
 }
 
 /* Login and signup pages hold only a form, so their panel is narrow. */
@@ -39,9 +38,9 @@
   display: flex;
   align-items: center;
   justify-self: start;
-  gap: 8px;
+  gap: var(--space-2);
   color: var(--ink);
-  font-size: 16px;
+  font-size: var(--text-md);
 }
 
 /* The title block with an optional action on the right. */
@@ -50,36 +49,23 @@
   flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 20px;
+  gap: var(--space-5);
 }
 
-/* The main action of a list page, beside its title. The large button
-   size, shared with form buttons (form.module.css .submit). */
+/* The main action of a list page, beside its title. */
 .headAction {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  height: 56px;
-  padding: 0 32px;
-  border-radius: 4px;
-  background: var(--accent);
-  color: white;
-  font-size: 19px;
-  font-weight: 700;
+  composes: button primary from "./ui.module.css";
 }
 
 @media (max-width: 720px) {
   .main {
-    --panel-pad-bottom: 28px;
-    gap: 14px;
-    margin: 12px auto 24px;
-    padding-top: 22px;
+    --panel-pad-bottom: var(--space-6);
+    gap: var(--space-4);
+    margin: var(--space-3) auto var(--space-5);
+    padding-top: var(--space-5);
   }
 
   .headAction {
-    justify-content: center;
     width: 100%;
-    height: 52px;
-    font-size: 18px;
   }
 }

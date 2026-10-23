@@ -207,21 +207,20 @@
 
 /* Card: a fieldset drawn as a titled card. */
 .card {
+  composes: card from "./ui.module.css";
   display: grid;
-  gap: 12px;
+  gap: var(--space-3);
   min-width: 0;
-  padding: 22px 26px 26px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: var(--card);
+  margin: 0;
+  border: 0;
 }
 
 .card > legend {
   float: left;
-  margin-bottom: 6px;
+  margin-bottom: var(--space-2);
   padding: 0;
   color: var(--ink);
-  font-size: 22px;
+  font-size: var(--text-xl);
   font-weight: 700;
 }
 
@@ -294,17 +293,8 @@
 }
 
 .submit {
-  position: relative;
+  composes: button primary from "./ui.module.css";
   width: 100%;
-  height: 56px;
-  border: 0;
-  border-radius: 4px;
-  background: var(--accent);
-  color: white;
-  font: inherit;
-  font-size: 19px;
-  font-weight: 700;
-  cursor: pointer;
 }
 
 /* Hidden on screen but still read by screen readers, e.g. a label whose
@@ -320,21 +310,7 @@
 
 /* The outlined button beside .submit, such as a link back to the list. */
 .secondary {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 56px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: var(--field);
-  color: var(--ink);
-  font-size: 19px;
-  font-weight: 500;
-}
-
-.submit:disabled {
-  opacity: 0.6;
-  cursor: default;
+  composes: button from "./ui.module.css";
 }
 
 .submit svg {
@@ -345,14 +321,6 @@
 }
 
 @media (max-width: 720px) {
-  .card {
-    padding: 18px 16px 20px;
-  }
-
-  .card > legend {
-    font-size: 19px;
-  }
-
   .rows {
     --label-col: 84px;
   }
@@ -424,11 +392,5 @@
 
   .addFields > .fieldRow {
     grid-template-columns: 78px 1fr;
-  }
-
-  .submit,
-  .secondary {
-    height: 52px;
-    font-size: 18px;
   }
 }

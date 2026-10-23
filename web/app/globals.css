@@ -45,6 +45,11 @@
   --button-sm: 32px;
   --field-height: 48px;
 
+  /* Panels lie on paper. Cards are a lighter, see-through cream, so the
+     panel's grain shows through them without painting it twice. */
+  --paper-grain: url("/illustrations/walking-drawing/ui/paper.jpg");
+  --card-bg: color-mix(in srgb, var(--card) 72%, transparent);
+
   /* Width of the header and the content panel: the window less about 5% on
      each side, up to 1680px. Wider windows get more columns, not bigger
      text. */

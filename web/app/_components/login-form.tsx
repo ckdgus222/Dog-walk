@@ -59,7 +59,7 @@ export const LoginForm = ({
   return (
     <>
       <Title
-        className={`${headingStyles.title} ${page ? "" : headingStyles.modalTitle}`}
+        className={`${headingStyles.title} ${page ? "" : headingStyles.formTitle}`}
       >
         로그인
       </Title>

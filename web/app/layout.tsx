@@ -28,6 +28,30 @@ const RootLayout = ({ children, modal }: LayoutProps<"/">) => {
         <script dangerouslySetInnerHTML={{ __html: introHeadScript }} />
       </head>
       <body>
+        {/* The wobble of every hand-drawn outline (ui.module.css .rough). */}
+        <svg
+          width="0"
+          height="0"
+          style={{ position: "absolute" }}
+          aria-hidden="true"
+        >
+          <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.035"
+              numOctaves="2"
+              seed="7"
+              result="noise"
+            />
+            <feDisplacementMap
+              in="SourceGraphic"
+              in2="noise"
+              scale="4"
+              xChannelSelector="R"
+              yChannelSelector="G"
+            />
+          </filter>
+        </svg>
         <Intro />
         {/* Outside the providers, which rebuild their children when the
             account changes, so the background never restarts. */}

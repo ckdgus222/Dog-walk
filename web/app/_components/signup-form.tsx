@@ -53,7 +53,7 @@ export const SignupForm = ({
       <div className={styles.intro}>
         <p className={headingStyles.eyebrow}>함께 걷는, 더 특별한 하루</p>
         <h1
-          className={`${headingStyles.title} ${modal ? headingStyles.modalTitle : ""}`}
+          className={`${headingStyles.title} ${modal ? headingStyles.formTitle : ""}`}
         >
           회원가입
         </h1>

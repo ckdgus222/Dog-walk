@@ -1,0 +1,212 @@
+/* Shared parts from docs/design-system.md: buttons, chips, cards, list
+   rows, badges, notices and faces. */
+
+/* The hand-drawn outline sits on ::before, so the #rough filter (layout.tsx)
+   wobbles only the line, never the text, and never blocks a click. Every
+   outlined part composes .rough itself: composes chains deeper than two
+   classes are dropped in the build, so a part that only reached .rough
+   through another part lost its outline. */
+.rough {
+  position: relative;
+  isolation: isolate;
+}
+
+.rough::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border: 2px solid var(--rough-line);
+  border-radius: inherit;
+  filter: url(#rough);
+  pointer-events: none;
+}
+
+/* Buttons: large by default, .md and .sm for rows and tables. */
+.button {
+  composes: rough;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: var(--button-lg);
+  padding: 0 var(--space-5);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.button svg {
+  flex: none;
+}
+
+.md {
+  height: var(--button-md);
+  padding: 0 var(--space-4);
+  font-size: var(--text-md);
+}
+
+.sm {
+  height: var(--button-sm);
+  padding: 0 var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.primary {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 2px 0 rgb(150 60 30 / 0.25);
+}
+
+.primary::before {
+  border-color: rgb(120 45 20 / 0.35);
+}
+
+.danger {
+  color: var(--accent);
+}
+
+.danger::before {
+  border-color: var(--accent);
+}
+
+/* A button that is only orange text and an arrow. */
+.textButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--accent);
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+
+/* A choice drawn as a pill; aria-pressed or a checked radio inside marks the
+   chosen one. */
+.chip {
+  composes: rough button md;
+  border-radius: var(--radius-full);
+  color: var(--text);
+  font-weight: 400;
+}
+
+.chip:is([aria-pressed="true"], :has(:checked)) {
+  background: var(--sage);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.chip:is([aria-pressed="true"], :has(:checked))::before {
+  border-color: var(--ink);
+}
+
+.chip:has(:focus-visible) {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* List boxes and cards sit a little lighter than the panel. */
+.list {
+  composes: rough;
+  border-radius: var(--radius-md);
+  background: var(--card-bg);
+  box-shadow: var(--shadow-card);
+}
+
+.card {
+  composes: rough list;
+  padding: var(--space-5);
+}
+
+/* Rows inside a .list: no outline of their own, only a wobbly line between
+   them, so a long list draws one filter per row instead of four. */
+.listRow {
+  position: relative;
+  padding: var(--space-4) var(--space-5);
+}
+
+.listRow + .listRow::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: var(--space-5);
+  right: var(--space-5);
+  border-top: 1.5px solid var(--line);
+  filter: url(#rough);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-full);
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pending {
+  background: var(--accent-soft);
+}
+
+.accepted {
+  background: var(--sage);
+}
+
+.closed {
+  background: #e7e3d6;
+  color: var(--muted);
+}
+
+/* A short note with an icon, e.g. the one-dog rule. */
+.notice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--sage-soft);
+  color: var(--text);
+  font-size: var(--text-md);
+}
+
+.notice > svg {
+  flex: none;
+  color: var(--ink);
+}
+
+/* A round face, a dog's or a person's. The size comes from the image's
+   width and height. */
+.face {
+  flex: none;
+  border-radius: var(--radius-full);
+  background: var(--sage-soft);
+  object-fit: cover;
+}
+
+.person {
+  background: var(--accent-soft);
+}
+
+.meta {
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 720px) {
+  .card {
+    padding: var(--space-4);
+  }
+}
