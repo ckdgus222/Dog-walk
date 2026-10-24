@@ -101,7 +101,8 @@
   column-gap: clamp(40px, 5vw, 64px);
   width: var(--page-width);
   margin: 0 auto;
-  padding: var(--space-8) 0 var(--space-7);
+  /* The header's side padding, so the welcome starts under the logo. */
+  padding: var(--space-8) var(--panel-pad-x) var(--space-7);
 }
 
 .welcome {

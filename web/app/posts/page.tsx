@@ -42,7 +42,7 @@ const PostList = () => {
       {query.error && <p role="alert">{query.error.message}</p>}
       {query.isPending && <p role="status">글을 불러오고 있어요.</p>}
       {!!query.data?.posts.length && (
-        <div className={uiStyles.list}>
+        <div className={`${uiStyles.list} ${styles.list}`}>
           {/* Screen readers get each column's meaning from the row itself. */}
           <p className={styles.columns} aria-hidden="true">
             <span>제목</span>
@@ -138,7 +138,9 @@ const PostList = () => {
 };
 
 const PostsPage = () => (
-  <main className={`${layoutStyles.main} ${layoutStyles.fit}`}>
+  <main
+    className={`${layoutStyles.main} ${layoutStyles.fit} ${styles.listPage}`}
+  >
     <div className={layoutStyles.head}>
       <div>
         <h1 className={headingStyles.title}>게시판</h1>

@@ -18,7 +18,7 @@
 
 .row {
   --row-pad-block: 0;
-  height: 40px;
+  min-height: 40px;
 }
 
 .row > svg {
@@ -266,9 +266,21 @@
   grid-template-columns: 340px 1fr;
 }
 
-/* In a window-high panel the post body and the comment list scroll inside
-   their columns. */
+/* In a window-high panel the list box fills the height between the title
+   and the page buttons, and the post body and the comment list scroll
+   inside their columns. */
 @media (min-width: 1280px) and (min-height: 800px) {
+  .listPage {
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  /* Ten row slots, one per post on a full page (api PAGE_SIZE), so the box
+     keeps its size on a short last page. */
+  .list {
+    display: grid;
+    grid-template-rows: auto repeat(10, minmax(40px, 1fr));
+  }
+
   .detailPage {
     grid-template-rows: auto minmax(0, 1fr);
   }
