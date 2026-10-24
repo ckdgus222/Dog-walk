@@ -123,9 +123,10 @@
   box-shadow: var(--shadow-card);
 }
 
+/* A page that needs a tighter card sets --card-pad on its own class. */
 .card {
   composes: rough list;
-  padding: var(--space-5);
+  padding: var(--card-pad, var(--space-5));
 }
 
 /* Rows inside a .list: no outline of their own, only a wobbly line between

@@ -127,7 +127,19 @@ test("일기 사진 작성·수정·삭제와 반려견 삭제 제한", async ({
     await main
       .getByRole("textbox", { name: "제목", exact: true })
       .fill("두부와 공원 산책");
-    await photoInput.setInputFiles([photoA, photoB]);
+    // Picked photos show before saving, and one can be taken out again.
+    await photoInput.setInputFiles([photoA, photoB, photoA]);
+    const previews = main.getByRole("img", { name: /^새 사진 \d 미리보기$/ });
+    await expect(previews).toHaveCount(3);
+    await main
+      .getByRole("button", { name: "새 사진 3 빼기", exact: true })
+      .click();
+    await expect(previews).toHaveCount(2);
+    await expect
+      .poll(() =>
+        previews.first().evaluate((image: HTMLImageElement) => image.naturalWidth),
+      )
+      .toBeGreaterThan(0);
     await main.getByRole("button", { name: "저장하기", exact: true }).click();
     await expect(page).toHaveURL(/\/diaries\/\d+$/);
     diaryUrl = new URL(page.url()).pathname;
@@ -137,7 +149,7 @@ test("일기 사진 작성·수정·삭제와 반려견 삭제 제한", async ({
     await expectPhotos(page, 2);
   });
 
-  await test.step("목록의 글·표지 사진·사진 수를 확인하고 사진 한 장을 교체한다", async () => {
+  await test.step("목록의 제목·사진 두 장·사진 수를 확인하고 사진 한 장을 교체한다", async () => {
     await main.getByRole("link", { name: "일기 목록", exact: true }).click();
     await expect(page).toHaveURL("/diaries");
     const card = main.getByRole("article");
@@ -147,8 +159,8 @@ test("일기 사진 작성·수정·삭제와 반려견 삭제 제한", async ({
     ).toBeVisible();
     await expect(card.getByText("두부", { exact: true })).toBeVisible();
     await expect(card.getByText("사진 2장", { exact: true })).toBeVisible();
-    // The card shows only the first photo; the badge counts all of them.
-    await expectPhotos(page, 1);
+    // The row shows up to two photos; the badge counts all of them.
+    await expectPhotos(page, 2);
     await card.getByRole("link").click();
     await expect(page).toHaveURL(/\/diaries\/\d+$/);
     await main.getByRole("link", { name: "수정", exact: true }).click();

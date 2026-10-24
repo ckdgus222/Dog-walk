@@ -2,6 +2,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiFetch, apiRequest, responseError } from "../auth";
 import type { Diary, DiaryList } from "../types";
 
+// The api's diary PAGE_SIZE (api/src/diaries/diaries.service.ts).
+export const DIARY_PAGE_SIZE = 6;
+
 const allDiariesKey = ["diaries"];
 const diaryListKey = ["diaries", "list"];
 const diaryDetailKey = (id: number) => ["diaries", "detail", id];

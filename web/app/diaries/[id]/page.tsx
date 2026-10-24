@@ -28,83 +28,83 @@ const DiaryDetail = () => {
   const order = dogs.data?.findIndex((dog) => dog.id === diary.dog.id) ?? -1;
   const dog = dogs.data?.[order];
 
+  // The title and actions on top, then the photos beside the text, each
+  // scrolling in its own column so a long diary never scrolls the page.
   return (
     <>
-      <h1 className={`${headingStyles.title} ${styles.dateTitle}`}>
-        {diary.title}
-      </h1>
-      <p>{formatTitleDate(diary.walkedOn)}</p>
-      <div className={styles.meta}>
-        <div className={styles.dog}>
-          {dog && (
-            <DogFace
-              dog={dog}
-              className={`${uiStyles.face} ${styles.face}`}
-              size={108}
-              order={order}
-            />
-          )}
-          <div>
-            <p>{diary.dog.name}</p>
+      <div className={styles.detailHead}>
+        <div>
+          <h1 className={headingStyles.title}>{diary.title}</h1>
+          <p className={styles.detailMeta}>
+            {dog && (
+              <DogFace
+                dog={dog}
+                className={uiStyles.face}
+                size={40}
+                order={order}
+              />
+            )}
+            <strong>{diary.dog.name}</strong>
             {dog && (
               <span>
                 {dog.breed} · {genderLabels[dog.gender]}
                 {dog.neutered ? "(중성화)" : ""} · {dog.birthYear}년생
               </span>
             )}
-          </div>
+            <span>{formatTitleDate(diary.walkedOn)}</span>
+            <span className={styles.private}>
+              <LockIcon />
+              나만 보는 기록
+            </span>
+          </p>
         </div>
-        <span className={styles.private}>
-          <LockIcon />
-          나만 보는 기록
-        </span>
-      </div>
-      <p className={styles.content}>{diary.content}</p>
-      <div className={styles.photos}>
-        {diary.images.map((image, index) => (
-          <DiaryImage
-            key={image.id}
-            diaryId={diary.id}
-            imageId={image.id}
-            alt={`일기 사진 ${index + 1}`}
-            className={styles.photo}
-          />
-        ))}
-      </div>
-      <div className={styles.actions}>
-        <Link
-          href="/diaries"
-          className={`${secondaryButton} ${styles.listButton}`}
-        >
-          <ArrowLeft size={22} />
-          일기 목록
-        </Link>
-        <Link
-          href={`/diaries/${diary.id}/edit`}
-          className={secondaryButton}
-        >
-          수정
-        </Link>
-        <button
-          className={dangerButton}
-          disabled={remove.isPending}
-          onClick={() => {
-            if (!window.confirm("일기를 삭제할까요?")) return;
-            remove.mutate(diary.id, {
-              onSuccess: () => router.push("/diaries"),
-            });
-          }}
-        >
-          {remove.isPending ? "삭제 중…" : "삭제"}
-        </button>
+        <div className={styles.actions}>
+          <Link href="/diaries" className={secondaryButton}>
+            <ArrowLeft size={22} />
+            일기 목록
+          </Link>
+          <Link href={`/diaries/${diary.id}/edit`} className={secondaryButton}>
+            수정
+          </Link>
+          <button
+            className={dangerButton}
+            disabled={remove.isPending}
+            onClick={() => {
+              if (!window.confirm("일기를 삭제할까요?")) return;
+              remove.mutate(diary.id, {
+                onSuccess: () => router.push("/diaries"),
+              });
+            }}
+          >
+            {remove.isPending ? "삭제 중…" : "삭제"}
+          </button>
+        </div>
       </div>
       {remove.error && <p role="alert">{remove.error.message}</p>}
+      <div className={styles.detailBody}>
+        {diary.images.length > 0 && (
+          <div className={styles.photos}>
+            {diary.images.map((image, index) => (
+              <DiaryImage
+                key={image.id}
+                diaryId={diary.id}
+                imageId={image.id}
+                alt={`일기 사진 ${index + 1}`}
+                className={styles.photo}
+              />
+            ))}
+          </div>
+        )}
+        <p className={styles.content}>{diary.content}</p>
+      </div>
     </>
   );
 };
 
 const DiaryPage = () => (
-  <main className={layoutStyles.main}>
+  <main
+    className={`${layoutStyles.main} ${layoutStyles.fit} ${styles.detailPage}`}
+  >
     <Link href="/diaries" className={layoutStyles.back}>
       <ChevronLeft />
       산책 일기

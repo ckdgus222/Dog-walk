@@ -25,16 +25,14 @@ const EditDiary = () => {
 
 const EditDiaryPage = () => (
   <main
-    className={`${layoutStyles.main} ${styles.editPage}`}
+    className={`${layoutStyles.main} ${layoutStyles.fit} ${styles.editPage}`}
   >
     <Link href="/diaries" className={layoutStyles.back}>
       <ChevronLeft />
       산책 일기
     </Link>
     <div>
-      <h1 className={headingStyles.title}>
-        일기 수정
-      </h1>
+      <h1 className={headingStyles.title}>일기 수정</h1>
       <p className={headingStyles.lead}>
         산책의 순간을 기록하고, 소중한 추억을 간직해요.
       </p>
