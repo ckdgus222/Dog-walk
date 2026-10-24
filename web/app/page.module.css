@@ -105,14 +105,34 @@
   padding: var(--space-8) var(--panel-pad-x) var(--space-7);
 }
 
+/* The welcome sits on a sheet of paper over the field, under a round
+   title font. */
 .welcome {
-  padding-top: var(--space-5);
+  composes: panel from "./_components/ui.module.css";
+  padding: var(--space-6);
+  box-shadow: var(--shadow-panel);
+}
+
+.eyebrow {
+  margin-bottom: var(--space-2);
+  color: var(--accent);
+  font-size: var(--text-sm);
+  font-weight: 700;
 }
 
 /* The title shrinks with the window so it stays on two lines above the
    field beside the card. */
 .welcome .title {
+  font-family: var(--font-display), var(--font-sans), sans-serif;
   font-size: clamp(36px, 3.4vw, 48px);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.intro {
+  margin-top: var(--space-3);
+  font-size: var(--text-md);
+  line-height: 1.65;
 }
 
 .features {
@@ -129,13 +149,8 @@
   align-items: center;
 }
 
-.features svg {
+.features img {
   grid-row: span 2;
-  box-sizing: content-box;
-  padding: var(--space-3);
-  border-radius: var(--radius-full);
-  background: rgb(255 252 245 / 0.8);
-  color: var(--ink);
 }
 
 .features strong {
@@ -200,7 +215,7 @@
   }
 
   .welcome {
-    padding-top: 0;
+    padding: var(--space-5) var(--space-4);
   }
 
   .welcome .title {
@@ -218,11 +233,10 @@
     column-gap: var(--space-3);
   }
 
-  .features svg {
+  .features img {
     grid-row: auto;
-    width: 20px;
-    height: 20px;
-    padding: var(--space-2);
+    width: 36px;
+    height: 36px;
   }
 
   .features strong {

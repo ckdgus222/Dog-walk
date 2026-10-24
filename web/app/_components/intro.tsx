@@ -12,6 +12,7 @@ import styles from "./intro.module.css";
 import { INTRO_SEEN_KEY } from "./intro-seen";
 
 const INTRO_DURATION_MS = 6000;
+const INTRO_TITLE = "강아지 산책에 오신 걸 환영해요";
 
 export const Intro = () => {
   const [dismissed, setDismissed] = useState(false);
@@ -68,7 +69,21 @@ export const Intro = () => {
     >
       <FieldScene variant="intro" />
       <div aria-hidden="true" className={`${styles.title} ${styles.reveal}`}>
-        <strong>강아지 산책에 오신 걸 환영해요</strong>
+        {/* Paw prints that blink one after another, like steps. */}
+        <div className={styles.paws}>
+          <span />
+          <span />
+          <span />
+          <span />
+        </div>
+        {/* Each letter pops up in turn. */}
+        <strong>
+          {[...INTRO_TITLE].map((letter, index) => (
+            <span key={index} style={{ "--letter": index } as CSSProperties}>
+              {letter}
+            </span>
+          ))}
+        </strong>
         <span>가까운 이웃과 우리 아이의 산책 친구를 만나 보세요</span>
       </div>
       <button

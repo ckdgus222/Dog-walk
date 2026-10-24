@@ -7,16 +7,13 @@ import communityChat from "../public/illustrations/walking-drawing/community-cha
 import diaryBook from "../public/illustrations/walking-drawing/diary-book.svg";
 import homeSceneMobile from "../public/illustrations/walking-drawing/home-scene-mobile.png";
 import homeScene from "../public/illustrations/walking-drawing/home-scene.png";
+import dogBami from "../public/illustrations/walking-drawing/dog-bami.png";
+import dogDubu from "../public/illustrations/walking-drawing/dog-dubu.png";
+import personFace from "../public/illustrations/walking-drawing/ui/person-2.png";
 import { useAuth } from "./_components/auth-provider";
 import { DogFace, sizeLabels } from "./_components/dog-card";
 import { useFieldSceneDogs } from "./_components/field-scene";
-import {
-  ArrowRight,
-  BookIcon,
-  ChatIcon,
-  ChevronRight,
-  PinLineIcon,
-} from "./_components/icons";
+import { ArrowRight, ChevronRight } from "./_components/icons";
 import layoutStyles from "./_components/layout.module.css";
 import { LoginForm } from "./_components/login-form";
 import { useNotifications } from "./_components/notifications-provider";
@@ -56,17 +53,17 @@ const Title = () => (
 
 const features = [
   {
-    icon: <PinLineIcon />,
+    face: dogDubu,
     name: "주변 산책 친구 찾기",
     detail: "가까운 반려인을 지도에서 찾아요",
   },
   {
-    icon: <BookIcon />,
+    face: dogBami,
     name: "산책 일기",
     detail: "우리 아이와의 산책을 기록해요",
   },
   {
-    icon: <ChatIcon size={24} />,
+    face: personFace,
     name: "이웃 게시판",
     detail: "동네 반려인과 이야기를 나눠요",
   },
@@ -78,11 +75,22 @@ const GuestHome = () => (
   <main>
     <div className={styles.guest}>
       <div className={styles.welcome}>
+        <p className={styles.eyebrow}>우리 동네 반려견 산책 친구</p>
         <Title />
+        <p className={styles.intro}>
+          1km 안에서 함께 걸을 이웃을 찾고, 산책한 날은 사진과 함께 일기로
+          남겨요.
+        </p>
         <ul className={styles.features}>
-          {features.map(({ icon, name, detail }) => (
+          {features.map(({ face, name, detail }) => (
             <li key={name}>
-              {icon}
+              <Image
+                src={face}
+                alt=""
+                width={48}
+                height={48}
+                className={uiStyles.face}
+              />
               <strong>{name}</strong>
               <span>{detail}</span>
             </li>

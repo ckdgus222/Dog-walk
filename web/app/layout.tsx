@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Noto_Sans_KR } from "next/font/google";
+import { Jua, Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./_components/auth-provider";
 import { FieldScene } from "./_components/field-scene";
@@ -16,6 +16,14 @@ const notoSansKr = Noto_Sans_KR({
   variable: "--font-sans",
 });
 
+// The round title font of the intro and the guest welcome
+// (docs/screen-fit-and-features.md).
+const jua = Jua({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-display",
+});
+
 export const metadata: Metadata = {
   title: "강아지 산책",
   description: "함께 산책할 반려인을 찾는 서비스",
@@ -23,7 +31,11 @@ export const metadata: Metadata = {
 
 const RootLayout = ({ children, modal }: LayoutProps<"/">) => {
   return (
-    <html lang="ko" className={notoSansKr.variable} suppressHydrationWarning>
+    <html
+      lang="ko"
+      className={`${notoSansKr.variable} ${jua.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: introHeadScript }} />
       </head>

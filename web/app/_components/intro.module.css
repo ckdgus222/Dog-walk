@@ -33,14 +33,49 @@
 }
 .title strong {
   display: block;
-  font-size: clamp(36px, 6vw, 64px);
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-family: var(--font-display), var(--font-sans), sans-serif;
+  font-size: clamp(36px, 6vw, 72px);
+  font-weight: 400;
+  line-height: 1.2;
+  /* A white edge and a soft shadow keep the title clear over the sky. */
+  text-shadow:
+    0 3px 0 white,
+    0 6px 18px rgb(39 75 73 / 0.18);
 }
-.title span {
+.title strong > span {
+  display: inline-block;
+  white-space: pre;
+  animation: pop 0.55s cubic-bezier(0.3, 1.6, 0.5, 1)
+    calc(var(--reveal-delay) + var(--letter) * 0.06s) both;
+}
+.title > span {
   display: block;
-  margin-top: 10px;
+  margin-top: 12px;
   font-size: clamp(16px, 2vw, 22px);
+}
+
+.paws {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.paws span {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0;
+  animation: paw 2.4s ease-in-out var(--reveal-delay) infinite;
+}
+.paws span:nth-child(2) {
+  animation-delay: calc(var(--reveal-delay) + 0.3s);
+}
+.paws span:nth-child(3) {
+  animation-delay: calc(var(--reveal-delay) + 0.6s);
+}
+.paws span:nth-child(4) {
+  animation-delay: calc(var(--reveal-delay) + 0.9s);
 }
 
 .skip {
@@ -66,6 +101,28 @@
     transform: none;
   }
 }
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.6) rotate(-6deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes paw {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  40%,
+  60% {
+    opacity: 0.75;
+    transform: none;
+  }
+}
 @keyframes leave {
   to {
     opacity: 0;
@@ -76,6 +133,16 @@
 }
 .skip {
   --reveal-delay: 0.6s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title strong > span,
+  .paws span {
+    animation: none;
+  }
+  .paws span {
+    opacity: 0.75;
+  }
 }
 
 .intro::backdrop {
