@@ -13,17 +13,17 @@ import styles from "../dogs.module.css";
 const NewDogPage = () => {
   return (
     <main
-      className={`${layoutStyles.main} ${layoutStyles.wide} ${styles.newPage}`}
+      className={`${layoutStyles.main} ${styles.newPage}`}
     >
       <Link href="/dogs" className={layoutStyles.back}>
         <ChevronLeft />
         내 반려견
       </Link>
       <div>
-        <h1 className={`${headingStyles.title} ${headingStyles.formTitle}`}>
+        <h1 className={headingStyles.title}>
           반려견 추가
         </h1>
-        <p className={`${headingStyles.lead} ${headingStyles.formLead}`}>
+        <p className={headingStyles.lead}>
           새로운 가족을 소개해 주세요.
           <br />
           정확한 정보를 입력하면, 주변 친구들과 더 잘 연결될 수 있어요.

@@ -3,32 +3,24 @@
   font-size: var(--text-md);
 }
 
+/* One title size on every page, so the title stays put when moving
+   between pages of the same panel size. */
 .title {
   color: var(--ink);
-  font-size: var(--text-4xl);
+  font-size: var(--text-3xl);
   font-weight: 800;
   line-height: 1.15;
   letter-spacing: -0.02em;
 }
 
-/* Form pages use a smaller title and lead than list pages. */
-.formTitle {
-  font-size: var(--text-3xl);
-}
-
 .lead {
-  margin-top: var(--space-3);
+  margin-top: var(--space-2);
   font-size: var(--text-lg);
   line-height: 1.6;
 }
 
-.lead.formLead {
-  margin-top: var(--space-2);
-}
-
 /* Login and signup inside the modal card. */
 .lead.modalLead {
-  margin-top: var(--space-2);
   font-size: var(--text-md);
 }
 

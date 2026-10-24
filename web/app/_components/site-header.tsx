@@ -45,27 +45,29 @@ export const SiteHeader = () => {
           </button>
         </div>
       </div>
-      {pendingCountError && (
-        <p role="alert" className={styles.message}>
-          {pendingCountError}
-        </p>
-      )}
-      {logoutError && (
-        <p role="alert" className={styles.message}>
-          {logoutError}
-        </p>
-      )}
-      {notice && (
-        <div role="status" className={styles.notice}>
-          <p>{notice.text}</p>
-          <Link href={notice.href}>
-            {notice.href === "/walk-requests" ? "산책 요청 보기" : "채팅 보기"}
-          </Link>
-          <button type="button" onClick={dismissNotice}>
-            닫기
-          </button>
-        </div>
-      )}
+      <div className={styles.floating}>
+        {pendingCountError && (
+          <p role="alert" className={styles.message}>
+            {pendingCountError}
+          </p>
+        )}
+        {logoutError && (
+          <p role="alert" className={styles.message}>
+            {logoutError}
+          </p>
+        )}
+        {notice && (
+          <div role="status" className={styles.notice}>
+            <p>{notice.text}</p>
+            <Link href={notice.href}>
+              {notice.href === "/walk-requests" ? "산책 요청 보기" : "채팅 보기"}
+            </Link>
+            <button type="button" onClick={dismissNotice}>
+              닫기
+            </button>
+          </div>
+        )}
+      </div>
     </header>
   );
 };
@@ -149,15 +151,17 @@ const GuestHeaderContent = () => {
           </div>
         </details>
       </div>
-      {loginNotice && (
-        <div role="status" className={styles.notice}>
-          <p>로그인 후 이용할 수 있어요.</p>
-          <Link href="/login">로그인</Link>
-          <button type="button" onClick={() => setLoginNotice(false)}>
-            닫기
-          </button>
-        </div>
-      )}
+      <div className={styles.floating}>
+        {loginNotice && (
+          <div role="status" className={styles.notice}>
+            <p>로그인 후 이용할 수 있어요.</p>
+            <Link href="/login">로그인</Link>
+            <button type="button" onClick={() => setLoginNotice(false)}>
+              닫기
+            </button>
+          </div>
+        )}
+      </div>
     </header>
   );
 };

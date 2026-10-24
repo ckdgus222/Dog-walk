@@ -103,7 +103,7 @@ const DiaryDetail = () => {
 };
 
 const DiaryPage = () => (
-  <main className={`${layoutStyles.main} ${layoutStyles.reading}`}>
+  <main className={layoutStyles.main}>
     <Link href="/diaries" className={layoutStyles.back}>
       <ChevronLeft />
       산책 일기

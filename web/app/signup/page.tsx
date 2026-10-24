@@ -5,7 +5,7 @@ import { SignupForm } from "../_components/signup-form";
 
 const SignupPage = () => {
   return (
-    <main className={`${layoutStyles.main} ${layoutStyles.medium}`}>
+    <main className={layoutStyles.main}>
       <SignupForm
         onSuccess={() => {
           // A full navigation keeps the login route out of the modal slot.

@@ -13,7 +13,7 @@
 }
 
 .title {
-  composes: title formTitle from "./_components/heading.module.css";
+  composes: title from "./_components/heading.module.css";
   line-height: 1.25;
   text-wrap: balance;
 }

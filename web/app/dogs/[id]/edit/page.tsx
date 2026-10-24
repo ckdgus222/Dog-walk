@@ -27,16 +27,16 @@ const EditDog = () => {
 
 const EditDogPage = () => {
   return (
-    <main className={`${layoutStyles.main} ${layoutStyles.wide}`}>
+    <main className={layoutStyles.main}>
       <Link href="/dogs" className={layoutStyles.back}>
         <ChevronLeft />
         내 반려견
       </Link>
       <div>
-        <h1 className={`${headingStyles.title} ${headingStyles.formTitle}`}>
+        <h1 className={headingStyles.title}>
           반려견 수정
         </h1>
-        <p className={`${headingStyles.lead} ${headingStyles.formLead}`}>
+        <p className={headingStyles.lead}>
           우리 아이의 정보를 수정할 수 있습니다.
         </p>
       </div>

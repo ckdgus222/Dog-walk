@@ -52,11 +52,7 @@ export const SignupForm = ({
     <>
       <div className={styles.intro}>
         <p className={headingStyles.eyebrow}>함께 걷는, 더 특별한 하루</p>
-        <h1
-          className={`${headingStyles.title} ${modal ? headingStyles.formTitle : ""}`}
-        >
-          회원가입
-        </h1>
+        <h1 className={headingStyles.title}>회원가입</h1>
         <p
           className={`${headingStyles.lead} ${modal ? headingStyles.modalLead : ""}`}
         >

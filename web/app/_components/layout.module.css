@@ -1,34 +1,34 @@
-/* Each page's content sits on a cream panel over the field background. */
+/* Each page's content sits on a cream panel over the field background. Every
+   panel is as wide as the header and at least fills the window below it
+   (the body is a column, see globals.css). */
 .main {
   composes: panel from "./ui.module.css";
-  --panel-pad-bottom: var(--space-7);
+  --panel-pad-bottom: var(--space-6);
+  flex: 1 0 auto;
   display: grid;
   align-content: start;
-  gap: var(--space-5);
+  gap: var(--space-4);
   width: var(--page-width);
-  margin: var(--space-5) auto var(--space-7);
-  padding: var(--space-7) var(--panel-pad-x) var(--panel-pad-bottom);
+  margin: var(--space-4) auto;
+  padding: var(--space-6) var(--panel-pad-x) var(--panel-pad-bottom);
   box-shadow: var(--shadow-panel);
 }
 
-/* Login and signup pages hold only a form, so their panel is narrow. */
-.main.narrow {
-  width: min(var(--page-width), 560px);
-}
+/* Pages laid out to fit the window: from 1280x800 up the panel is exactly
+   the window's height and the page never scrolls. Long lists scroll inside
+   their own box; the panel scrolls only when something unplanned, such as
+   several error lines, still does not fit. Smaller windows keep the page
+   scroll, because the fields' minimum sizes would overflow a fixed panel. */
+@media (min-width: 1280px) and (min-height: 800px) {
+  :global(body):has(.fit) {
+    height: 100%;
+  }
 
-.main.medium {
-  width: min(var(--page-width), 860px);
-}
-
-/* Reading and form pages: a line of text or an input stays a readable
-   length. */
-.main.reading {
-  width: min(var(--page-width), 960px);
-}
-
-/* Forms with a drawing or a photo card beside them. */
-.main.wide {
-  width: min(var(--page-width), 1280px);
+  .main.fit {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+  }
 }
 
 /* The one way back from a form or detail page: a chevron and the name of
@@ -58,9 +58,8 @@
 
 @media (max-width: 720px) {
   .main {
-    --panel-pad-bottom: var(--space-6);
-    gap: var(--space-4);
-    margin: var(--space-3) auto var(--space-5);
+    --panel-pad-bottom: var(--space-5);
+    margin: var(--space-3) auto;
     padding-top: var(--space-5);
   }
 

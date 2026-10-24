@@ -257,7 +257,7 @@ test("로그인·앱 안 이동·로그아웃 뒤에도 들판 배경은 같은 
   }
 });
 
-test("1920px 창에서 로그인한 글쓰기·일기 쓰기·반려견 추가 판의 보이는 폭은 페이지별 폭이다", async ({
+test("1920px 창에서 로그인한 글쓰기·일기 쓰기·반려견 추가 판의 보이는 폭은 홈과 같은 1680px이다", async ({
   page,
   context,
 }) => {
@@ -269,9 +269,9 @@ test("1920px 창에서 로그인한 글쓰기·일기 쓰기·반려견 추가 �
   expect(response.status()).toBe(200);
 
   for (const { path, heading, width } of [
-    { path: "/posts/new", heading: "글쓰기", width: 960 },
-    { path: "/diaries/new", heading: "오늘의 산책을 기록해요", width: 1280 },
-    { path: "/dogs/new", heading: "반려견 추가", width: 1280 },
+    { path: "/posts/new", heading: "글쓰기", width: 1680 },
+    { path: "/diaries/new", heading: "오늘의 산책을 기록해요", width: 1680 },
+    { path: "/dogs/new", heading: "반려견 추가", width: 1680 },
   ]) {
     await page.goto(path);
     await expect(page).toHaveURL(path);

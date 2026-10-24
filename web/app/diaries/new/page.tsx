@@ -15,17 +15,17 @@ import styles from "../diaries.module.css";
 const NewDiaryPage = () => {
   return (
     <main
-      className={`${layoutStyles.main} ${layoutStyles.wide} ${styles.newPage}`}
+      className={`${layoutStyles.main} ${styles.newPage}`}
     >
       <Link href="/diaries" className={layoutStyles.back}>
         <ChevronLeft />
         산책 일기
       </Link>
       <div>
-        <h1 className={`${headingStyles.title} ${headingStyles.formTitle}`}>
+        <h1 className={headingStyles.title}>
           오늘의 산책을 기록해요
         </h1>
-        <p className={`${headingStyles.lead} ${headingStyles.formLead}`}>
+        <p className={headingStyles.lead}>
           우리 아이와 함께한 소중한 순간을, 나만의 일기에 남겨보세요.
         </p>
       </div>

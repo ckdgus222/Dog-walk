@@ -28,7 +28,7 @@ const PostDetail = () => {
   return (
     <>
       <article className={styles.post} aria-label="게시글">
-        <h1 className={`${headingStyles.title} ${headingStyles.formTitle}`}>
+        <h1 className={headingStyles.title}>
           {post.title}
         </h1>
         <div className={styles.byline}>
@@ -71,7 +71,7 @@ const PostDetail = () => {
 };
 
 const PostPage = () => (
-  <main className={`${layoutStyles.main} ${layoutStyles.reading}`}>
+  <main className={layoutStyles.main}>
     <Link href="/posts" className={layoutStyles.back}>
       <ChevronLeft />
       게시판

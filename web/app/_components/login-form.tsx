@@ -58,11 +58,7 @@ export const LoginForm = ({
 
   return (
     <>
-      <Title
-        className={`${headingStyles.title} ${page ? "" : headingStyles.formTitle}`}
-      >
-        로그인
-      </Title>
+      <Title className={headingStyles.title}>로그인</Title>
       {!card && (
         <p
           className={`${headingStyles.lead} ${modal ? headingStyles.modalLead : ""}`}

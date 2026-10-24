@@ -6,16 +6,16 @@ import headingStyles from "../../_components/heading.module.css";
 import layoutStyles from "../../_components/layout.module.css";
 
 const NewPostPage = () => (
-  <main className={`${layoutStyles.main} ${layoutStyles.reading}`}>
+  <main className={layoutStyles.main}>
     <Link href="/posts" className={layoutStyles.back}>
       <ChevronLeft />
       게시판
     </Link>
     <div>
-      <h1 className={`${headingStyles.title} ${headingStyles.formTitle}`}>
+      <h1 className={headingStyles.title}>
         글쓰기
       </h1>
-      <p className={`${headingStyles.lead} ${headingStyles.formLead}`}>
+      <p className={headingStyles.lead}>
         우리 동네 강아지와 일상에 대한 이야기를 자유롭게 나눠주세요.
         <br />
         서로의 경험과 고민이 더 즐거운 산책 문화를 만들어갑니다.

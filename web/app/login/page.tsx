@@ -8,7 +8,7 @@ const LoginPage = () => {
   const router = useRouter();
 
   return (
-    <main className={`${layoutStyles.main} ${layoutStyles.narrow}`}>
+    <main className={layoutStyles.main}>
       <LoginForm onSuccess={() => router.push("/")} />
     </main>
   );

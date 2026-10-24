@@ -20,7 +20,7 @@ import styles from "./chat.module.css";
 
 const ChatPage = () => {
   return (
-    <main className={`${layoutStyles.main} ${layoutStyles.reading}`}>
+    <main className={layoutStyles.main}>
       <Link href="/walk-requests" className={layoutStyles.back}>
         <ChevronLeft />
         산책 요청

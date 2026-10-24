@@ -21,16 +21,16 @@ const EditPost = () => {
 };
 
 const EditPostPage = () => (
-  <main className={`${layoutStyles.main} ${layoutStyles.reading}`}>
+  <main className={layoutStyles.main}>
     <Link href="/posts" className={layoutStyles.back}>
       <ChevronLeft />
       게시판
     </Link>
     <div>
-      <h1 className={`${headingStyles.title} ${headingStyles.formTitle}`}>
+      <h1 className={headingStyles.title}>
         글 수정
       </h1>
-      <p className={`${headingStyles.lead} ${headingStyles.formLead}`}>
+      <p className={headingStyles.lead}>
         게시글을 수정하고 저장할 수 있습니다.
       </p>
     </div>
