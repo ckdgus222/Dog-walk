@@ -48,6 +48,7 @@
 
 .list {
   display: grid;
+  align-content: start;
   gap: var(--space-3);
 }
 
@@ -103,6 +104,35 @@
 .buttons {
   display: flex;
   gap: var(--space-2);
+}
+
+/* From 1280x800 up the two boxes take the height under the title, and each
+   box's requests scroll inside it. The drawing stays small beside the
+   title. */
+@media (min-width: 1280px) and (min-height: 800px) {
+  .page {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .head > img {
+    justify-self: end;
+    width: auto;
+    height: 120px;
+  }
+
+  .boxes {
+    align-items: stretch;
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .box {
+    grid-template-rows: auto minmax(0, 1fr);
+    min-height: 0;
+  }
+
+  .box > :last-child {
+    overflow-y: auto;
+  }
 }
 
 @media (max-width: 1023px) {

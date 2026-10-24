@@ -49,7 +49,9 @@ const emptyHints = {
 
 const WalkRequestsPage = () => {
   return (
-    <main className={layoutStyles.main}>
+    <main
+      className={`${layoutStyles.main} ${layoutStyles.fit} ${styles.page}`}
+    >
       <div className={styles.head}>
         <div>
           <h1 className={headingStyles.title}>산책 요청</h1>

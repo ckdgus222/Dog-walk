@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useLayoutEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { AuthGate } from "../_components/auth-gate";
@@ -19,6 +20,7 @@ import type { MyLocation, Neighbor } from "../../lib/types";
 import KakaoMap from "./kakao-map";
 import { NeighborList } from "./neighbor-list";
 import { NeighborDetail } from "./neighbor-detail";
+import walkScene from "../../public/illustrations/walking-drawing/walk-scene.png";
 import styles from "./map.module.css";
 
 // Keep marker inputs stable while the nearby list is unavailable.
@@ -26,7 +28,7 @@ const noNeighbors: Neighbor[] = [];
 
 const MapPage = () => {
   return (
-    <main className={`${layoutStyles.main} ${styles.page}`}>
+    <main className={`${layoutStyles.main} ${layoutStyles.fit} ${styles.page}`}>
       <div className={styles.head}>
         <h1 className={headingStyles.title}>내 주변 산책 친구</h1>
         <p className={headingStyles.lead}>
@@ -199,7 +201,7 @@ const LocationPanel = () => {
       </div>
       {/* The map with the neighbor list and the chosen neighbor beside it. */}
       <div className={styles.mapRow}>
-        {mapStarted && location.lat !== null && location.lng !== null && (
+        {mapStarted && location.lat !== null && location.lng !== null ? (
           <KakaoMap
             lat={location.lat}
             lng={location.lng}
@@ -208,6 +210,17 @@ const LocationPanel = () => {
             selectedId={selectedId}
             onSelect={setSelectedId}
           />
+        ) : (
+          // The map's place waits with the walk drawing instead of staying
+          // blank until the first location is saved.
+          <div className={styles.mapWaiting}>
+            <Image
+              src={walkScene}
+              alt=""
+              sizes="(max-width: 720px) 90vw, 640px"
+            />
+            <p>지도를 준비하고 있어요.</p>
+          </div>
         )}
         <div className={styles.columns}>
           {!sentWhileVisible ? (

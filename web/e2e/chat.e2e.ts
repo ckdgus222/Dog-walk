@@ -457,3 +457,112 @@ test("1:1 채팅·전송 대기·조회 경쟁·알림·재접속·인증 갱신
       if (result.status === "rejected") throw result.reason;
   }
 });
+
+test("창 높이에 맞춘 채팅은 상대 반려견 정보가 늦게 와도 마지막 메시지를 보여 준다", async ({
+  page,
+  context,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 800 });
+  const runId = `${Date.now().toString(36)}${randomUUID().slice(0, 6)}`;
+  const account = {
+    email: `chat-fit-${runId}@example.com`,
+    nickname: `채팅창${runId}`,
+    password: randomUUID().slice(0, 20),
+  };
+  const signup = await context.request.post("/api/auth/signup", {
+    data: {
+      ...account,
+      dog: {
+        name: "창두부",
+        breed: "푸들",
+        size: "SMALL",
+        gender: "FEMALE",
+        neutered: true,
+        birthYear: 2022,
+        personality: "함께 걸어요.",
+      },
+    },
+  });
+  expect(signup.status()).toBe(201);
+  const me = (await signup.json()).id as number;
+  const login = await context.request.post("/api/auth/login", {
+    data: { email: account.email, password: account.password },
+  });
+  expect(login.status()).toBe(200);
+
+  // A made-up room: enough messages to scroll, and the counterpart's dog
+  // held back so the head grows after the list has scrolled to the end.
+  const roomId = 2_000_000_000;
+  const counterpart = { id: me + 1, nickname: "상대방" };
+  const history: ChatHistory = {
+    counterpart,
+    messages: Array.from({ length: 20 }, (_, index) => ({
+      id: index + 1,
+      walkRequestId: roomId,
+      senderId: index % 2 ? me : counterpart.id,
+      senderNickname: index % 2 ? account.nickname : counterpart.nickname,
+      content: `메시지 ${index + 1}`,
+      createdAt: new Date(2026, 9, 25, 9, index).toISOString(),
+    })),
+  };
+  await page.route(`**/api/walk-requests/${roomId}/messages`, (route) =>
+    route.fulfill({ json: history }),
+  );
+  let releaseDog = () => {};
+  const dogArrives = new Promise<void>((resolve) => (releaseDog = resolve));
+  await page.route("**/api/walk-requests?box=*", async (route) => {
+    const box = new URL(route.request().url()).searchParams.get("box");
+    if (box !== "sent") return route.fulfill({ json: [] });
+    await dogArrives;
+    await route.fulfill({
+      json: [
+        {
+          id: roomId,
+          status: "ACCEPTED",
+          message: null,
+          createdAt: new Date().toISOString(),
+          respondedAt: new Date().toISOString(),
+          counterpart: {
+            ...counterpart,
+            dogs: [
+              {
+                id: 1,
+                name: "늦은콩이",
+                breed: "말티즈",
+                size: "SMALL",
+                gender: "FEMALE",
+                neutered: true,
+                birthYear: 2023,
+                personality: "작지만 씩씩하게 잘 걸어요.",
+                photoUrl: null,
+              },
+            ],
+          },
+        },
+      ],
+    });
+  });
+
+  // No socket at all: connecting would reload the history and remove the
+  // "연결하고 있어요." line, either of which moves the list by itself and
+  // would hide a list that stopped short.
+  await page.routeWebSocket(
+    (url) => url.pathname === "/socket.io/",
+    () => {},
+  );
+  await page.route("**/socket.io/**", (route) => route.abort());
+
+  await page.goto(`/chat/${roomId}`);
+  const list = page.getByRole("list", { name: "채팅 메시지" });
+  await expect(list.getByText("메시지 20", { exact: true })).toBeVisible();
+  releaseDog();
+  await expect(page.getByText("작지만 씩씩하게 잘 걸어요.")).toBeVisible();
+  await expect
+    .poll(() =>
+      list.evaluate(
+        (element) =>
+          element.scrollHeight - element.scrollTop - element.clientHeight,
+      ),
+    )
+    .toBeLessThanOrEqual(1);
+});

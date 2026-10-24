@@ -20,7 +20,9 @@ import styles from "./chat.module.css";
 
 const ChatPage = () => {
   return (
-    <main className={layoutStyles.main}>
+    <main
+      className={`${layoutStyles.main} ${layoutStyles.fit} ${styles.page}`}
+    >
       <Link href="/walk-requests" className={layoutStyles.back}>
         <ChevronLeft />
         산책 요청
@@ -82,6 +84,26 @@ const ChatRoom = ({ walkRequestId }: { walkRequestId: number }) => {
     if (list.current) list.current.scrollTop = list.current.scrollHeight;
   }, [history.data?.messages]);
 
+  // In a window-high panel the list shrinks when the head grows, such as
+  // when the counterpart's dog arrives after the messages. Stay on the
+  // newest message if it was showing before the list shrank.
+  const loaded = !!history.data;
+  useEffect(() => {
+    const element = list.current;
+    if (!element) return;
+    let height = element.clientHeight;
+    const observer = new ResizeObserver(() => {
+      const shrunk = height - element.clientHeight;
+      height = element.clientHeight;
+      const fromBottom =
+        element.scrollHeight - element.scrollTop - element.clientHeight;
+      if (shrunk > 0 && fromBottom <= shrunk + 1)
+        element.scrollTop = element.scrollHeight;
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [loaded]);
+
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (
@@ -128,6 +150,9 @@ const ChatRoom = ({ walkRequestId }: { walkRequestId: number }) => {
               message.senderId === user?.id ? styles.mine : styles.theirs
             }
           >
+            {message.senderId !== user?.id && (
+              <PersonFace userId={message.senderId} size={48} />
+            )}
             <strong>{message.senderNickname}</strong>
             <p>{message.content}</p>
             <time dateTime={message.createdAt}>

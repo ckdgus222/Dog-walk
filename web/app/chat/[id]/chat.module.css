@@ -72,8 +72,15 @@
   overflow-wrap: anywhere;
 }
 
+/* The other person's face sits left of their name and bubble. */
 .theirs {
   align-self: flex-start;
+}
+
+.theirs > img {
+  grid-row: 1 / span 2;
+  grid-column: 1;
+  align-self: start;
 }
 
 .mine {
@@ -86,13 +93,8 @@
   font-size: var(--text-lg);
 }
 
-.theirs strong,
-.theirs p {
-  grid-column: 1;
-}
-
-.mine strong,
-.mine p {
+.messages strong,
+.messages p {
   grid-column: 2;
 }
 
@@ -148,7 +150,7 @@
 }
 
 .theirs time {
-  grid-column: 2;
+  grid-column: 3;
 }
 
 .mine time {
@@ -188,7 +190,25 @@
   grid-column: 1 / -1;
 }
 
+/* From 1280x800 up the messages take the height between the head and the
+   message box; they always scroll inside their own list, so a new message
+   can scroll it to the bottom. */
+@media (min-width: 1280px) and (min-height: 800px) {
+  .page {
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+  }
+
+  .messages {
+    height: auto;
+  }
+}
+
 @media (max-width: 720px) {
+  .theirs > img {
+    width: 32px;
+    height: 32px;
+  }
+
   .head {
     grid-template-areas:
       "face title"

@@ -49,16 +49,13 @@
   gap: var(--space-5);
 }
 
-.mapRow > :only-child {
-  grid-column: 1 / -1;
-}
-
 .mapFrame {
   position: relative;
 }
 
 .map,
-.mapFallback {
+.mapFallback,
+.mapWaiting {
   width: 100%;
   height: 620px;
   border-radius: var(--radius-md);
@@ -70,6 +67,21 @@
 .mapFallback {
   display: grid;
   place-items: center;
+}
+
+/* The map's place before the first location is saved. */
+.mapWaiting {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  color: var(--muted);
+}
+
+.mapWaiting img {
+  width: min(100%, 640px);
+  height: auto;
 }
 
 /* Kakao has no map styling API, so only the tile images are toned.
@@ -347,6 +359,46 @@
   font-weight: 400;
 }
 
+/* From 1280x800 up the map takes the height under the title, and the list
+   and the chosen neighbor share the column beside it, each scrolling in its
+   own box. An error gets a row of its own above the map. */
+@media (min-width: 1280px) and (min-height: 800px) {
+  .page {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .page:has(> [role="alert"]) {
+    grid-template-rows: auto auto minmax(0, 1fr);
+  }
+
+  .page > .mapRow {
+    grid-row: -2;
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .map,
+  .mapFallback,
+  .mapWaiting {
+    height: 100%;
+  }
+
+  .mapWaiting img {
+    min-height: 0;
+    max-height: 70%;
+    width: auto;
+    max-width: 100%;
+  }
+
+  .columns {
+    grid-template-rows: minmax(0, 2fr) minmax(0, 3fr);
+  }
+
+  .columns > * {
+    overflow-y: auto;
+  }
+}
+
 /* Narrower windows put the list column under the map. */
 @media (max-width: 1279px) {
   .mapRow {
@@ -354,7 +406,8 @@
   }
 
   .map,
-  .mapFallback {
+  .mapFallback,
+  .mapWaiting {
     height: 460px;
   }
 }
@@ -374,7 +427,8 @@
   }
 
   .map,
-  .mapFallback {
+  .mapFallback,
+  .mapWaiting {
     height: 360px;
   }
 
