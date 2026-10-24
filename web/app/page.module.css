@@ -91,26 +91,21 @@
   color: var(--text);
 }
 
-/* Guest home: the welcome on the left, the login card on the right, both
-   over the field scene. */
+/* Guest home: one sheet of paper as wide as every page's panel, the
+   welcome on the left and the login form on the right. It is only as tall
+   as its content, so the field scene shows below it. */
 .guest {
+  composes: panel from "./_components/ui.module.css";
   display: grid;
-  /* The card and gap narrow with the window down to 900px. */
-  grid-template-columns: minmax(0, 1fr) clamp(380px, 36vw, 420px);
-  align-items: start;
+  /* The form column and gap narrow with the window down to 900px. */
+  grid-template-columns: minmax(0, 1fr) clamp(340px, 32vw, 400px);
+  align-items: center;
   column-gap: clamp(40px, 5vw, 64px);
   width: var(--page-width);
-  margin: 0 auto;
-  /* The header's side padding, so the welcome starts under the logo. */
-  padding: var(--space-8) var(--panel-pad-x) var(--space-7);
-}
-
-/* The welcome sits on a sheet of paper over the field, under a round
-   title font. */
-.welcome {
-  composes: panel from "./_components/ui.module.css";
-  padding: var(--space-6);
+  margin: var(--space-4) auto;
+  padding: var(--space-7) var(--panel-pad-x);
   box-shadow: var(--shadow-panel);
+  animation: card-rise 0.5s ease-out both;
 }
 
 .eyebrow {
@@ -163,14 +158,13 @@
   font-size: var(--text-md);
 }
 
+/* A line splits the welcome from the form. */
 .loginCard {
-  composes: panel from "./_components/ui.module.css";
-  padding: var(--space-6) var(--space-6) var(--space-5);
-  box-shadow: var(--shadow-panel);
-  animation: card-rise 0.5s ease-out both;
+  padding-left: clamp(40px, 5vw, 64px);
+  border-left: 1px solid var(--line);
 }
 
-/* Tablets in portrait put the card under the welcome. */
+/* Tablets in portrait put the form under the welcome. */
 @media (max-width: 900px) {
   .guest {
     grid-template-columns: 1fr;
@@ -178,8 +172,9 @@
   }
 
   .loginCard {
-    justify-self: center;
-    width: min(100%, 440px);
+    padding: var(--space-6) 0 0;
+    border-top: 1px solid var(--line);
+    border-left: 0;
   }
 }
 
@@ -191,7 +186,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .loginCard {
+  .guest {
     animation: none;
   }
 }
@@ -210,12 +205,9 @@
 
 @media (max-width: 720px) {
   .guest {
-    padding-top: var(--space-5);
+    margin: var(--space-3) auto;
+    padding: var(--space-5) var(--panel-pad-x);
     row-gap: var(--space-5);
-  }
-
-  .welcome {
-    padding: var(--space-5) var(--space-4);
   }
 
   .welcome .title {
@@ -249,7 +241,7 @@
   }
 
   .loginCard {
-    padding: var(--space-5) var(--space-4) var(--space-4);
+    padding-top: var(--space-5);
   }
 
   .hero {
