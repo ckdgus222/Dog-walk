@@ -4,17 +4,18 @@ import { ChevronLeft } from "../../_components/icons";
 import PostForm from "../post-form";
 import headingStyles from "../../_components/heading.module.css";
 import layoutStyles from "../../_components/layout.module.css";
+import styles from "../posts.module.css";
 
 const NewPostPage = () => (
-  <main className={layoutStyles.main}>
+  <main
+    className={`${layoutStyles.main} ${layoutStyles.fit} ${styles.formPage}`}
+  >
     <Link href="/posts" className={layoutStyles.back}>
       <ChevronLeft />
       게시판
     </Link>
     <div>
-      <h1 className={headingStyles.title}>
-        글쓰기
-      </h1>
+      <h1 className={headingStyles.title}>글쓰기</h1>
       <p className={headingStyles.lead}>
         우리 동네 강아지와 일상에 대한 이야기를 자유롭게 나눠주세요.
         <br />

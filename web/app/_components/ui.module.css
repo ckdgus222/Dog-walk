@@ -130,9 +130,10 @@
 
 /* Rows inside a .list: no outline of their own, only a wobbly line between
    them, so a long list draws one filter per row instead of four. */
+/* A list that needs shorter rows sets --row-pad-block on its row class. */
 .listRow {
   position: relative;
-  padding: var(--space-4) var(--space-5);
+  padding: var(--row-pad-block, var(--space-4)) var(--space-5);
 }
 
 /* The end rows follow the box's corners, so a row background stays

@@ -153,11 +153,13 @@ export const Comments = ({ postId }: { postId: number }) => {
       <h2>
         댓글 {query.data && <span>{query.data.length}</span>}
       </h2>
-      {query.error && <p role="alert">{query.error.message}</p>}
-      {query.isPending && <p role="status">댓글을 불러오고 있어요.</p>}
-      {query.data?.map((comment) => (
-        <CommentItem key={comment.id} comment={comment} />
-      ))}
+      <div className={styles.commentList}>
+        {query.error && <p role="alert">{query.error.message}</p>}
+        {query.isPending && <p role="status">댓글을 불러오고 있어요.</p>}
+        {query.data?.map((comment) => (
+          <CommentItem key={comment.id} comment={comment} />
+        ))}
+      </div>
       <form className={styles.commentForm} onSubmit={handleSubmit}>
         <label className={`${formStyles.control} ${formStyles.counted}`}>
           <span className={formStyles.visuallyHidden}>댓글 내용</span>

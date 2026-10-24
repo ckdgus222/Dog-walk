@@ -74,7 +74,7 @@ const PostForm = ({ post }: { post?: Post }) => {
             )}
           </span>
         </label>
-        <label>
+        <label className={styles.bodyField}>
           <span className={styles.fieldLabel}>
             {post ? "내용" : "본문"}
             <span

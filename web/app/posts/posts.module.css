@@ -1,21 +1,24 @@
-/* List: the posts beside a column with an invitation and a reminder. */
-.board {
+/* List: ten short rows under a line of column names, so a full page fits
+   the window at 1440x800 (docs/screen-fit-and-features.md). */
+.columns,
+.row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  align-items: start;
-  gap: var(--space-5);
+  grid-template-columns: minmax(0, 1fr) 180px 120px 48px 16px;
+  align-items: center;
+  gap: var(--space-4);
 }
 
-.listColumn {
-  display: grid;
-  gap: var(--space-5);
+.columns {
+  height: 36px;
+  padding: 0 var(--space-5);
+  border-bottom: 1.5px solid var(--line);
+  color: var(--muted);
+  font-size: var(--text-sm);
 }
 
 .row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 150px 120px 48px 16px;
-  align-items: center;
-  gap: var(--space-4);
+  --row-pad-block: 0;
+  height: 40px;
 }
 
 .row > svg {
@@ -88,22 +91,17 @@
   color: var(--accent);
 }
 
-.side {
+/* Detail: the post on the left, its comments on the right. */
+.detail {
   display: grid;
-  gap: var(--space-4);
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: var(--space-6);
 }
 
-.invite {
-  display: grid;
-  justify-items: center;
-  gap: var(--space-2);
-  text-align: center;
-}
-
-/* Detail */
 .post {
   display: grid;
   grid-template-columns: 1fr auto;
+  align-content: start;
   align-items: center;
   gap: var(--space-4) var(--space-5);
 }
@@ -136,8 +134,9 @@
 
 .post > .content {
   grid-column: 1 / -1;
-  padding: var(--space-6) 0;
-  border-block: 1px solid var(--line);
+  align-self: stretch;
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--line);
   font-size: var(--text-lg);
   line-height: 1.7;
 }
@@ -146,7 +145,14 @@
   grid-column: 1 / -1;
 }
 
-/* Comments */
+/* Comments: the count, the list and the form under it. */
+.comments {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  padding-left: var(--space-6);
+  border-left: 1px solid var(--line);
+}
+
 .comments > h2 {
   margin-bottom: var(--space-1);
   color: var(--ink);
@@ -192,10 +198,10 @@
 
 .commentForm {
   display: grid;
-  grid-template-columns: 1fr 160px;
+  grid-template-columns: 1fr 120px;
   align-items: start;
   gap: var(--space-3);
-  margin-top: var(--space-5);
+  margin-top: var(--space-4);
 }
 
 .commentForm textarea {
@@ -236,13 +242,13 @@
 }
 
 .fields textarea {
-  height: 335px;
+  height: var(--body-height, 335px);
   line-height: 1.7;
   resize: none;
 }
 
-.editForm .fields textarea {
-  height: 310px;
+.editForm {
+  --body-height: 310px;
 }
 
 .formActions {
@@ -260,21 +266,61 @@
   grid-template-columns: 340px 1fr;
 }
 
-/* Narrower windows put the side column under the list. */
-@media (max-width: 1279px) {
-  .board {
+/* In a window-high panel the post body and the comment list scroll inside
+   their columns. */
+@media (min-width: 1280px) and (min-height: 800px) {
+  .detailPage {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .comments {
+    min-height: 0;
+  }
+
+  .post {
+    grid-template-rows: auto auto minmax(0, 1fr);
+    min-height: 0;
+  }
+
+  /* Write and edit: the body field takes the height left under the title
+     field and above the buttons. */
+  .formPage {
+    grid-template-rows: auto auto minmax(0, 1fr);
+  }
+
+  .formPage > form {
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .fields {
+    --body-height: 100%;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .bodyField {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .post > .content,
+  .commentList {
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 1023px) {
+  .detail {
     grid-template-columns: 1fr;
   }
 
-  .side {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: start;
+  .comments {
+    padding-left: 0;
+    border-left: 0;
   }
 }
 
 @media (max-width: 720px) {
-  .side {
-    grid-template-columns: 1fr;
+  .columns {
+    display: none;
   }
 
   .count svg {
@@ -290,12 +336,13 @@
     order: -1;
   }
 
-  .fields textarea,
-  .editForm .fields textarea {
-    height: 220px;
+  .fields {
+    --body-height: 220px;
   }
 
   .row {
+    --row-pad-block: var(--space-3);
+    height: auto;
     grid-template-columns: auto auto 1fr 20px;
     gap: var(--space-1) var(--space-3);
   }

@@ -182,17 +182,19 @@ describe('Posts and comments (e2e)', () => {
         { postId: posts[44].id, authorId: author.id, content: '댓글2' },
       ],
     });
+    // Ten a page: page 3 crosses from the newer date to the older one.
     for (const [page, expected] of [
-      [1, posts.slice(25).reverse()],
-      [3, posts.slice(0, 5).reverse()],
-      [4, []],
+      [1, posts.slice(35).reverse()],
+      [3, posts.slice(15, 25).reverse()],
+      [5, posts.slice(0, 5).reverse()],
+      [6, []],
     ] as const) {
       const response = await request(app.getHttpServer())
         .get(`/api/posts?page=${page}`)
         .set('Authorization', author.authorization)
         .expect(200);
       expect(response.body.page).toBe(page);
-      expect(response.body.totalPages).toBe(3);
+      expect(response.body.totalPages).toBe(5);
       expect(
         response.body.posts.map((post: { id: number }) => post.id),
       ).toEqual(expected.map((post) => post.id));

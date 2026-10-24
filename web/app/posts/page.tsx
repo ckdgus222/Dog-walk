@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
@@ -13,7 +12,6 @@ import {
   ArrowRight,
   ChatIcon,
   ChevronRight,
-  InfoIcon,
 } from "../_components/icons";
 import headingStyles from "../_components/heading.module.css";
 import layoutStyles from "../_components/layout.module.css";
@@ -45,6 +43,13 @@ const PostList = () => {
       {query.isPending && <p role="status">글을 불러오고 있어요.</p>}
       {!!query.data?.posts.length && (
         <div className={uiStyles.list}>
+          {/* Screen readers get each column's meaning from the row itself. */}
+          <p className={styles.columns} aria-hidden="true">
+            <span>제목</span>
+            <span>작성자</span>
+            <span>작성일</span>
+            <span>댓글</span>
+          </p>
           {query.data.posts.map((post) => (
             <article
               key={post.id}
@@ -133,7 +138,7 @@ const PostList = () => {
 };
 
 const PostsPage = () => (
-  <main className={layoutStyles.main}>
+  <main className={`${layoutStyles.main} ${layoutStyles.fit}`}>
     <div className={layoutStyles.head}>
       <div>
         <h1 className={headingStyles.title}>게시판</h1>
@@ -141,36 +146,16 @@ const PostsPage = () => (
           우리 동네 반려인들과 자유롭게 이야기를 나눠요.
         </p>
       </div>
-      <Link
-        href="/posts/new"
-        className={layoutStyles.headAction}
-      >
+      <Link href="/posts/new" className={layoutStyles.headAction}>
         글쓰기
         <ArrowRight />
       </Link>
     </div>
-    <div className={styles.board}>
-      <div className={styles.listColumn}>
-        <AuthGate>
-          <Suspense fallback={<p role="status">글을 불러오고 있어요.</p>}>
-            <PostList />
-          </Suspense>
-        </AuthGate>
-      </div>
-      <aside className={styles.side}>
-        <div className={`${uiStyles.card} ${styles.invite}`}>
-          <Image src={communityChat} alt="" width={88} height={88} />
-          <h2 className={uiStyles.cardTitle}>이야기를 나눠요</h2>
-          <p className={uiStyles.meta}>
-            산책 길, 강아지 습관, 동네 소식 무엇이든 좋아요.
-          </p>
-        </div>
-        <p className={uiStyles.notice}>
-          <InfoIcon size={24} />
-          서로 존중하는 말로 이야기해 주세요.
-        </p>
-      </aside>
-    </div>
+    <AuthGate>
+      <Suspense fallback={<p role="status">글을 불러오고 있어요.</p>}>
+        <PostList />
+      </Suspense>
+    </AuthGate>
   </main>
 );
 export default PostsPage;

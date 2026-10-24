@@ -9,6 +9,7 @@ import { ChevronLeft } from "../../../_components/icons";
 import PostForm from "../../post-form";
 import headingStyles from "../../../_components/heading.module.css";
 import layoutStyles from "../../../_components/layout.module.css";
+import styles from "../../posts.module.css";
 
 const EditPost = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,15 +22,15 @@ const EditPost = () => {
 };
 
 const EditPostPage = () => (
-  <main className={layoutStyles.main}>
+  <main
+    className={`${layoutStyles.main} ${layoutStyles.fit} ${styles.formPage}`}
+  >
     <Link href="/posts" className={layoutStyles.back}>
       <ChevronLeft />
       게시판
     </Link>
     <div>
-      <h1 className={headingStyles.title}>
-        글 수정
-      </h1>
+      <h1 className={headingStyles.title}>글 수정</h1>
       <p className={headingStyles.lead}>
         게시글을 수정하고 저장할 수 있습니다.
       </p>

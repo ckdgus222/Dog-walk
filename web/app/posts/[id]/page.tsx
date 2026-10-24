@@ -25,15 +25,15 @@ const PostDetail = () => {
   if (!query.data) return <p role="status">글을 불러오고 있어요.</p>;
   const post = query.data;
 
+  // The post and its comments side by side, each scrolling in its own
+  // column, so a long post or many comments never scroll the page.
   return (
-    <>
+    <div className={styles.detail}>
       <article className={styles.post} aria-label="게시글">
-        <h1 className={headingStyles.title}>
-          {post.title}
-        </h1>
+        <h1 className={headingStyles.title}>{post.title}</h1>
         <div className={styles.byline}>
           <p className={styles.author}>
-            <PersonFace userId={post.author.id} size={32} />
+            <PersonFace userId={post.author.id} size={48} />
             {post.author.nickname}
           </p>
           <time className={uiStyles.meta} dateTime={post.createdAt}>
@@ -42,10 +42,7 @@ const PostDetail = () => {
         </div>
         {userId === post.author.id && (
           <div className={styles.actions}>
-            <Link
-              href={`/posts/${post.id}/edit`}
-              className={primaryButton}
-            >
+            <Link href={`/posts/${post.id}/edit`} className={primaryButton}>
               글 수정
             </Link>
             <button
@@ -66,12 +63,14 @@ const PostDetail = () => {
         {remove.error && <p role="alert">{remove.error.message}</p>}
       </article>
       <Comments key={post.id} postId={post.id} />
-    </>
+    </div>
   );
 };
 
 const PostPage = () => (
-  <main className={layoutStyles.main}>
+  <main
+    className={`${layoutStyles.main} ${layoutStyles.fit} ${styles.detailPage}`}
+  >
     <Link href="/posts" className={layoutStyles.back}>
       <ChevronLeft />
       게시판
