@@ -31,8 +31,9 @@ const DiaryDetail = () => {
   return (
     <>
       <h1 className={`${headingStyles.title} ${styles.dateTitle}`}>
-        {formatTitleDate(diary.walkedOn)}
+        {diary.title}
       </h1>
+      <p>{formatTitleDate(diary.walkedOn)}</p>
       <div className={styles.meta}>
         <div className={styles.dog}>
           {dog && (

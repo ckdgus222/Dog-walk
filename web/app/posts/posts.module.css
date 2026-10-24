@@ -75,22 +75,6 @@
   display: none;
 }
 
-.pages {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-4);
-}
-
-.pages > .off {
-  opacity: 0.6;
-  cursor: default;
-}
-
-.pages strong {
-  color: var(--accent);
-}
-
 /* Detail: the post on the left, its comments on the right. */
 .detail {
   display: grid;

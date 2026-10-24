@@ -11,6 +11,13 @@ import {
 } from 'class-validator';
 
 export class DiaryDto {
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim() : value,
+  )
+  @IsString()
+  @Length(1, 50)
+  title: string;
+
   @IsInt()
   @Min(1)
   dogId: number;

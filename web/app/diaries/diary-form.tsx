@@ -40,6 +40,11 @@ const DiaryForm = ({ diary }: { diary?: Diary }) => {
     save.reset();
     if (photoError) return;
     const fields = new FormData(event.currentTarget);
+    const title = String(fields.get("title") ?? "").trim();
+    if (!title) {
+      setError("제목을 입력해 주세요.");
+      return;
+    }
     const content = String(fields.get("content") ?? "").trim();
     if (!content) {
       setError("글을 입력해 주세요.");
@@ -51,6 +56,7 @@ const DiaryForm = ({ diary }: { diary?: Diary }) => {
       JSON.stringify({
         dogId: Number(fields.get("dogId")),
         walkedOn: fields.get("walkedOn"),
+        title,
         content,
         ...(diary ? { removeImageIds } : {}),
       }),
@@ -140,6 +146,17 @@ const DiaryForm = ({ diary }: { diary?: Diary }) => {
             </span>
           </label>
         </div>
+        <label>
+          제목
+          <span className={formStyles.control}>
+            <input
+              name="title"
+              required
+              maxLength={50}
+              defaultValue={diary?.title ?? ""}
+            />
+          </span>
+        </label>
         <label>
           {diary ? "일기 내용" : "글"}
           <span className={`${formStyles.control} ${formStyles.counted}`}>

@@ -1,17 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiFetch, apiRequest, responseError } from "../auth";
-import type { Diary } from "../types";
+import type { Diary, DiaryList } from "../types";
 
 const allDiariesKey = ["diaries"];
 const diaryListKey = ["diaries", "list"];
 const diaryDetailKey = (id: number) => ["diaries", "detail", id];
 
-export const useDiaries = (dogId?: number) => {
-  const query = dogId === undefined ? "" : `?dogId=${dogId}`;
+export const useDiaries = (dogId?: number, page = 1) => {
+  const query = new URLSearchParams({ page: String(page) });
+  if (dogId !== undefined) query.set("dogId", String(dogId));
   return useQuery({
-    queryKey: [...diaryListKey, dogId ?? "all"],
+    queryKey: [...diaryListKey, dogId ?? "all", page],
     queryFn: ({ signal }) =>
-      apiRequest<Diary[]>(`/api/diaries${query}`, { signal }),
+      apiRequest<DiaryList>(`/api/diaries?${query}`, { signal }),
   });
 };
 

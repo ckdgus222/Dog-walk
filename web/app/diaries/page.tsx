@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { AuthGate } from "../_components/auth-gate";
 import { DogFace } from "../_components/dog-card";
 import { EmptyState } from "../_components/empty-state";
@@ -9,6 +10,7 @@ import headingStyles from "../_components/heading.module.css";
 import { ArrowRight } from "../_components/icons";
 import formStyles from "../_components/form.module.css";
 import layoutStyles from "../_components/layout.module.css";
+import { Pager } from "../_components/pager";
 import uiStyles from "../_components/ui.module.css";
 import { useMyDogs } from "../../lib/api/dogs";
 import { useDiaries } from "../../lib/api/diaries";
@@ -17,10 +19,23 @@ import { formatListDate } from "./diary-date";
 import diaryBook from "../../public/illustrations/walking-drawing/diary-book.svg";
 import styles from "./diaries.module.css";
 
+// The list's page and dog filter live in the address, so a page can be
+// linked and the back button returns to it.
+const listHref = (page: number, dogId?: number) => {
+  const query = new URLSearchParams({ page: String(page) });
+  if (dogId !== undefined) query.set("dogId", String(dogId));
+  return `/diaries?${query}`;
+};
+
 const DiaryList = () => {
-  const [dogId, setDogId] = useState<number>();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const page = Number(searchParams.get("page") ?? "1");
+  const dogId = searchParams.has("dogId")
+    ? Number(searchParams.get("dogId"))
+    : undefined;
   const dogs = useMyDogs();
-  const query = useDiaries(dogId);
+  const query = useDiaries(dogId, page);
 
   return (
     <>
@@ -29,7 +44,7 @@ const DiaryList = () => {
           type="button"
           className={uiStyles.chip}
           aria-pressed={dogId === undefined}
-          onClick={() => setDogId(undefined)}
+          onClick={() => router.push(listHref(1))}
         >
           전체
         </button>
@@ -39,7 +54,7 @@ const DiaryList = () => {
             type="button"
             className={uiStyles.chip}
             aria-pressed={dogId === dog.id}
-            onClick={() => setDogId(dog.id)}
+            onClick={() => router.push(listHref(1, dog.id))}
           >
             {dog.name}
           </button>
@@ -48,7 +63,7 @@ const DiaryList = () => {
       {dogs.error && <p role="alert">{dogs.error.message}</p>}
       {query.error && <p role="alert">{query.error.message}</p>}
       {query.isPending && <p role="status">일기를 불러오고 있어요.</p>}
-      {query.isSuccess && query.data.length === 0 && (
+      {query.isSuccess && page === 1 && query.data.diaries.length === 0 && (
         <EmptyState
           image={diaryBook}
           title="아직 일기가 없어요."
@@ -56,9 +71,9 @@ const DiaryList = () => {
           action={{ href: "/diaries/new", label: "첫 일기 쓰기" }}
         />
       )}
-      {!!query.data?.length && (
+      {!!query.data?.diaries.length && (
         <div className={styles.list}>
-          {query.data.map((diary) => {
+          {query.data.diaries.map((diary) => {
             const order =
               dogs.data?.findIndex((dog) => dog.id === diary.dog.id) ?? -1;
             const dog = dogs.data?.[order];
@@ -80,9 +95,10 @@ const DiaryList = () => {
                       </p>
                     </div>
                   )}
-                  <h2 className={uiStyles.cardTitle}>
+                  <h2 className={uiStyles.cardTitle}>{diary.title}</h2>
+                  <p className={uiStyles.meta}>
                     {formatListDate(diary.walkedOn)}
-                  </h2>
+                  </p>
                   <p className={styles.dog}>
                     {dog && (
                       <DogFace
@@ -108,6 +124,15 @@ const DiaryList = () => {
           })}
         </div>
       )}
+      {query.data && (
+        <Pager
+          label="산책 일기 페이지"
+          page={page}
+          totalPages={query.data.totalPages}
+          href={(to) => listHref(to, dogId)}
+          emptyText="이 페이지에는 일기가 없어요."
+        />
+      )}
     </>
   );
 };
@@ -128,7 +153,9 @@ const DiariesPage = () => (
       </Link>
     </div>
     <AuthGate>
-      <DiaryList />
+      <Suspense fallback={<p role="status">일기를 불러오고 있어요.</p>}>
+        <DiaryList />
+      </Suspense>
     </AuthGate>
   </main>
 );
