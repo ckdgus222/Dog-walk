@@ -72,35 +72,43 @@ const features = [
 // Guests can only sign in or sign up, so their home introduces the service
 // over the intro's field and asks them to log in.
 const GuestHome = () => (
-  <main>
-    <div className={styles.guest}>
-      <div className={styles.welcome}>
-        <p className={styles.eyebrow}>우리 동네 반려견 산책 친구</p>
-        <Title />
-        <p className={styles.intro}>
-          1km 안에서 함께 걸을 이웃을 찾고, 산책한 날은 사진과 함께 일기로
-          남겨요.
-        </p>
-        <ul className={styles.features}>
-          {features.map(({ face, name, detail }) => (
-            <li key={name}>
-              <Image
-                src={face}
-                alt=""
-                width={48}
-                height={48}
-                className={uiStyles.face}
-              />
-              <strong>{name}</strong>
-              <span>{detail}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-      <section className={styles.loginCard}>
-        {/* Logging in turns this same page into the dashboard. */}
-        <LoginForm variant="card" onSuccess={() => {}} />
-      </section>
+  <main className={styles.guest}>
+    <div className={styles.welcome}>
+      <p className={styles.eyebrow}>우리 동네 반려견 산책 친구</p>
+      <Title />
+      <p className={styles.intro}>
+        1km 안에서 함께 걸을 이웃을 찾고, 산책한 날은 사진과 함께 일기로
+        남겨요.
+      </p>
+      <ul className={styles.features}>
+        {features.map(({ face, name, detail }) => (
+          <li key={name}>
+            <Image
+              src={face}
+              alt=""
+              width={48}
+              height={48}
+              className={uiStyles.face}
+            />
+            <strong>{name}</strong>
+            <span>{detail}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+    <section className={styles.loginCard}>
+      {/* Logging in turns this same page into the dashboard. */}
+      <LoginForm variant="card" onSuccess={() => {}} />
+    </section>
+    {/* The walk by the river stands on the bottom of the sheet and takes
+        the height left under the welcome. */}
+    <div className={styles.guestScene}>
+      <SceneImage
+        wide={homeScene}
+        narrow={homeSceneMobile}
+        narrowMedia="(max-width: 720px)"
+        wideSizes="(max-width: 1679px) 90vw, 1600px"
+      />
     </div>
   </main>
 );

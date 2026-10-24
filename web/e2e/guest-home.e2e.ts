@@ -32,7 +32,7 @@ const createAccount = async (request: APIRequestContext) => {
   return account;
 };
 
-test("비회원 홈에 소개 세 줄과 로그인 카드가 있고 산책 그림 대신 들판이 보인다", async ({
+test("비회원 홈에 소개 세 줄과 로그인 카드, 들판 배경과 강변 산책 그림이 있다", async ({
   page,
 }) => {
   await page.goto("/");
@@ -74,7 +74,7 @@ test("비회원 홈에 소개 세 줄과 로그인 카드가 있고 산책 그�
   const scene = page.locator(fieldSceneSelector);
   await expect(scene).toHaveCount(1);
   await expect(scene.locator('img[src*="field."]')).toBeVisible();
-  await expect(main.locator('img[src*="home-scene"]')).toHaveCount(0);
+  await expect(main.locator('img[src*="home-scene"]')).toBeVisible();
 });
 
 test("홈 카드에서 로그인하면 주소가 그대로이고 대시보드가 보인다", async ({

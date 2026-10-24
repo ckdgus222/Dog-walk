@@ -91,21 +91,60 @@
   color: var(--text);
 }
 
-/* Guest home: one sheet of paper as wide as every page's panel, the
-   welcome on the left and the login form on the right. It is only as tall
-   as its content, so the field scene shows below it. */
+/* Guest home: one sheet of paper the size of every page's panel, the
+   welcome on the left, the login form on the right and the walk by the
+   river along the bottom. */
 .guest {
   composes: panel from "./_components/ui.module.css";
+  flex: 1 0 auto;
   display: grid;
   /* The form column and gap narrow with the window down to 900px. */
   grid-template-columns: minmax(0, 1fr) clamp(340px, 32vw, 400px);
+  grid-template-rows: auto minmax(200px, 1fr);
   align-items: center;
   column-gap: clamp(40px, 5vw, 64px);
+  row-gap: var(--space-4);
   width: var(--page-width);
   margin: var(--space-4) auto;
-  padding: var(--space-7) var(--panel-pad-x);
+  padding: var(--space-6) var(--panel-pad-x) 0;
   box-shadow: var(--shadow-panel);
   animation: card-rise 0.5s ease-out both;
+}
+
+/* The drawing fits the row whole, standing on the bottom edge. */
+.guestScene {
+  position: relative;
+  grid-column: 1 / -1;
+  align-self: stretch;
+}
+
+/* As tall as the row and only as wide as the drawing, so the fade below
+   lands on the drawing's own sides. */
+.guestScene > picture {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  /* home-scene.png; the phone drawing's ratio is set below. */
+  aspect-ratio: 2079 / 756;
+  translate: -50% 0;
+}
+
+.guestScene img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  /* The drawing's cut sides fade into the paper. */
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 6%,
+    black 94%,
+    transparent
+  );
 }
 
 .eyebrow {
@@ -168,6 +207,7 @@
 @media (max-width: 900px) {
   .guest {
     grid-template-columns: 1fr;
+    grid-template-rows: auto auto minmax(200px, 1fr);
     row-gap: var(--space-6);
   }
 
@@ -206,8 +246,13 @@
 @media (max-width: 720px) {
   .guest {
     margin: var(--space-3) auto;
-    padding: var(--space-5) var(--panel-pad-x);
+    padding: var(--space-5) var(--panel-pad-x) 0;
     row-gap: var(--space-5);
+  }
+
+  /* home-scene-mobile.png */
+  .guestScene > picture {
+    aspect-ratio: 1620 / 971;
   }
 
   .welcome .title {
