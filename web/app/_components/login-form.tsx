@@ -3,26 +3,31 @@
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { useAuth } from "./auth-provider";
-import { ArrowRight } from "./icons";
+import { ArrowRight, InfoIcon } from "./icons";
 import styles from "./auth.module.css";
 import formStyles from "./form.module.css";
 import headingStyles from "./heading.module.css";
+import uiStyles from "./ui.module.css";
 import { useAuthRequest } from "./use-auth-request";
 
-// "page" is the full login page, "modal" the login modal and "card" the
-// login card on the guest home, which has its own title beside it.
+// "page" is the full login page, "modal" the login modal, "card" the login
+// card on the guest home, which has its own title beside it, and "menu" the
+// login window a guest gets from a locked menu item.
 export const LoginForm = ({
   onSuccess,
   onPendingChange,
+  onSignupClick,
   variant = "page",
 }: {
   onSuccess: () => void;
   onPendingChange?: (pending: boolean) => void;
-  variant?: "page" | "modal" | "card";
+  onSignupClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
+  variant?: "page" | "modal" | "card" | "menu";
 }) => {
   const page = variant === "page";
   const modal = variant === "modal";
   const card = variant === "card";
+  const menu = variant === "menu";
   const Title = card ? "h2" : "h1";
   const { login, loading } = useAuth();
   const [error, setError] = useState("");
@@ -59,7 +64,13 @@ export const LoginForm = ({
   return (
     <>
       <Title className={headingStyles.title}>로그인</Title>
-      {!card && (
+      {menu && (
+        <p role="alert" className={uiStyles.warning}>
+          <InfoIcon />
+          로그인 후 이용할 수 있어요.
+        </p>
+      )}
+      {(page || modal) && (
         <p
           className={`${headingStyles.lead} ${modal ? headingStyles.modalLead : ""}`}
         >
@@ -96,10 +107,12 @@ export const LoginForm = ({
         {loading && <p role="status">로그인 상태를 확인하고 있어요.</p>}
         {error && <p role="alert">{error}</p>}
       </form>
-      {card ? (
+      {card || menu ? (
         <p className={styles.cardLinks}>
           처음이세요?
-          <Link href="/signup">회원가입</Link>
+          <Link href="/signup" onClick={onSignupClick}>
+            회원가입
+          </Link>
         </p>
       ) : (
         <p className={styles.links}>

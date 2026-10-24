@@ -4,6 +4,8 @@ import Link, { type LinkProps } from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useAuth } from "./auth-provider";
+import { AuthModal } from "./auth-modal";
+import { LoginForm } from "./login-form";
 import { MenuIcon } from "./icons";
 import { useNotifications } from "./notifications-provider";
 import styles from "./site-header.module.css";
@@ -131,14 +133,19 @@ const GuestHeader = () => {
 };
 
 const GuestHeaderContent = () => {
-  const [loginNotice, setLoginNotice] = useState(false);
+  const pathname = usePathname();
+  // A locked menu item opens the login window here, without changing the
+  // address. Logging in swaps this header for the member one, which closes
+  // the window too.
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [loginPending, setLoginPending] = useState(false);
   return (
     <header className={styles.header}>
       <div className={styles.bar}>
         <Link href="/" className={styles.logo}>
           강아지 산책
         </Link>
-        <MainMenu pendingCount={0} onLockedClick={() => setLoginNotice(true)} />
+        <MainMenu pendingCount={0} onLockedClick={() => setLoginOpen(true)} />
         <div className={`${styles.account} ${styles.guestLinks}`}>
           <GuestLinks />
         </div>
@@ -151,17 +158,25 @@ const GuestHeaderContent = () => {
           </div>
         </details>
       </div>
-      <div className={styles.floating}>
-        {loginNotice && (
-          <div role="status" className={styles.notice}>
-            <p>로그인 후 이용할 수 있어요.</p>
-            <Link href="/login">로그인</Link>
-            <button type="button" onClick={() => setLoginNotice(false)}>
-              닫기
-            </button>
-          </div>
-        )}
-      </div>
+      {loginOpen && (
+        <AuthModal
+          title="로그인"
+          pending={loginPending}
+          onClose={() => setLoginOpen(false)}
+        >
+          <LoginForm
+            variant="menu"
+            onPendingChange={setLoginPending}
+            onSuccess={() => {}}
+            // On /signup the signup form is already on the page: going there
+            // again would open the signup window over it, so only close.
+            onSignupClick={(event) => {
+              if (pathname === "/signup") event.preventDefault();
+              setLoginOpen(false);
+            }}
+          />
+        </AuthModal>
+      )}
     </header>
   );
 };

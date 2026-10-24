@@ -220,6 +220,18 @@
   color: var(--ink);
 }
 
+/* A notice that stops the person, such as "log in first". */
+.warning {
+  composes: notice;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.warning > svg {
+  color: var(--accent);
+}
+
 /* A round face, a dog's or a person's. The size comes from the image's
    width and height. */
 .face {

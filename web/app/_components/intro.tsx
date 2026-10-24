@@ -68,8 +68,8 @@ export const Intro = () => {
     >
       <FieldScene variant="intro" />
       <div aria-hidden="true" className={`${styles.title} ${styles.reveal}`}>
-        <strong>강아지 산책</strong>
-        <span>오늘도, 좋은 산책이 기다리고 있어요</span>
+        <strong>강아지 산책에 오신 걸 환영해요</strong>
+        <span>가까운 이웃과 우리 아이의 산책 친구를 만나 보세요</span>
       </div>
       <button
         type="button"

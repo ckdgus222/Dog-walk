@@ -9,11 +9,15 @@ export const AuthModal = ({
   title,
   pending,
   wide = false,
+  onClose,
   children,
 }: {
   title: string;
   pending: boolean;
   wide?: boolean;
+  // A window opened without changing the address closes itself instead of
+  // going back in history.
+  onClose?: () => void;
   children: React.ReactNode;
 }) => {
   const router = useRouter();
@@ -27,7 +31,8 @@ export const AuthModal = ({
 
   const close = () => {
     if (pending) return;
-    router.back();
+    if (onClose) onClose();
+    else router.back();
   };
 
   return (
