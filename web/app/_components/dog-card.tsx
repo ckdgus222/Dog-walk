@@ -73,7 +73,7 @@ export const DogBody = ({
     className={className}
     src={isCream(dog, order) ? dogDubuFull : dogBamiFull}
     alt=""
-    sizes="(max-width: 720px) 240px, 330px"
+    sizes="(max-width: 720px) 200px, 220px"
   />
 );
 

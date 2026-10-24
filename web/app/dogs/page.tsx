@@ -17,7 +17,9 @@ import styles from "./dogs.module.css";
 
 const DogsPage = () => {
   return (
-    <main className={layoutStyles.main}>
+    <main
+      className={`${layoutStyles.main} ${layoutStyles.fit} ${styles.listPage}`}
+    >
       <div className={layoutStyles.head}>
         <div>
           <h1 className={headingStyles.title}>내 반려견</h1>
@@ -25,10 +27,7 @@ const DogsPage = () => {
             함께 산책하는 소중한 가족을 소개해 주세요.
           </p>
         </div>
-        <Link
-          href="/dogs/new"
-          className={layoutStyles.headAction}
-        >
+        <Link href="/dogs/new" className={layoutStyles.headAction}>
           <PlusIcon />
           반려견 추가
         </Link>
@@ -93,11 +92,6 @@ const DogList = () => {
             </div>
           </DogCard>
         ))}
-        {query.isSuccess && (
-          <Link href="/dogs/new" className={styles.addTile}>
-            <PlusIcon size={32} />새 반려견 소개하기
-          </Link>
-        )}
       </div>
       {/* The bar always explains the one-dog rule, and shows the error in
           its place when something fails. */}

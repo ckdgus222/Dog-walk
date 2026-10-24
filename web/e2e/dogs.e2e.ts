@@ -94,7 +94,23 @@ test("반려견 사진 추가·교체와 마지막 한 마리 삭제 제한", as
     await expect(main.getByLabel("성격 소개")).toHaveValue(
       firstDog.personality,
     );
+    // The picked photo shows in place of the drawn dog, and cancelling
+    // brings the drawing back.
+    const preview = main.getByRole("img", {
+      name: "고른 사진 미리보기",
+      exact: true,
+    });
     await photoInput.setInputFiles(photoA);
+    await expect(preview).toBeVisible();
+    await expect
+      .poll(() =>
+        preview.evaluate((image: HTMLImageElement) => image.naturalWidth),
+      )
+      .toBeGreaterThan(0);
+    await main.getByRole("button", { name: "선택 취소", exact: true }).click();
+    await expect(preview).toHaveCount(0);
+    await photoInput.setInputFiles(photoA);
+    await expect(preview).toBeVisible();
     await page.getByRole("button", { name: "저장하기", exact: true }).click();
     await expect(page).toHaveURL("/dogs");
     await expect(cards).toHaveCount(1);

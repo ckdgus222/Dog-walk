@@ -9,6 +9,7 @@ import { ChevronLeft } from "../../../_components/icons";
 import layoutStyles from "../../../_components/layout.module.css";
 import { useDogForEdit } from "../../../../lib/api/dogs";
 import DogForm from "../../dog-form";
+import styles from "../../dogs.module.css";
 
 const EditDog = () => {
   const { id } = useParams<{ id: string }>();
@@ -27,15 +28,15 @@ const EditDog = () => {
 
 const EditDogPage = () => {
   return (
-    <main className={layoutStyles.main}>
+    <main
+      className={`${layoutStyles.main} ${layoutStyles.fit} ${styles.formPage}`}
+    >
       <Link href="/dogs" className={layoutStyles.back}>
         <ChevronLeft />
         내 반려견
       </Link>
       <div>
-        <h1 className={headingStyles.title}>
-          반려견 수정
-        </h1>
+        <h1 className={headingStyles.title}>반려견 수정</h1>
         <p className={headingStyles.lead}>
           우리 아이의 정보를 수정할 수 있습니다.
         </p>

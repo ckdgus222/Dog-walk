@@ -198,6 +198,25 @@
   border: 0;
 }
 
+/* The long dog forms put each label in a column left of its field, so the
+   form stays within the window's height. */
+.besideLabels {
+  gap: var(--space-3);
+}
+
+/* Over ".form label", whose single column stacks the label text on top. */
+.besideLabels > :is(label, .choices, .fieldRow) {
+  grid-template-columns: 112px minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--space-4);
+}
+
+/* A tall field keeps its label at its top line. */
+.besideLabels > label:has(textarea) > span:first-child {
+  align-self: start;
+  padding-top: var(--space-3);
+}
+
 .card > legend {
   float: left;
   margin-bottom: var(--space-2);
@@ -261,5 +280,14 @@
   .addFields textarea,
   .editFields textarea {
     height: 84px;
+  }
+
+  /* Phones stack the label back over its field. */
+  .besideLabels > :is(label, .choices, .fieldRow) {
+    grid-template-columns: 1fr;
+  }
+
+  .besideLabels > label:has(textarea) > span:first-child {
+    padding-top: 0;
   }
 }

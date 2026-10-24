@@ -1,25 +1,25 @@
-/* List: dog cards in as many columns as fit, then a tile for a new dog. */
+/* List: the dogs as wide cards, two side by side, over the living room. */
 .list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 460px), 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-4);
 }
 
-/* The photo on the left, the name and details beside it, the buttons on a
-   line of their own. */
+/* The photo on the left, the name, details and personality beside it, and
+   the buttons stacked on the right. */
 .card {
   composes: card from "../_components/ui.module.css";
   --photo: 132px;
   display: grid;
-  grid-template-columns: var(--photo) minmax(0, 1fr);
-  grid-template-rows: auto auto 1fr auto;
+  grid-template-columns: var(--photo) minmax(0, 1fr) auto;
+  grid-template-rows: auto auto 1fr;
   column-gap: var(--space-5);
   row-gap: var(--space-1);
   overflow-wrap: anywhere;
 }
 
 .card > img {
-  grid-row: 1 / 4;
+  grid-row: 1 / -1;
   width: var(--photo);
   height: var(--photo);
   border-radius: var(--radius-md);
@@ -45,8 +45,11 @@
   font-size: var(--text-sm);
 }
 
+/* The personality, under a line. */
 .card > p:last-of-type {
   margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--line);
   color: var(--text);
   font-size: var(--text-md);
   line-height: 1.6;
@@ -54,33 +57,11 @@
 
 .actions {
   display: flex;
-  grid-column: 1 / -1;
-  justify-content: flex-end;
+  flex-direction: column;
+  grid-row: 1 / -1;
+  grid-column: 3;
+  align-self: center;
   gap: var(--space-2);
-  margin-top: var(--space-3);
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--line);
-}
-
-.addTile {
-  composes: rough from "../_components/ui.module.css";
-  display: grid;
-  place-items: center;
-  align-content: center;
-  gap: var(--space-2);
-  min-height: 220px;
-  border-radius: var(--radius-md);
-  color: var(--ink);
-  font-size: var(--text-lg);
-  font-weight: 700;
-}
-
-.addTile::before {
-  border-style: dashed;
-}
-
-.addTile:hover {
-  background: var(--card-bg);
 }
 
 /* The dogs lie on the rug under the list, out to the panel's edges and
@@ -92,34 +73,65 @@
     calc(-1 * var(--panel-pad-bottom));
 }
 
-/* Add page: the walker crouches beside the buttons, in the panel's bottom
-   right corner. Behind the form, which stays usable. */
-.newPage {
-  position: relative;
-  isolation: isolate;
-  overflow: clip;
+/* Add and edit: the dog's fields on a card with their labels on the left,
+   and a column with the photo and the buttons. */
+.fields {
+  grid-area: fields;
 }
 
-.crouchPet {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  z-index: -1;
-  width: 710px;
-  height: auto;
+.photoCard {
+  grid-area: photo;
 }
 
-/* Add form: the dog card beside a narrow photo card. */
-.addForm {
-  grid-template-columns: minmax(0, 1fr) 317px;
+.formActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-area: actions;
+  gap: var(--space-3);
+}
+
+.addForm,
+.editForm {
+  grid-template-rows: auto auto 1fr auto;
   align-items: start;
-  gap: var(--space-4);
-  margin-top: var(--space-1);
+  column-gap: var(--space-5);
+  row-gap: var(--space-3);
 }
 
-.addForm > :is(.formActions, p),
-.editForm > :is(.formActions, p) {
-  grid-column: 1 / -1;
+.addForm > p,
+.editForm > p {
+  grid-area: alert;
+}
+
+.addForm {
+  grid-template-columns: minmax(0, 1fr) 300px;
+  grid-template-areas:
+    "fields photo"
+    "fields actions"
+    "fields art"
+    "alert alert";
+}
+
+.editForm {
+  grid-template-columns: 340px minmax(0, 1fr);
+  grid-template-areas:
+    "photo fields"
+    "actions fields"
+    ". fields"
+    "alert alert";
+}
+
+/* Editing has only the save button, across the photo column. */
+.editForm .formActions {
+  grid-template-columns: 1fr;
+}
+
+/* The walker crouches under the add form's buttons. */
+.crouchPet {
+  grid-area: art;
+  align-self: end;
+  width: 100%;
+  height: auto;
 }
 
 .photoCard > legend {
@@ -139,7 +151,8 @@
   place-items: center;
   align-content: center;
   gap: var(--space-2);
-  aspect-ratio: 1;
+  aspect-ratio: 2;
+  overflow: hidden;
   border: 1.5px dashed var(--line);
   border-radius: var(--radius-sm);
   color: var(--muted);
@@ -155,48 +168,29 @@
   font-size: var(--text-lg);
 }
 
+/* A picked photo fills the add form's dashed box. */
+.pickedPhoto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .photoBox:has(:focus-visible),
 .photoButton:has(:focus-visible) {
   outline: 2px solid var(--ink);
   outline-offset: 2px;
 }
 
-.formActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-4);
-  margin-top: var(--space-1);
-}
-
-.formActions > button {
-  width: 310px;
-}
-
-.secondaryButton {
-  width: 255px;
-}
-
-/* Edit form: the photo card on the left, the dog card on the right, both the
-   same height, and the save button at the right under a full-width line. */
-.editForm {
-  grid-template-columns: 386px minmax(0, 1fr);
-  align-items: stretch;
-  gap: var(--space-3);
-  margin-top: var(--space-1);
-}
-
 .editForm > .photoCard {
-  grid-row: 1;
-  grid-column: 1;
-  align-content: start;
-  justify-items: center;
   gap: var(--space-3);
-  padding: var(--space-7) var(--space-5) var(--space-5);
 }
 
 .currentPhoto {
+  justify-self: center;
   width: 100%;
-  max-width: 330px;
+  max-width: 220px;
   height: auto;
   aspect-ratio: 1;
   border-radius: var(--radius-sm);
@@ -217,8 +211,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  max-width: 286px;
   height: var(--button-md);
   border-radius: var(--radius-sm);
   background: var(--card);
@@ -229,80 +221,87 @@
 }
 
 .photoHint {
-  margin-top: -6px;
   color: var(--muted);
   font-size: var(--text-sm);
   text-align: center;
   overflow-wrap: anywhere;
 }
 
-.editForm > .formActions {
-  justify-content: flex-end;
-  margin-top: var(--space-3);
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--line);
-}
-
-.editForm > .formActions > button {
-  width: 288px;
-}
-
-/* Tablets: the dog card needs the full width so its button rows fit. */
-@media (max-width: 1024px) {
-  .crouchPet {
-    display: none;
+/* From 1280x800 up the pages fit the window: the cards scroll in their box
+   when there are many, and the drawings take the height left. */
+@media (min-width: 1280px) and (min-height: 800px) {
+  .listPage {
+    grid-template-rows: auto minmax(0, max-content) auto minmax(120px, 1fr);
   }
 
+  .list {
+    overflow-y: auto;
+  }
+
+  .livingRoom img {
+    height: 100%;
+    object-fit: cover;
+    object-position: center bottom;
+  }
+
+  .formPage {
+    grid-template-rows: auto auto minmax(0, 1fr);
+  }
+
+  .crouchPet {
+    height: 100%;
+    min-height: 0;
+    object-fit: contain;
+    object-position: center bottom;
+  }
+}
+
+@media (max-width: 1023px) {
+  .list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Tablets and phones: one column, the drawing left out. */
+@media (max-width: 1024px) {
   .addForm,
   .editForm {
     grid-template-columns: 1fr;
+    grid-template-areas:
+      "fields"
+      "photo"
+      "actions"
+      "alert";
   }
 
-  .editForm > .photoCard {
-    padding-top: var(--space-5);
+  .crouchPet {
+    display: none;
   }
 }
 
 @media (max-width: 720px) {
   .card {
     --photo: 96px;
+    grid-template-columns: var(--photo) minmax(0, 1fr);
     column-gap: var(--space-4);
+  }
+
+  /* The buttons take a line of their own under the card. */
+  .actions {
+    flex-direction: row;
+    grid-row: auto;
+    grid-column: 1 / -1;
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--line);
   }
 
   .actions > * {
     flex: 1;
   }
 
-  .addTile {
-    min-height: 120px;
-  }
-
   .formActions {
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-
-  .formActions > button,
-  .secondaryButton,
-  .editForm > .formActions > button {
-    width: 100%;
-  }
-
-  .photoCard .photoBox {
-    aspect-ratio: auto;
-    gap: var(--space-1);
-    padding: var(--space-3);
-    font-size: var(--text-sm);
-  }
-
-  .photoBox svg {
-    width: 30px;
-    height: 30px;
-  }
-
-  .photoBox strong {
-    margin-top: 2px;
-    font-size: var(--text-md);
+    grid-template-columns: 1fr;
   }
 
   .photoCard {
@@ -313,17 +312,7 @@
     font-size: var(--text-md);
   }
 
-  .editForm > .photoCard {
-    gap: var(--space-2);
-    padding: var(--space-4) var(--space-3) var(--space-3);
-  }
-
   .currentPhoto {
-    max-width: 240px;
-  }
-
-  .addForm,
-  .editForm {
-    gap: var(--space-2);
+    max-width: 200px;
   }
 }
