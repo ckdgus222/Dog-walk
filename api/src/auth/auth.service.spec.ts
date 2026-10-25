@@ -148,7 +148,7 @@ describe('AuthService', () => {
     });
   });
 
-  it('removes private fields from the authenticated user', async () => {
+  it('returns the public user and the checked hash, without other private fields', async () => {
     findByEmail.mockResolvedValue({
       ...user,
       passwordHash: 'stored-hash',
@@ -156,15 +156,33 @@ describe('AuthService', () => {
     });
     await expect(
       service.validateUser(user.email, input.password),
-    ).resolves.toEqual(user);
+    ).resolves.toEqual({ user, passwordHash: 'stored-hash' });
+  });
+
+  it('gives no token to a login whose password changed after it was checked', async () => {
+    update.mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError('record missing', {
+        code: 'P2025',
+        clientVersion: '7.10.1',
+      }),
+    );
+    await expect(service.login(user, 'old-hash')).rejects.toMatchObject({
+      status: 401,
+      message: '이메일 또는 비밀번호가 올바르지 않습니다.',
+    });
+    expect(update).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        where: { id: user.id, passwordHash: 'old-hash' },
+      }),
+    );
   });
 
   it('issues different refresh tokens even within one second and stores their hashes', async () => {
-    const first = await service.login(user);
-    const second = await service.login(user);
+    const first = await service.login(user, 'stored-hash');
+    const second = await service.login(user, 'stored-hash');
     expect(first.refreshToken).not.toBe(second.refreshToken);
     expect(update).toHaveBeenLastCalledWith({
-      where: { id: user.id },
+      where: { id: user.id, passwordHash: 'stored-hash' },
       data: {
         refreshTokenHash: createHash('sha256')
           .update(second.refreshToken)
@@ -183,7 +201,7 @@ describe('AuthService', () => {
   });
 
   it('checks the stored hash and only issues an access token without changing it', async () => {
-    const login = await service.login(user);
+    const login = await service.login(user, 'stored-hash');
     update.mockClear();
     const refreshed = await service.refresh(login.refreshToken);
     expect(refreshed).toEqual({ accessToken: expect.any(String), user });
@@ -210,7 +228,7 @@ describe('AuthService', () => {
   });
 
   it('rejects a refresh whose hash no longer matches', async () => {
-    const login = await service.login(user);
+    const login = await service.login(user, 'stored-hash');
     findUnique.mockResolvedValue(null);
     await expect(service.refresh(login.refreshToken)).rejects.toBeInstanceOf(
       UnauthorizedException,
@@ -244,7 +262,7 @@ describe('AuthService', () => {
   });
 
   it('verifies an access token and looks up the current user', async () => {
-    const { accessToken } = await service.login(user);
+    const { accessToken } = await service.login(user, 'stored-hash');
     await expect(service.verifyAccessToken(accessToken)).resolves.toEqual({
       user,
       exp: expect.any(Number),
@@ -281,7 +299,7 @@ describe('AuthService', () => {
   );
 
   it('rejects malformed, refresh, and wrong-algorithm tokens', async () => {
-    const { refreshToken } = await service.login(user);
+    const { refreshToken } = await service.login(user, 'stored-hash');
     const wrongAlgorithm = jwt.sign(
       { sub: user.id },
       {
@@ -299,7 +317,7 @@ describe('AuthService', () => {
   });
 
   it('rejects an access token for a deleted user', async () => {
-    const { accessToken } = await service.login(user);
+    const { accessToken } = await service.login(user, 'stored-hash');
     findUnique.mockResolvedValue(null);
     await expect(service.verifyAccessToken(accessToken)).rejects.toBeInstanceOf(
       UnauthorizedException,

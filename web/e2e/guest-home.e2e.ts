@@ -334,13 +334,19 @@ test("1920px 창에서 로그인한 글쓰기·일기 쓰기·반려견 추가 �
     await expect(
       main.getByRole("heading", { level: 1, name: heading, exact: true }),
     ).toBeVisible();
-    const visibleWidth = await main.evaluate(
-      (element) => element.getBoundingClientRect().width,
-    );
-    expect(
-      Math.abs(visibleWidth - width),
-      `${path} 판의 폭 오차`,
-    ).toBeLessThanOrEqual(1);
+    // The heading shows before the login check ends, and the page is built
+    // again once it ends, so measure until the settled panel answers.
+    await expect
+      .poll(
+        async () =>
+          Math.abs(
+            (await main.evaluate(
+              (element) => element.getBoundingClientRect().width,
+            )) - width,
+          ),
+        { message: `${path} 판의 폭 오차` },
+      )
+      .toBeLessThanOrEqual(1);
   }
 });
 

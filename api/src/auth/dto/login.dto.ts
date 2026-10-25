@@ -1,5 +1,6 @@
 import { Transform } from 'class-transformer';
-import { IsByteLength, IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
+import { PasswordInputRules } from '../../common/account-rules.js';
 
 // The global ValidationPipe normalizes the email and rejects invalid body
 // credentials before the controller calls AuthService.validateUser.
@@ -11,8 +12,6 @@ export class LoginDto {
   @IsNotEmpty()
   email: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @IsByteLength(0, 72)
+  @PasswordInputRules()
   password: string;
 }
