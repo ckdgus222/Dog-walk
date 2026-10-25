@@ -40,6 +40,7 @@ const NewDiaryPage = () => {
         <DiaryForm />
         <SceneImage
           className={styles.writingScene}
+          fill
           wide={writingScene}
           narrow={writingSceneMobile}
           narrowMedia="(max-width: 1024px)"

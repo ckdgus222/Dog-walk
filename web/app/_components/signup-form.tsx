@@ -48,6 +48,9 @@ export const SignupForm = ({
     }
   };
 
+  // Labels sit beside their fields on the page and above them in the modal.
+  const cardClass = `${formStyles.card} ${modal ? "" : formStyles.besideLabels}`;
+
   return (
     <>
       <div className={styles.intro}>
@@ -61,13 +64,15 @@ export const SignupForm = ({
           소중한 일상을 함께 나눠보세요.
         </p>
       </div>
-      <div>
+      {/* On the page its parts join the page grid (auth.module.css
+          .signupPage); in the modal they stack. */}
+      <div className={styles.signupBody}>
         <form
           className={`${formStyles.form} ${styles.signupForm} ${modal ? styles.modalForm : ""}`}
           onSubmit={handleSubmit}
         >
           <fieldset
-            className={formStyles.card}
+            className={`${cardClass} ${styles.account}`}
             disabled={pending}
           >
             <legend>계정 정보</legend>
@@ -118,16 +123,20 @@ export const SignupForm = ({
             </label>
           </fieldset>
           <fieldset
-            className={`${formStyles.card} ${formStyles.signupFields}`}
+            className={`${cardClass} ${formStyles.signupFields} ${styles.dog}`}
             disabled={pending}
           >
             <legend>반려견 정보</legend>
             <DogFields variant="signup" />
           </fieldset>
-          <button className={formStyles.submit} disabled={pending}>
-            {pending ? "가입 중…" : "가입하기"}
-          </button>
-          {error && <p role="alert">{error}</p>}
+          {/* One cell on the page grid, so an error never needs a row of
+              its own. */}
+          <div className={styles.signupSubmit}>
+            <button className={formStyles.submit} disabled={pending}>
+              {pending ? "가입 중…" : "가입하기"}
+            </button>
+            {error && <p role="alert">{error}</p>}
+          </div>
         </form>
         <p className={`${styles.links} ${styles.signupLinks}`}>
           이미 계정이 있으신가요?

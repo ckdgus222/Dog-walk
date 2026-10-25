@@ -12,6 +12,7 @@ export const SceneImage = ({
   wideSizes,
   className = "",
   loading = "eager",
+  fill = false,
 }: {
   wide: StaticImageData;
   narrow: StaticImageData;
@@ -19,6 +20,9 @@ export const SceneImage = ({
   wideSizes: string;
   className?: string;
   loading?: "eager" | "lazy";
+  // In a window-high panel, take the height of its grid cell and stand on
+  // its bottom edge.
+  fill?: boolean;
 }) => {
   const {
     props: { srcSet: narrowSrcSet },
@@ -30,7 +34,9 @@ export const SceneImage = ({
     loading,
   });
   return (
-    <picture className={`${styles.scene} ${className}`}>
+    <picture
+      className={`${styles.scene} ${fill ? styles.fill : ""} ${className}`}
+    >
       <source
         media={narrowMedia}
         srcSet={narrowSrcSet}

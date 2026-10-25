@@ -10,3 +10,18 @@
   width: 100%;
   height: auto;
 }
+
+/* SceneImage fill: from 1280x800 up, the drawing takes its cell's height,
+   whole, standing on the bottom. */
+@media (min-width: 1280px) and (min-height: 800px) {
+  :where(.fill) {
+    align-self: stretch;
+    min-height: 0;
+  }
+
+  :where(.fill) img {
+    height: 100%;
+    object-fit: contain;
+    object-position: center bottom;
+  }
+}

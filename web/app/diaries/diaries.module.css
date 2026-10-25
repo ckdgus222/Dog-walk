@@ -454,17 +454,6 @@
     grid-template-rows: auto auto minmax(0, 1fr);
   }
 
-  .newPage > .writingScene {
-    height: 100%;
-    min-height: 0;
-  }
-
-  .newPage > .writingScene img {
-    height: 100%;
-    object-fit: contain;
-    object-position: center bottom;
-  }
-
   .newPage > form,
   .editPage > form {
     grid-template-rows: minmax(0, 1fr);
