@@ -1,10 +1,14 @@
-/* Dashboard: the greeting and actions beside the home drawing, then four
-   cards. */
+/* Dashboard: the greeting and actions on one line, four cards of news,
+   then the walk by the river in the height left. */
+.dashboard {
+  grid-template-rows: auto auto minmax(200px, 1fr);
+}
+
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  align-items: center;
-  gap: var(--space-6);
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--space-5);
 }
 
 .greeting {
@@ -22,20 +26,19 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-4);
-  margin-top: var(--space-6);
 }
 
 .cards {
   display: grid;
   grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
   gap: var(--space-4);
-  margin-top: var(--space-6);
 }
 
 .card {
   display: grid;
   align-content: start;
   gap: var(--space-3);
+  overflow-wrap: anywhere;
 }
 
 .cardTitle {
@@ -51,6 +54,17 @@
   inset: 0;
 }
 
+/* A link inside a card, above the card's own stretched link. */
+.inner {
+  position: relative;
+  z-index: 1;
+}
+
+.inner:hover,
+.inner:hover strong {
+  color: var(--accent);
+}
+
 .dogs {
   display: flex;
   flex-wrap: wrap;
@@ -62,7 +76,6 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  overflow-wrap: anywhere;
 }
 
 .dogName {
@@ -71,12 +84,12 @@
   font-weight: 700;
 }
 
-.linkCard {
+.countCard {
   justify-items: center;
   text-align: center;
 }
 
-.linkCard .cardTitle {
+.countCard .cardTitle {
   justify-self: stretch;
 }
 
@@ -87,8 +100,65 @@
   line-height: 1.2;
 }
 
-.description {
-  color: var(--text);
+/* The latest diary: its first photo beside the title and walk date. */
+.recent {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.recent strong {
+  display: block;
+  color: var(--ink);
+}
+
+/* A fixed box, so the loading line cannot move the title. */
+.recentPhoto {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--sage-soft);
+  font-size: var(--text-xs);
+}
+
+.recentPhoto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The newest posts, one line each with the author under it. */
+.newPosts {
+  display: grid;
+  gap: var(--space-2);
+  list-style: none;
+}
+
+.newPosts li {
+  display: grid;
+  min-width: 0;
+}
+
+.newPosts a {
+  overflow: hidden;
+  color: var(--ink);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* From 1280x800 up many dogs scroll inside their card, so the cards keep
+   their height and the drawing its room. */
+@media (min-width: 1280px) and (min-height: 800px) {
+  /* Two rows of 64px faces. */
+  .dogs {
+    max-height: calc(2 * 64px + var(--space-4));
+    overflow-y: auto;
+  }
 }
 
 /* Guest home: one sheet of paper the size of every page's panel, the
@@ -111,16 +181,18 @@
   animation: card-rise 0.5s ease-out both;
 }
 
-/* The drawing fits the row whole, standing on the bottom edge. */
-.guestScene {
+/* The drawing fits the row whole, standing on the sheet's bottom edge
+   (through the bottom padding of a page panel). */
+.bottomScene {
   position: relative;
   grid-column: 1 / -1;
   align-self: stretch;
+  margin-bottom: calc(-1 * var(--panel-pad-bottom, 0px));
 }
 
 /* As tall as the row and only as wide as the drawing, so the fade below
    lands on the drawing's own sides. */
-.guestScene > picture {
+.bottomScene > picture {
   position: absolute;
   bottom: 0;
   left: 50%;
@@ -132,7 +204,7 @@
   translate: -50% 0;
 }
 
-.guestScene img {
+.bottomScene img {
   width: 100%;
   height: 100%;
   object-fit: contain;
@@ -251,7 +323,7 @@
   }
 
   /* home-scene-mobile.png */
-  .guestScene > picture {
+  .bottomScene > picture {
     aspect-ratio: 1620 / 971;
   }
 

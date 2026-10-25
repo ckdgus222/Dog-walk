@@ -133,6 +133,61 @@ test("로그인한 홈에는 들판 배경과 강변 산책 그림이 함께 있
   await expect(homeScene).toBeVisible();
 });
 
+test("로그인한 홈은 최근 산책 일기와 게시판 새 글을 카드로 보여 준다", async ({
+  page,
+  context,
+}) => {
+  const account = await createAccount(context.request);
+  const response = await context.request.post("/api/auth/login", {
+    data: { email: account.email, password: account.password },
+  });
+  expect(response.status()).toBe(200);
+  const headers = {
+    Authorization: `Bearer ${(await response.json()).accessToken}`,
+  };
+  const main = page.getByRole("main");
+  const card = (name: string) =>
+    main.locator("section").filter({
+      has: page.getByRole("heading", { level: 2, name, exact: true }),
+    });
+
+  // A new account has no diary yet, so the card invites the first one.
+  await page.goto("/");
+  await expect(card("산책 일기")).toContainText("첫 산책을 기록해 보세요.");
+  await expect(
+    card("산책 일기").getByRole("link", { name: "일기 쓰기", exact: true }),
+  ).toHaveAttribute("href", "/diaries/new");
+
+  const dogs = await context.request.get("/api/dogs/me", { headers });
+  const [dog] = (await dogs.json()) as { id: number }[];
+  const diary = await context.request.post("/api/diaries", {
+    headers,
+    multipart: {
+      diary: JSON.stringify({
+        dogId: dog.id,
+        title: "홈에서 보는 산책",
+        walkedOn: "2020-10-21",
+        content: "홈 카드에 나오는 일기",
+      }),
+    },
+  });
+  expect(diary.status()).toBe(201);
+  const diaryId = (await diary.json()).id as number;
+
+  await page.reload();
+  await expect(
+    card("산책 일기").getByRole("link", { name: /홈에서 보는 산책/ }),
+  ).toHaveAttribute("href", `/diaries/${diaryId}`);
+  // Other tests write posts at the same time, so check the shape of the
+  // newest three instead of which posts they are.
+  const posts = card("게시판").getByRole("listitem").getByRole("link");
+  await expect(posts.first()).toBeVisible();
+  expect(await posts.count()).toBeLessThanOrEqual(3);
+  for (const link of await posts.all()) {
+    await expect(link).toHaveAttribute("href", /^\/posts\/\d+$/);
+  }
+});
+
 test("게시판을 직접 열어도 들판 배경은 하나이고 강아지는 숨겨진다", async ({
   page,
 }) => {

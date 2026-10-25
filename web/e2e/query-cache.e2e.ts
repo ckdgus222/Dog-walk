@@ -156,7 +156,11 @@ test("계정 전환 중 이전 계정의 반려견 캐시를 보여 주지 않�
   await expect(dialog).toHaveCount(0);
   await expect(main.getByText(`${b.nickname}님, 안녕하세요`)).toBeVisible();
   await held.captured;
-  await expect(main.getByRole("status")).toHaveText(
+  // The home's other cards load at the same time, so look in the dog card.
+  const dogCard = main.locator("section").filter({
+    has: page.getByRole("heading", { name: "내 반려견", exact: true }),
+  });
+  await expect(dogCard.getByRole("status")).toHaveText(
     "반려견을 불러오고 있어요.",
   );
   await expect(page.getByText(a.dog.name)).toHaveCount(0);
