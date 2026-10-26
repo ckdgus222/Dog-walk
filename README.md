@@ -89,6 +89,7 @@ npm --prefix web run test:browser
 매 실행마다 새 계정과 반려견을 등록하며 개발 DB에 남는다. 실패 시 스크린샷과 trace는 `web/test-results/`에 저장된다.
 
 API e2e 실행은 `DATABASE_URL`을 한 번 정하고 같은 주소로 마이그레이션과 테스트를 실행한다.
+DB 이름이 `_test`로 끝나지 않으면 실행하지 않는다.
 환경 변수가 없으면 예제 계정으로 `localhost:5433/dogwalk_test`를 사용하며, `api/.env`나 `.env.test`의 주소로 바꾸지 않는다.
 계정을 변경했다면 테스트 DB를 가리키는 `DATABASE_URL`을 명시해서 실행한다.
 
