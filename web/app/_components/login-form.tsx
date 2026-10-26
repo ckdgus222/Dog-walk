@@ -29,26 +29,22 @@ export const LoginForm = ({
   const card = variant === "card";
   const menu = variant === "menu";
   const Title = card ? "h2" : "h1";
-  const { login, loading } = useAuth();
+  const { login, loginDemo, loading } = useAuth();
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
   const startRequest = useAuthRequest();
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const submitLogin = async (
+    authenticate: (canNavigate: () => boolean) => Promise<boolean>,
+  ) => {
     if (pending || loading) return;
     const request = startRequest();
-    const form = new FormData(event.currentTarget);
     setError("");
     setPending(true);
     onPendingChange?.(true);
     try {
-      const canNavigate = await login(
-        String(form.get("email")),
-        String(form.get("password")),
-        () => !request.left,
-      );
+      const canNavigate = await authenticate(() => !request.left);
       if (canNavigate) onSuccess();
     } catch (error) {
       if (request.left) return;
@@ -59,6 +55,14 @@ export const LoginForm = ({
       setPending(false);
       onPendingChange?.(false);
     }
+  };
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    void submitLogin((canNavigate) =>
+      login(String(form.get("email")), String(form.get("password")), canNavigate),
+    );
   };
 
   return (
@@ -103,6 +107,14 @@ export const LoginForm = ({
         <button className={formStyles.submit} disabled={pending || loading}>
           {pending ? "로그인 중…" : "로그인"}
           <ArrowRight size={24} />
+        </button>
+        <button
+          type="button"
+          className={uiStyles.button}
+          disabled={pending || loading}
+          onClick={() => void submitLogin(loginDemo)}
+        >
+          가입 없이 둘러보기
         </button>
         {loading && <p role="status">로그인 상태를 확인하고 있어요.</p>}
         {error && <p role="alert">{error}</p>}

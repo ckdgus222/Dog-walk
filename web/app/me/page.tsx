@@ -9,32 +9,39 @@ import { useAuth } from "../_components/auth-provider";
 import formStyles from "../_components/form.module.css";
 import headingStyles from "../_components/heading.module.css";
 import layoutStyles from "../_components/layout.module.css";
+import uiStyles from "../_components/ui.module.css";
+import { InfoIcon } from "../_components/icons";
 import { PersonFace } from "../_components/person-face";
 import { SceneImage } from "../_components/walk-scene";
 import styles from "./me.module.css";
 
-const MePage = () => (
-  <main className={`${layoutStyles.main} ${layoutStyles.fit} ${styles.page}`}>
-    <div>
-      <h1 className={headingStyles.title}>내 정보</h1>
-      <p className={headingStyles.lead}>닉네임과 비밀번호를 바꿀 수 있어요.</p>
-    </div>
-    <AuthGate>
-      <AccountForms />
-    </AuthGate>
-    <SceneImage
-      className={styles.scene}
-      wide={walkScene}
-      narrow={walkScene}
-      narrowMedia="(max-width: 720px)"
-      // Under the cards the drawing gets only the height they leave, so it
-      // is narrower than the panel.
-      wideSizes="(max-width: 1279px) 85vw, 50vw"
-      loading="lazy"
-      fill
-    />
-  </main>
-);
+const MePage = () => {
+  const { user } = useAuth();
+  return (
+    <main className={`${layoutStyles.main} ${layoutStyles.fit} ${styles.page}`}>
+      <div>
+        <h1 className={headingStyles.title}>내 정보</h1>
+        {!user?.isDemo && (
+          <p className={headingStyles.lead}>닉네임과 비밀번호를 바꿀 수 있어요.</p>
+        )}
+      </div>
+      <AuthGate>
+        <AccountForms />
+      </AuthGate>
+      <SceneImage
+        className={styles.scene}
+        wide={walkScene}
+        narrow={walkScene}
+        narrowMedia="(max-width: 720px)"
+        // Under the cards the drawing gets only the height they leave, so it
+        // is narrower than the panel.
+        wideSizes="(max-width: 1279px) 85vw, 50vw"
+        loading="lazy"
+        fill
+      />
+    </main>
+  );
+};
 export default MePage;
 
 // Two cards that save separately. While either is saving, both buttons wait,
@@ -45,6 +52,14 @@ const AccountForms = () => {
   const password = useUpdateMe();
   const saving = nickname.isPending || password.isPending;
   if (!user) return null;
+  if (user.isDemo) {
+    return (
+      <p className={uiStyles.notice}>
+        <InfoIcon />
+        데모 계정에서는 닉네임과 비밀번호를 바꿀 수 없어요.
+      </p>
+    );
+  }
 
   return (
     <div className={styles.cards}>

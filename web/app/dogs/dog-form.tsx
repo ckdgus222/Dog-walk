@@ -7,11 +7,13 @@ import { useState, type FormEvent } from "react";
 import { useSaveDog } from "../../lib/api/dogs";
 import type { Dog } from "../../lib/types";
 import { BlobImage } from "../_components/blob-image";
+import { useAuth } from "../_components/auth-provider";
 import { secondaryButton } from "../_components/buttons";
 import { DogBody } from "../_components/dog-card";
 import { DogFields, readDogFields } from "../_components/dog-fields";
 import formStyles from "../_components/form.module.css";
-import { PictureIcon } from "../_components/icons";
+import uiStyles from "../_components/ui.module.css";
+import { InfoIcon, PictureIcon } from "../_components/icons";
 import crouchPet from "../../public/illustrations/walking-drawing/crouch-pet.png";
 import styles from "./dogs.module.css";
 
@@ -19,6 +21,7 @@ const tooBig = (file?: File) => (file?.size ?? 0) > 5 * 1024 * 1024;
 const tooBigMessage = "사진은 5MB 이하로 골라 주세요.";
 
 const DogForm = ({ dog, order }: { dog?: Dog; order?: number }) => {
+  const { user } = useAuth();
   const router = useRouter();
   const [error, setError] = useState("");
   // The picked photo, shown in place of the current one and sent on saving.
@@ -42,6 +45,12 @@ const DogForm = ({ dog, order }: { dog?: Dog; order?: number }) => {
 
   // The real file input stays in the page, hidden behind its drawn button,
   // so keyboard focus and screen readers still reach it by its label.
+  const demoNotice = (
+    <p className={uiStyles.notice}>
+      <InfoIcon />
+      데모 계정은 사진을 올릴 수 없어요.
+    </p>
+  );
   const photoInput = (
     <input
       className={formStyles.visuallyHidden}
@@ -114,30 +123,42 @@ const DogForm = ({ dog, order }: { dog?: Dog; order?: number }) => {
                 order={order}
               />
             ))}
-            <label className={styles.photoButton}>
-              {photoInput}새 사진 선택
-            </label>
-            <p className={styles.photoHint}>
-              {file?.name ?? "JPG, PNG, WebP 파일 (최대 5MB, 1장만 가능)"}
-            </p>
-            {cancel}
+            {user?.isDemo ? (
+              demoNotice
+            ) : (
+              <>
+                <label className={styles.photoButton}>
+                  {photoInput}새 사진 선택
+                </label>
+                <p className={styles.photoHint}>
+                  {file?.name ?? "JPG, PNG, WebP 파일 (최대 5MB, 1장만 가능)"}
+                </p>
+                {cancel}
+              </>
+            )}
           </>
         ) : (
           <>
             <legend>
               사진 <span className={formStyles.optional}>(선택사항)</span>
             </legend>
-            <label className={styles.photoBox}>
-              {photoInput}
-              {preview ?? (
-                <>
-                  <PictureIcon />
-                  <strong>사진 선택</strong>
-                  <span>JPG · PNG · WebP, 5MB 이하</span>
-                </>
-              )}
-            </label>
-            {cancel}
+            {user?.isDemo ? (
+              demoNotice
+            ) : (
+              <>
+                <label className={styles.photoBox}>
+                  {photoInput}
+                  {preview ?? (
+                    <>
+                      <PictureIcon />
+                      <strong>사진 선택</strong>
+                      <span>JPG · PNG · WebP, 5MB 이하</span>
+                    </>
+                  )}
+                </label>
+                {cancel}
+              </>
+            )}
           </>
         )}
       </fieldset>

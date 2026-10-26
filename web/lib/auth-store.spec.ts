@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { useAuthStore } from "./auth-store";
 
-const user = { id: 1, email: "a@example.com", nickname: "보호자" };
+const user = { id: 1, email: "a@example.com", nickname: "보호자", isDemo: false };
 
 describe("auth store updateUser", () => {
   beforeEach(() => {
@@ -26,7 +26,7 @@ describe("auth store updateUser", () => {
     useAuthStore.getState().setAuth(user, "token");
     useAuthStore
       .getState()
-      .updateUser({ id: 2, email: "b@example.com", nickname: "남" });
+      .updateUser({ id: 2, email: "b@example.com", nickname: "남", isDemo: false });
     expect(useAuthStore.getState().user).toEqual(user);
   });
 });

@@ -1,7 +1,23 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const accountA = { id: 1, email: "a@example.com", nickname: "보호자A" };
-const accountB = { id: 2, email: "b@example.com", nickname: "보호자B" };
+const accountA = {
+  id: 1,
+  email: "a@example.com",
+  nickname: "보호자A",
+  isDemo: false,
+};
+const accountB = {
+  id: 2,
+  email: "b@example.com",
+  nickname: "보호자B",
+  isDemo: false,
+};
+const demoAccount = {
+  id: 3,
+  email: "demo@dogwalk.invalid",
+  nickname: "둘러보기",
+  isDemo: true,
+};
 
 const authResponse = (user = accountA, accessToken = "access-token") => {
   return Response.json({ user, accessToken });
@@ -123,6 +139,168 @@ describe("Browser auth client", () => {
     } finally {
       unsubscribe();
     }
+  });
+
+  it("logs in to the demo without a body and stores auth and the welcome nickname", async () => {
+    fetchMock.mockResolvedValueOnce(authResponse(demoAccount));
+
+    await expect(client.loginDemo()).resolves.toBe(true);
+
+    expect(fetchMock).toHaveBeenCalledExactlyOnceWith("/api/auth/demo", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: undefined,
+    });
+    expect(useAuthStore.getState()).toMatchObject({
+      user: demoAccount,
+      accessToken: "access-token",
+      loading: false,
+      welcomeNickname: demoAccount.nickname,
+    });
+  });
+
+  it.each([false, true])(
+    "checks demo departure before saving auth (left: %s)",
+    async (left) => {
+      let releaseLogin!: (response: Response) => void;
+      fetchMock.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            releaseLogin = resolve;
+          }),
+      );
+      let hasLeft = false;
+      const canNavigate = vi.fn(() => {
+        expect(useAuthStore.getState().user).toBeNull();
+        expect(useAuthStore.getState().welcomeNickname).toBeNull();
+        return !hasLeft;
+      });
+      const unsubscribe = useAuthStore.subscribe(() => {
+        hasLeft = true;
+      });
+      try {
+        const loggingIn = client.loginDemo(canNavigate);
+        expect(canNavigate).not.toHaveBeenCalled();
+        hasLeft = left;
+        releaseLogin(authResponse(demoAccount));
+
+        await expect(loggingIn).resolves.toBe(!left);
+        expect(canNavigate).toHaveBeenCalledTimes(1);
+        expect(useAuthStore.getState().user).toEqual(demoAccount);
+        expect(client.getAccessToken()).toBe("access-token");
+      } finally {
+        unsubscribe();
+      }
+    },
+  );
+
+  it("rejects demo login without fetching while logout is running", async () => {
+    let releaseLogout!: (response: Response) => void;
+    fetchMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          releaseLogout = resolve;
+        }),
+    );
+    const loggingOut = client.logout();
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    await expect(client.loginDemo()).rejects.toThrow("로그아웃하고 있어요.");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    releaseLogout(new Response(null, { status: 204 }));
+    await loggingOut;
+  });
+
+  it("rejects demo login while a regular login is running", async () => {
+    let releaseLogin!: (response: Response) => void;
+    fetchMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          releaseLogin = resolve;
+        }),
+    );
+    const loggingIn = client.login(accountA.email, "password123");
+    await expect(client.loginDemo()).rejects.toThrow("로그인하고 있어요.");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    releaseLogin(authResponse());
+    await loggingIn;
+  });
+
+  it("rejects both kinds of login while demo login is running", async () => {
+    let releaseLogin!: (response: Response) => void;
+    fetchMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          releaseLogin = resolve;
+        }),
+    );
+    const loggingIn = client.loginDemo();
+    await expect(client.loginDemo()).rejects.toThrow("로그인하고 있어요.");
+    await expect(client.login(accountA.email, "password123")).rejects.toThrow(
+      "로그인하고 있어요.",
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    releaseLogin(authResponse(demoAccount));
+    await loggingIn;
+  });
+
+  it.each([200, 503])(
+    "waits for demo login (%s) before logout and leaves auth cleared",
+    async (status) => {
+      let releaseLogin!: (response: Response) => void;
+      fetchMock.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            releaseLogin = resolve;
+          }),
+      );
+      fetchMock.mockResolvedValueOnce(new Response(null, { status: 204 }));
+      const loggingIn = client.loginDemo();
+      const loginAssertion =
+        status === 200
+          ? expect(loggingIn).resolves.toBe(true)
+          : expect(loggingIn).rejects.toThrow("데모 계정을 준비하고 있어요…");
+      const loggingOut = client.logout();
+      await Promise.resolve();
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      releaseLogin(
+        status === 200
+          ? authResponse(demoAccount)
+          : Response.json(
+              { message: "데모 계정을 준비하고 있어요…" },
+              { status },
+            ),
+      );
+      await Promise.all([loginAssertion, loggingOut]);
+
+      expect(fetchMock.mock.calls.map(([path]) => path)).toEqual([
+        "/api/auth/demo",
+        "/api/auth/logout",
+      ]);
+      expect(useAuthStore.getState()).toMatchObject({
+        user: null,
+        accessToken: null,
+        welcomeNickname: null,
+        loading: false,
+      });
+    },
+  );
+
+  it("preserves the demo API error and releases the lock for a retry", async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ message: "데모 계정을 준비하고 있어요…" }, { status: 503 }),
+    );
+    const canNavigate = vi.fn(() => true);
+    await expect(client.loginDemo(canNavigate)).rejects.toMatchObject({
+      status: 503,
+      message: "데모 계정을 준비하고 있어요…",
+    });
+    expect(canNavigate).not.toHaveBeenCalled();
+    expect(useAuthStore.getState().user).toBeNull();
+    expect(client.getAccessToken()).toBeNull();
+
+    fetchMock.mockResolvedValueOnce(authResponse(demoAccount));
+    await expect(client.loginDemo()).resolves.toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it("retries multipart data without setting Content-Type", async () => {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { login, logout, refresh } from "../../lib/auth";
+import { login, loginDemo, logout, refresh } from "../../lib/auth";
 import { useAuthStore } from "../../lib/auth-store";
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -15,5 +15,5 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 export const useAuth = () => {
   const user = useAuthStore((state) => state.user);
   const loading = useAuthStore((state) => state.loading);
-  return { user, loading, login, logout };
+  return { user, loading, login, loginDemo, logout };
 };

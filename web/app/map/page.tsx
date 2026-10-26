@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useLayoutEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { AuthGate } from "../_components/auth-gate";
+import { useAuth } from "../_components/auth-provider";
 import { dangerButton } from "../_components/buttons";
 import { PinIcon } from "../_components/icons";
 import headingStyles from "../_components/heading.module.css";
@@ -44,6 +45,7 @@ const MapPage = () => {
 export default MapPage;
 
 const LocationPanel = () => {
+  const { user } = useAuth();
   const locationQuery = useMyLocation();
   const location = locationQuery.data;
   const queryClient = useQueryClient();
@@ -54,10 +56,13 @@ const LocationPanel = () => {
   const [mapStarted, setMapStarted] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const canSend = !!location?.consented && !consent.isPending;
-  const nearby = useNearby(canSend && sentWhileVisible);
-  const neighbors =
-    canSend && sentWhileVisible && !nearby.isError ? nearby.data : undefined;
+  const isDemo = !!user?.isDemo;
+  const hasLocation = location?.lat != null && location?.lng != null;
+  const canSend = !!location?.consented && !consent.isPending && !isDemo;
+  const canViewNearby = isDemo ? hasLocation : canSend && sentWhileVisible;
+  const showMap = isDemo || mapStarted;
+  const nearby = useNearby(canViewNearby);
+  const neighbors = canViewNearby && !nearby.isError ? nearby.data : undefined;
   const error =
     consent.error?.message ?? sendError ?? locationQuery.error?.message;
   const nearbyError = nearby.error?.message;
@@ -68,6 +73,9 @@ const LocationPanel = () => {
   // navigating away. Only a layout cleanup resets the list before it is
   // hidden; a passive one lets the old list flash when the page comes back.
   useLayoutEffect(() => {
+    // Nothing to send, so leave the neighbor list alone: a demo account
+    // shows its fixed location's neighbors without ever sending.
+    if (!canSend) return;
     let timer: ReturnType<typeof setInterval> | undefined;
     let active = true;
     const stop = () => {
@@ -179,14 +187,16 @@ const LocationPanel = () => {
           <PinIcon size={16} />
           위치 공개 중
         </span>
-        <button
-          type="button"
-          className={dangerButton}
-          disabled={consent.isPending}
-          onClick={() => changeConsent(false)}
-        >
-          위치 공개 끄기
-        </button>
+        {!isDemo && (
+          <button
+            type="button"
+            className={dangerButton}
+            disabled={consent.isPending}
+            onClick={() => changeConsent(false)}
+          >
+            위치 공개 끄기
+          </button>
+        )}
         {location.updatedAt && (
           <p className={uiStyles.meta}>
             마지막 업데이트{" "}
@@ -201,7 +211,7 @@ const LocationPanel = () => {
       </div>
       {/* The map with the neighbor list and the chosen neighbor beside it. */}
       <div className={styles.mapRow}>
-        {mapStarted && location.lat !== null && location.lng !== null ? (
+        {showMap && location.lat !== null && location.lng !== null ? (
           <KakaoMap
             lat={location.lat}
             lng={location.lng}
@@ -223,7 +233,7 @@ const LocationPanel = () => {
           </div>
         )}
         <div className={styles.columns}>
-          {!sentWhileVisible ? (
+          {!canViewNearby ? (
             <p role="status">내 위치를 받아 오고 있어요.</p>
           ) : nearbyError ? (
             <p role="alert">{nearbyError}</p>

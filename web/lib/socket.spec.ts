@@ -27,6 +27,7 @@ describe("Socket authentication and reconnection", () => {
       id: 1,
       email: "a@example.com",
       nickname: "보호자",
+      isDemo: false,
     });
     controller = new AbortController();
     connectSocket(controller.signal);
@@ -60,7 +61,7 @@ describe("Socket authentication and reconnection", () => {
       handlers.get(event)!("io server disconnect");
       expect(refresh).toHaveBeenCalledTimes(1);
       expect(socket.connect).not.toHaveBeenCalled();
-      finish({ id: 1, email: "a@example.com", nickname: "보호자" });
+      finish({ id: 1, email: "a@example.com", nickname: "보호자", isDemo: false });
       await vi.waitFor(() => expect(socket.connect).toHaveBeenCalledTimes(1));
     },
   );

@@ -9,6 +9,7 @@ import { LoginForm } from "./login-form";
 import { MenuIcon } from "./icons";
 import { useNotifications } from "./notifications-provider";
 import styles from "./site-header.module.css";
+import uiStyles from "./ui.module.css";
 
 export const SiteHeader = () => {
   const { user, loading, logout } = useAuth();
@@ -42,6 +43,7 @@ export const SiteHeader = () => {
         <MainMenu pendingCount={pendingCount} />
         <div className={styles.account}>
           <span className={styles.greeting}>{user.nickname}님, 안녕하세요</span>
+          {user.isDemo && <span className={uiStyles.badge}>체험 중</span>}
           <MenuLink href="/me">내 정보</MenuLink>
           <button type="button" disabled={loggingOut} onClick={handleLogout}>
             로그아웃
