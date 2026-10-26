@@ -23,13 +23,13 @@ const DogForm = ({ dog, order }: { dog?: Dog; order?: number }) => {
   const [error, setError] = useState("");
   // The picked photo, shown in place of the current one and sent on saving.
   const [file, setFile] = useState<File>();
-  const save = useSaveDog(dog?.id);
+  const saveDog = useSaveDog(dog?.id);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const fields = new FormData(event.currentTarget);
     setError("");
-    save.reset();
+    saveDog.reset();
     if (tooBig(file)) {
       setError(tooBigMessage);
       return;
@@ -37,7 +37,7 @@ const DogForm = ({ dog, order }: { dog?: Dog; order?: number }) => {
     const body = new FormData();
     body.set("dog", JSON.stringify(readDogFields(fields)));
     if (file) body.set("photo", file);
-    save.mutate(body, { onSuccess: () => router.push("/dogs") });
+    saveDog.mutate(body, { onSuccess: () => router.push("/dogs") });
   };
 
   // The real file input stays in the page, hidden behind its drawn button,
@@ -86,14 +86,14 @@ const DogForm = ({ dog, order }: { dog?: Dog; order?: number }) => {
     >
       <fieldset
         className={`${formStyles.card} ${formStyles.besideLabels} ${styles.fields} ${dog ? formStyles.editFields : formStyles.addFields}`}
-        disabled={save.isPending}
+        disabled={saveDog.isPending}
       >
         <legend className={formStyles.visuallyHidden}>반려견 정보</legend>
         <DogFields dog={dog} variant={dog ? "edit" : "add"} />
       </fieldset>
       <fieldset
         className={`${formStyles.card} ${styles.photoCard}`}
-        disabled={save.isPending}
+        disabled={saveDog.isPending}
       >
         {dog ? (
           <>
@@ -142,8 +142,8 @@ const DogForm = ({ dog, order }: { dog?: Dog; order?: number }) => {
         )}
       </fieldset>
       <div className={styles.formActions}>
-        <button className={formStyles.submit} disabled={save.isPending}>
-          {save.isPending ? "저장 중…" : "저장하기"}
+        <button className={formStyles.submit} disabled={saveDog.isPending}>
+          {saveDog.isPending ? "저장 중…" : "저장하기"}
         </button>
         {!dog && (
           <Link href="/dogs" className={formStyles.secondary}>
@@ -161,8 +161,8 @@ const DogForm = ({ dog, order }: { dog?: Dog; order?: number }) => {
           sizes="320px"
         />
       )}
-      {(error || save.error) && (
-        <p role="alert">{error || save.error?.message}</p>
+      {(error || saveDog.error) && (
+        <p role="alert">{error || saveDog.error?.message}</p>
       )}
     </form>
   );

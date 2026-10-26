@@ -17,8 +17,8 @@ const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 
 const DiaryForm = ({ diary }: { diary?: Diary }) => {
   const router = useRouter();
-  const dogs = useMyDogs();
-  const save = useSaveDiary(diary?.id);
+  const myDogs = useMyDogs();
+  const saveDiary = useSaveDiary(diary?.id);
   const [error, setError] = useState("");
   const [images, setImages] = useState<File[]>([]);
   const [removeImageIds, setRemoveImageIds] = useState<number[]>([]);
@@ -40,7 +40,7 @@ const DiaryForm = ({ diary }: { diary?: Diary }) => {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
-    save.reset();
+    saveDiary.reset();
     if (photoError) return;
     const fields = new FormData(event.currentTarget);
     const title = String(fields.get("title") ?? "").trim();
@@ -65,15 +65,15 @@ const DiaryForm = ({ diary }: { diary?: Diary }) => {
       }),
     );
     images.forEach((image) => body.append("images", image));
-    save.mutate(body, {
+    saveDiary.mutate(body, {
       onSuccess: (saved) => router.push(`/diaries/${saved.id}`),
     });
   };
 
-  if (dogs.error) return <p role="alert">{dogs.error.message}</p>;
-  if (!dogs.data) return <p role="status">반려견을 불러오고 있어요.</p>;
+  if (myDogs.error) return <p role="alert">{myDogs.error.message}</p>;
+  if (!myDogs.data) return <p role="status">반려견을 불러오고 있어요.</p>;
 
-  const order = dogs.data.findIndex((dog) => dog.id === dogId);
+  const order = myDogs.data.findIndex((dog) => dog.id === dogId);
   // The real file input stays in the page behind its drawn box. Its name,
   // "사진 (최대 5장, 장당 5MB 이하)", is how screen readers and tests find it.
   const photoInput = (
@@ -95,8 +95,8 @@ const DiaryForm = ({ diary }: { diary?: Diary }) => {
       <Link href="/diaries" className={formStyles.secondary}>
         일기 목록
       </Link>
-      <button className={formStyles.submit} disabled={save.isPending}>
-        {save.isPending ? "저장 중…" : "저장하기"}
+      <button className={formStyles.submit} disabled={saveDiary.isPending}>
+        {saveDiary.isPending ? "저장 중…" : "저장하기"}
       </button>
     </div>
   );
@@ -106,7 +106,7 @@ const DiaryForm = ({ diary }: { diary?: Diary }) => {
       className={`${formStyles.form} ${diary ? `${formStyles.card} ${styles.editForm}` : styles.newForm}`}
       onSubmit={handleSubmit}
     >
-      <fieldset className={styles.fields} disabled={save.isPending}>
+      <fieldset className={styles.fields} disabled={saveDiary.isPending}>
         <legend className={formStyles.visuallyHidden}>반려견 일기</legend>
         <div className={styles.topRow}>
           <label>
@@ -114,7 +114,7 @@ const DiaryForm = ({ diary }: { diary?: Diary }) => {
             <span className={`${formStyles.control} ${styles.picker}`}>
               {order >= 0 && (
                 <DogFace
-                  dog={dogs.data[order]}
+                  dog={myDogs.data[order]}
                   className={styles.pickerFace}
                   size={32}
                   order={order}
@@ -129,7 +129,7 @@ const DiaryForm = ({ diary }: { diary?: Diary }) => {
                 <option value="" disabled>
                   골라 주세요
                 </option>
-                {dogs.data.map((dog) => (
+                {myDogs.data.map((dog) => (
                   <option key={dog.id} value={dog.id}>
                     {dog.name}
                   </option>
@@ -260,8 +260,8 @@ const DiaryForm = ({ diary }: { diary?: Diary }) => {
         </div>
       </fieldset>
       {actions}
-      {(photoError || error || save.error) && (
-        <p role="alert">{photoError || error || save.error?.message}</p>
+      {(photoError || error || saveDiary.error) && (
+        <p role="alert">{photoError || error || saveDiary.error?.message}</p>
       )}
     </form>
   );

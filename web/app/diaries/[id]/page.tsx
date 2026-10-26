@@ -19,14 +19,14 @@ import styles from "../diaries.module.css";
 const DiaryDetail = () => {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const query = useDiary(Number(id));
-  const dogs = useMyDogs();
-  const remove = useDeleteDiary();
-  if (query.error) return <p role="alert">{query.error.message}</p>;
-  if (!query.data) return <p role="status">일기를 불러오고 있어요.</p>;
-  const diary = query.data;
-  const order = dogs.data?.findIndex((dog) => dog.id === diary.dog.id) ?? -1;
-  const dog = dogs.data?.[order];
+  const diaryQuery = useDiary(Number(id));
+  const myDogs = useMyDogs();
+  const deleteDiary = useDeleteDiary();
+  if (diaryQuery.error) return <p role="alert">{diaryQuery.error.message}</p>;
+  if (!diaryQuery.data) return <p role="status">일기를 불러오고 있어요.</p>;
+  const diary = diaryQuery.data;
+  const order = myDogs.data?.findIndex((dog) => dog.id === diary.dog.id) ?? -1;
+  const dog = myDogs.data?.[order];
 
   // The title and actions on top, then the photos beside the text, each
   // scrolling in its own column so a long diary never scrolls the page.
@@ -68,19 +68,19 @@ const DiaryDetail = () => {
           </Link>
           <button
             className={dangerButton}
-            disabled={remove.isPending}
+            disabled={deleteDiary.isPending}
             onClick={() => {
               if (!window.confirm("일기를 삭제할까요?")) return;
-              remove.mutate(diary.id, {
+              deleteDiary.mutate(diary.id, {
                 onSuccess: () => router.push("/diaries"),
               });
             }}
           >
-            {remove.isPending ? "삭제 중…" : "삭제"}
+            {deleteDiary.isPending ? "삭제 중…" : "삭제"}
           </button>
         </div>
       </div>
-      {remove.error && <p role="alert">{remove.error.message}</p>}
+      {deleteDiary.error && <p role="alert">{deleteDiary.error.message}</p>}
       <div className={styles.detailBody}>
         {diary.images.length > 0 && (
           <div className={styles.photos}>

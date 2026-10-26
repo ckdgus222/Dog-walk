@@ -13,13 +13,13 @@ import styles from "../../diaries.module.css";
 
 const EditDiary = () => {
   const { id } = useParams<{ id: string }>();
-  const query = useDiary(Number(id), true);
+  const diary = useDiary(Number(id), true);
 
   // defaultValue must only use a successful read made after entering this page.
-  if (query.isFetching) return <p role="status">일기를 불러오고 있어요.</p>;
-  if (query.error) return <p role="alert">{query.error.message}</p>;
-  if (query.isSuccess)
-    return <DiaryForm key={query.data.id} diary={query.data} />;
+  if (diary.isFetching) return <p role="status">일기를 불러오고 있어요.</p>;
+  if (diary.error) return <p role="alert">{diary.error.message}</p>;
+  if (diary.isSuccess)
+    return <DiaryForm key={diary.data.id} diary={diary.data} />;
   return <p role="status">일기를 불러오고 있어요.</p>;
 };
 

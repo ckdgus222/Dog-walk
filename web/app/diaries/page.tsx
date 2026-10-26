@@ -35,8 +35,8 @@ const DiaryList = () => {
   const dogId = searchParams.has("dogId")
     ? Number(searchParams.get("dogId"))
     : undefined;
-  const dogs = useMyDogs();
-  const query = useDiaries(dogId, page);
+  const myDogs = useMyDogs();
+  const diaries = useDiaries(dogId, page);
 
   return (
     <>
@@ -49,7 +49,7 @@ const DiaryList = () => {
         >
           전체
         </button>
-        {dogs.data?.map((dog) => (
+        {myDogs.data?.map((dog) => (
           <button
             key={dog.id}
             type="button"
@@ -61,10 +61,10 @@ const DiaryList = () => {
           </button>
         ))}
       </div>
-      {dogs.error && <p role="alert">{dogs.error.message}</p>}
-      {query.error && <p role="alert">{query.error.message}</p>}
-      {query.isPending && <p role="status">일기를 불러오고 있어요.</p>}
-      {query.isSuccess && page === 1 && query.data.diaries.length === 0 && (
+      {myDogs.error && <p role="alert">{myDogs.error.message}</p>}
+      {diaries.error && <p role="alert">{diaries.error.message}</p>}
+      {diaries.isPending && <p role="status">일기를 불러오고 있어요.</p>}
+      {diaries.isSuccess && page === 1 && diaries.data.diaries.length === 0 && (
         <EmptyState
           image={diaryBook}
           title="아직 일기가 없어요."
@@ -72,12 +72,12 @@ const DiaryList = () => {
           action={{ href: "/diaries/new", label: "첫 일기 쓰기" }}
         />
       )}
-      {!!query.data?.diaries.length && (
+      {!!diaries.data?.diaries.length && (
         <div className={styles.list}>
-          {query.data.diaries.map((diary) => {
+          {diaries.data.diaries.map((diary) => {
             const order =
-              dogs.data?.findIndex((dog) => dog.id === diary.dog.id) ?? -1;
-            const dog = dogs.data?.[order];
+              myDogs.data?.findIndex((dog) => dog.id === diary.dog.id) ?? -1;
+            const dog = myDogs.data?.[order];
             return (
               <article key={diary.id} className={styles.entry}>
                 <Link href={`/diaries/${diary.id}`}>
@@ -127,7 +127,7 @@ const DiaryList = () => {
             );
           })}
           {/* A short last page offers the next diary in the space left. */}
-          {query.data.diaries.length < DIARY_PAGE_SIZE && (
+          {diaries.data.diaries.length < DIARY_PAGE_SIZE && (
             <Link href="/diaries/new" className={styles.writeTile}>
               <Image src={diaryBook} alt="" width={48} height={48} />
               <strong>오늘 산책도 기록해 볼까요?</strong>
@@ -136,11 +136,11 @@ const DiaryList = () => {
           )}
         </div>
       )}
-      {query.data && (
+      {diaries.data && (
         <Pager
           label="산책 일기 페이지"
           page={page}
-          totalPages={query.data.totalPages}
+          totalPages={diaries.data.totalPages}
           href={(to) => listHref(to, dogId)}
           emptyText="이 페이지에는 일기가 없어요."
         />

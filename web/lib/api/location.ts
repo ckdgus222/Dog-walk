@@ -2,8 +2,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "../auth";
 import type { MyLocation, Neighbor } from "../types";
 
-const myLocationKey = ["location", "me"];
-const nearbyKey = ["location", "nearby"];
+export const myLocationKey = ["location", "me"];
+export const nearbyKey = ["location", "nearby"];
 
 export const useMyLocation = () =>
   useQuery({

@@ -17,7 +17,7 @@ export const WalkRequestModal = () => {
 const IncomingRequest = ({ request }: { request: WalkRequest }) => {
   const { dismissIncoming } = useNotifications();
   const dialog = useRef<HTMLDialogElement>(null);
-  const respondMutation = useRespondToWalkRequest();
+  const respondToWalkRequest = useRespondToWalkRequest();
 
   useEffect(() => {
     const element = dialog.current;
@@ -28,7 +28,7 @@ const IncomingRequest = ({ request }: { request: WalkRequest }) => {
   }, []);
 
   const respond = (action: "accept" | "reject") => {
-    respondMutation.mutate(
+    respondToWalkRequest.mutate(
       { id: request.id, action },
       { onSuccess: dismissIncoming },
     );
@@ -52,20 +52,20 @@ const IncomingRequest = ({ request }: { request: WalkRequest }) => {
         ))}
       </ul>
       {request.message && <p>{request.message}</p>}
-      {respondMutation.error && (
-        <p role="alert">{respondMutation.error.message}</p>
+      {respondToWalkRequest.error && (
+        <p role="alert">{respondToWalkRequest.error.message}</p>
       )}
       <div className={styles.actions}>
         <button
           type="button"
-          disabled={respondMutation.isPending}
+          disabled={respondToWalkRequest.isPending}
           onClick={() => respond("accept")}
         >
           수락
         </button>
         <button
           type="button"
-          disabled={respondMutation.isPending}
+          disabled={respondToWalkRequest.isPending}
           onClick={() => respond("reject")}
         >
           거절

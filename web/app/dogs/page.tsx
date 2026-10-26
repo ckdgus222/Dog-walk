@@ -51,22 +51,22 @@ const DogsPage = () => {
 export default DogsPage;
 
 const DogList = () => {
-  const query = useMyDogs();
-  const remove = useDeleteDog();
-  const error = remove.error?.message ?? query.error?.message;
+  const myDogs = useMyDogs();
+  const deleteDog = useDeleteDog();
+  const error = deleteDog.error?.message ?? myDogs.error?.message;
 
   const removeDog = (dog: Dog) => {
     if (!window.confirm(`${dog.name}의 정보를 삭제할까요?`)) return;
-    remove.mutate(dog.id);
+    deleteDog.mutate(dog.id);
   };
 
   return (
     <>
-      {query.isPending && !error && (
+      {myDogs.isPending && !error && (
         <p role="status">반려견을 불러오고 있어요.</p>
       )}
       <div className={styles.list}>
-        {query.data?.map((dog, index) => (
+        {myDogs.data?.map((dog, index) => (
           <DogCard
             key={dog.id}
             dog={dog}
@@ -84,10 +84,10 @@ const DogList = () => {
               <button
                 type="button"
                 className={dangerButton}
-                disabled={remove.isPending}
+                disabled={deleteDog.isPending}
                 onClick={() => removeDog(dog)}
               >
-                {remove.isPending && remove.variables === dog.id
+                {deleteDog.isPending && deleteDog.variables === dog.id
                   ? "삭제 중…"
                   : "삭제"}
               </button>
@@ -97,7 +97,7 @@ const DogList = () => {
       </div>
       {/* The bar always explains the one-dog rule, and shows the error in
           its place when something fails. */}
-      {(error || query.isSuccess) && (
+      {(error || myDogs.isSuccess) && (
         <p
           key={error ? "error" : "hint"}
           role={error ? "alert" : undefined}

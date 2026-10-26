@@ -13,14 +13,14 @@ import styles from "../../dogs.module.css";
 
 const EditDog = () => {
   const { id } = useParams<{ id: string }>();
-  const query = useDogForEdit(id);
+  const dogForEdit = useDogForEdit(id);
 
   // Build the form only from a read that finished after entering this page;
   // the form uses defaultValue, so a stale cached dog would never update.
-  if (query.isFetching) return <p role="status">반려견을 불러오고 있어요.</p>;
-  if (query.error) return <p role="alert">{query.error.message}</p>;
-  if (query.isSuccess) {
-    const { dog, order } = query.data;
+  if (dogForEdit.isFetching) return <p role="status">반려견을 불러오고 있어요.</p>;
+  if (dogForEdit.error) return <p role="alert">{dogForEdit.error.message}</p>;
+  if (dogForEdit.isSuccess) {
+    const { dog, order } = dogForEdit.data;
     return <DogForm key={dog.id} dog={dog} order={order} />;
   }
   return <p role="status">반려견을 불러오고 있어요.</p>;

@@ -26,19 +26,19 @@ const CommentEditForm = ({
   comment: Comment;
   onDone: () => void;
 }) => {
-  const update = useUpdateComment(comment.postId);
+  const updateComment = useUpdateComment(comment.postId);
   const [content, setContent] = useState(comment.content);
   const [error, setError] = useState("");
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
-    update.reset();
+    updateComment.reset();
     if (!content.trim()) {
       setError("댓글을 입력해 주세요.");
       return;
     }
-    update.mutate(
+    updateComment.mutate(
       { id: comment.id, content: content.trim() },
       { onSuccess: onDone },
     );
@@ -56,26 +56,26 @@ const CommentEditForm = ({
             required
             maxLength={300}
             value={content}
-            disabled={update.isPending}
+            disabled={updateComment.isPending}
             onChange={(event) => setContent(event.target.value)}
           />
         </span>
       </label>
       <div className={styles.commentActions}>
-        <button className={smallPrimary} disabled={update.isPending}>
+        <button className={smallPrimary} disabled={updateComment.isPending}>
           저장
         </button>
         <button
           type="button"
           className={smallSecondary}
-          disabled={update.isPending}
+          disabled={updateComment.isPending}
           onClick={onDone}
         >
           취소
         </button>
       </div>
-      {(error || update.error) && (
-        <p role="alert">{error || update.error?.message}</p>
+      {(error || updateComment.error) && (
+        <p role="alert">{error || updateComment.error?.message}</p>
       )}
     </form>
   );
@@ -83,7 +83,7 @@ const CommentEditForm = ({
 
 const CommentItem = ({ comment }: { comment: Comment }) => {
   const userId = useAuthStore((state) => state.user?.id);
-  const remove = useDeleteComment(comment.postId);
+  const deleteComment = useDeleteComment(comment.postId);
   const [editing, setEditing] = useState(false);
 
   return (
@@ -104,9 +104,9 @@ const CommentItem = ({ comment }: { comment: Comment }) => {
             <div className={styles.commentActions}>
               <button
                 className={smallPrimary}
-                disabled={remove.isPending}
+                disabled={deleteComment.isPending}
                 onClick={() => {
-                  remove.reset();
+                  deleteComment.reset();
                   setEditing(true);
                 }}
               >
@@ -114,10 +114,10 @@ const CommentItem = ({ comment }: { comment: Comment }) => {
               </button>
               <button
                 className={smallDanger}
-                disabled={remove.isPending}
+                disabled={deleteComment.isPending}
                 onClick={() => {
                   if (window.confirm("댓글을 삭제할까요?"))
-                    remove.mutate(comment.id);
+                    deleteComment.mutate(comment.id);
                 }}
               >
                 삭제
@@ -126,37 +126,37 @@ const CommentItem = ({ comment }: { comment: Comment }) => {
           )}
         </>
       )}
-      {remove.error && <p role="alert">{remove.error.message}</p>}
+      {deleteComment.error && <p role="alert">{deleteComment.error.message}</p>}
     </article>
   );
 };
 
 export const Comments = ({ postId }: { postId: number }) => {
-  const query = useComments(postId);
-  const add = useAddComment(postId);
+  const comments = useComments(postId);
+  const addComment = useAddComment(postId);
   const [content, setContent] = useState("");
   const [error, setError] = useState("");
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
-    add.reset();
+    addComment.reset();
     if (!content.trim()) {
       setError("댓글을 입력해 주세요.");
       return;
     }
-    add.mutate(content.trim(), { onSuccess: () => setContent("") });
+    addComment.mutate(content.trim(), { onSuccess: () => setContent("") });
   };
 
   return (
     <section aria-label="댓글" className={styles.comments}>
       <h2>
-        댓글 {query.data && <span>{query.data.length}</span>}
+        댓글 {comments.data && <span>{comments.data.length}</span>}
       </h2>
       <div className={styles.commentList}>
-        {query.error && <p role="alert">{query.error.message}</p>}
-        {query.isPending && <p role="status">댓글을 불러오고 있어요.</p>}
-        {query.data?.map((comment) => (
+        {comments.error && <p role="alert">{comments.error.message}</p>}
+        {comments.isPending && <p role="status">댓글을 불러오고 있어요.</p>}
+        {comments.data?.map((comment) => (
           <CommentItem key={comment.id} comment={comment} />
         ))}
       </div>
@@ -173,15 +173,15 @@ export const Comments = ({ postId }: { postId: number }) => {
             required
             maxLength={300}
             value={content}
-            disabled={add.isPending}
+            disabled={addComment.isPending}
             onChange={(event) => setContent(event.target.value)}
           />
         </label>
-        <button className={formStyles.submit} disabled={add.isPending}>
+        <button className={formStyles.submit} disabled={addComment.isPending}>
           댓글 달기
         </button>
-        {(error || add.error) && (
-          <p role="alert">{error || add.error?.message}</p>
+        {(error || addComment.error) && (
+          <p role="alert">{error || addComment.error?.message}</p>
         )}
       </form>
     </section>

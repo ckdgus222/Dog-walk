@@ -41,28 +41,32 @@ export default MePage;
 // so their answers never cross.
 const AccountForms = () => {
   const { user } = useAuth();
-  const nickname = useUpdateMe();
-  const password = useUpdateMe();
-  const saving = nickname.isPending || password.isPending;
+  const updateNickname = useUpdateMe();
+  const updatePassword = useUpdateMe();
+  const saving = updateNickname.isPending || updatePassword.isPending;
   if (!user) return null;
 
   return (
     <div className={styles.cards}>
-      <NicknameCard user={user} save={nickname} saving={saving} />
-      <PasswordCard save={password} saving={saving} />
+      <NicknameCard
+        user={user}
+        updateNickname={updateNickname}
+        saving={saving}
+      />
+      <PasswordCard updatePassword={updatePassword} saving={saving} />
     </div>
   );
 };
 
-type Save = ReturnType<typeof useUpdateMe>;
+type UpdateMe = ReturnType<typeof useUpdateMe>;
 
 const NicknameCard = ({
   user,
-  save,
+  updateNickname,
   saving,
 }: {
   user: User;
-  save: Save;
+  updateNickname: UpdateMe;
   saving: boolean;
 }) => {
   const [done, setDone] = useState(false);
@@ -71,7 +75,7 @@ const NicknameCard = ({
     event.preventDefault();
     setDone(false);
     const fields = new FormData(event.currentTarget);
-    save.mutate(
+    updateNickname.mutate(
       { nickname: String(fields.get("nickname") ?? "") },
       {
         // Only this answer carries the new nickname into the header.
@@ -108,31 +112,39 @@ const NicknameCard = ({
           </span>
         </label>
         <button className={formStyles.submit}>
-          {save.isPending ? "저장 중…" : "닉네임 저장"}
+          {updateNickname.isPending ? "저장 중…" : "닉네임 저장"}
         </button>
-        {save.error && <p role="alert">{save.error.message}</p>}
+        {updateNickname.error && (
+          <p role="alert">{updateNickname.error.message}</p>
+        )}
         {done && <p role="status">닉네임을 바꿨어요.</p>}
       </fieldset>
     </form>
   );
 };
 
-const PasswordCard = ({ save, saving }: { save: Save; saving: boolean }) => {
+const PasswordCard = ({
+  updatePassword,
+  saving,
+}: {
+  updatePassword: UpdateMe;
+  saving: boolean;
+}) => {
   const [error, setError] = useState("");
-  const alert = error || save.error?.message;
+  const alert = error || updatePassword.error?.message;
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
     setError("");
-    save.reset();
+    updatePassword.reset();
     const fields = new FormData(form);
     const newPassword = String(fields.get("newPassword") ?? "");
     if (newPassword !== fields.get("confirmPassword")) {
       setError("새 비밀번호가 서로 달라요.");
       return;
     }
-    save.mutate(
+    updatePassword.mutate(
       {
         currentPassword: String(fields.get("currentPassword") ?? ""),
         newPassword,
@@ -186,10 +198,10 @@ const PasswordCard = ({ save, saving }: { save: Save; saving: boolean }) => {
           </span>
         </label>
         <button className={formStyles.submit}>
-          {save.isPending ? "바꾸는 중…" : "비밀번호 바꾸기"}
+          {updatePassword.isPending ? "바꾸는 중…" : "비밀번호 바꾸기"}
         </button>
         {alert && <p role="alert">{alert}</p>}
-        {save.isSuccess && <p role="status">비밀번호를 바꿨어요.</p>}
+        {updatePassword.isSuccess && <p role="status">비밀번호를 바꿨어요.</p>}
       </fieldset>
     </form>
   );

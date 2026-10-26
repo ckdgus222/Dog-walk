@@ -10,7 +10,7 @@ import styles from "./posts.module.css";
 
 const PostForm = ({ post }: { post?: Post }) => {
   const router = useRouter();
-  const save = useSavePost(post?.id);
+  const savePost = useSavePost(post?.id);
   const [error, setError] = useState("");
   const [titleLength, setTitleLength] = useState(post?.title.length ?? 0);
   const [contentLength, setContentLength] = useState(
@@ -20,7 +20,7 @@ const PostForm = ({ post }: { post?: Post }) => {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
-    save.reset();
+    savePost.reset();
     const fields = new FormData(event.currentTarget);
     const title = String(fields.get("title") ?? "").trim();
     const content = String(fields.get("content") ?? "").trim();
@@ -28,7 +28,7 @@ const PostForm = ({ post }: { post?: Post }) => {
       setError(`제목과 ${post ? "내용" : "본문"}을 입력해 주세요.`);
       return;
     }
-    save.mutate(
+    savePost.mutate(
       { title, content },
       {
         onSuccess: (saved) => router.push(`/posts/${saved.id}`),
@@ -41,7 +41,7 @@ const PostForm = ({ post }: { post?: Post }) => {
       className={`${formStyles.form} ${post ? styles.editForm : styles.newForm}`}
       onSubmit={handleSubmit}
     >
-      <fieldset className={styles.fields} disabled={save.isPending}>
+      <fieldset className={styles.fields} disabled={savePost.isPending}>
         <legend className={formStyles.visuallyHidden}>게시글</legend>
         <label>
           <span className={styles.fieldLabel}>
@@ -109,12 +109,12 @@ const PostForm = ({ post }: { post?: Post }) => {
         <Link href="/posts" className={formStyles.secondary}>
           게시판 목록
         </Link>
-        <button className={formStyles.submit} disabled={save.isPending}>
-          {save.isPending ? "저장 중…" : "저장하기"}
+        <button className={formStyles.submit} disabled={savePost.isPending}>
+          {savePost.isPending ? "저장 중…" : "저장하기"}
         </button>
       </div>
-      {(error || save.error) && (
-        <p role="alert">{error || save.error?.message}</p>
+      {(error || savePost.error) && (
+        <p role="alert">{error || savePost.error?.message}</p>
       )}
     </form>
   );

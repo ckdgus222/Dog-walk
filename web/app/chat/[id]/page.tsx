@@ -4,7 +4,11 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useChatHistory, useSendChatMessage } from "../../../lib/api/chat";
+import {
+  chatKey,
+  useChatHistory,
+  useSendChatMessage,
+} from "../../../lib/api/chat";
 import { useWalkRequests } from "../../../lib/api/walk-requests";
 import type { Dog } from "../../../lib/types";
 import { AuthGate } from "../../_components/auth-gate";
@@ -53,8 +57,8 @@ const ChatRoom = ({ walkRequestId }: { walkRequestId: number }) => {
   const { user } = useAuth();
   const { socket } = useNotifications();
   const queryClient = useQueryClient();
-  const history = useChatHistory(walkRequestId);
-  const send = useSendChatMessage(socket, walkRequestId);
+  const chatHistory = useChatHistory(walkRequestId);
+  const sendChatMessage = useSendChatMessage(socket, walkRequestId);
   const [content, setContent] = useState("");
   const [connected, setConnected] = useState(socket?.connected ?? false);
   const submitting = useRef(false);
@@ -64,7 +68,7 @@ const ChatRoom = ({ walkRequestId }: { walkRequestId: number }) => {
     if (!socket) return;
     const onConnect = async () => {
       setConnected(true);
-      const queryKey = ["chat", walkRequestId];
+      const queryKey = chatKey(walkRequestId);
       await queryClient.cancelQueries({ queryKey });
       await queryClient.invalidateQueries({ queryKey });
     };
@@ -82,12 +86,12 @@ const ChatRoom = ({ walkRequestId }: { walkRequestId: number }) => {
 
   useEffect(() => {
     if (list.current) list.current.scrollTop = list.current.scrollHeight;
-  }, [history.data?.messages]);
+  }, [chatHistory.data?.messages]);
 
   // In a window-high panel the list shrinks when the head grows, such as
   // when the counterpart's dog arrives after the messages. Stay on the
   // newest message if it was showing before the list shrank.
-  const loaded = !!history.data;
+  const loaded = !!chatHistory.data;
   useEffect(() => {
     const element = list.current;
     if (!element) return;
@@ -108,14 +112,14 @@ const ChatRoom = ({ walkRequestId }: { walkRequestId: number }) => {
     event.preventDefault();
     if (
       submitting.current ||
-      send.isPending ||
+      sendChatMessage.isPending ||
       !socket?.connected ||
       !content.trim()
     )
       return;
     submitting.current = true;
     try {
-      await send.mutateAsync(content);
+      await sendChatMessage.mutateAsync(content);
       setContent("");
     } catch {
       // The mutation error is shown below, and the draft stays unchanged.
@@ -124,17 +128,18 @@ const ChatRoom = ({ walkRequestId }: { walkRequestId: number }) => {
     }
   };
 
-  if (history.isError) return <p role="alert">{history.error.message}</p>;
-  if (!history.data) return <p role="status">메시지를 불러오고 있어요.</p>;
+  if (chatHistory.isError)
+    return <p role="alert">{chatHistory.error.message}</p>;
+  if (!chatHistory.data) return <p role="status">메시지를 불러오고 있어요.</p>;
 
   return (
     <>
       <div className={styles.head}>
         <Counterpart
           walkRequestId={walkRequestId}
-          userId={history.data.counterpart.id}
+          userId={chatHistory.data.counterpart.id}
         />
-        <h1>{history.data.counterpart.nickname}님과의 채팅</h1>
+        <h1>{chatHistory.data.counterpart.nickname}님과의 채팅</h1>
         <p className={styles.note}>
           최근 50개 메시지
           <br />
@@ -143,7 +148,7 @@ const ChatRoom = ({ walkRequestId }: { walkRequestId: number }) => {
         </p>
       </div>
       <ol ref={list} aria-label="채팅 메시지" className={styles.messages}>
-        {history.data.messages.slice(-50).map((message) => (
+        {chatHistory.data.messages.slice(-50).map((message) => (
           <li
             key={message.id}
             className={
@@ -176,7 +181,7 @@ const ChatRoom = ({ walkRequestId }: { walkRequestId: number }) => {
                 event.preventDefault();
             }}
             maxLength={500}
-            disabled={send.isPending}
+            disabled={sendChatMessage.isPending}
             required
           />
         </label>
@@ -184,7 +189,7 @@ const ChatRoom = ({ walkRequestId }: { walkRequestId: number }) => {
           type="submit"
           className={styles.send}
           disabled={
-            send.isPending ||
+            sendChatMessage.isPending ||
             !connected ||
             !socket?.connected ||
             !content.trim()
@@ -195,7 +200,9 @@ const ChatRoom = ({ walkRequestId }: { walkRequestId: number }) => {
         {(!connected || !socket?.connected) && (
           <p role="status">연결하고 있어요.</p>
         )}
-        {send.error && <p role="alert">{send.error.message}</p>}
+        {sendChatMessage.error && (
+          <p role="alert">{sendChatMessage.error.message}</p>
+        )}
       </form>
     </>
   );
