@@ -64,13 +64,10 @@
   gap: var(--space-2);
 }
 
-/* The dogs lie on the rug under the list, out to the panel's edges and
-   bottom. Phones get a narrower room with the same plant, dogs and chair. */
+/* The dogs lie on the rug under the list, inside the panel's padding.
+   Phones get a narrower room with the same plant, dogs and chair. */
 .livingRoom {
-  /* Wider than the content column without widening it. */
   min-width: 0;
-  margin: -16px calc(-1 * var(--panel-pad-x))
-    calc(-1 * var(--panel-pad-bottom));
 }
 
 /* Add and edit: the dog's fields on a card with their labels on the left,

@@ -118,6 +118,8 @@
 .post > .content {
   grid-column: 1 / -1;
   align-self: stretch;
+  /* The body keeps its size when short, so it never looks like a comment. */
+  min-height: 200px;
   padding-top: var(--space-5);
   border-top: 1px solid var(--line);
   font-size: var(--text-lg);
@@ -268,10 +270,10 @@
     grid-template-rows: auto minmax(0, 1fr);
   }
 
-  /* The post takes what it needs, up to about half; the comments take the
-     rest. Each scrolls inside when it is longer. */
+  /* The post and the comments share the height half and half, however
+     short the post. Each scrolls inside when it is longer. */
   .detail {
-    grid-template-rows: fit-content(55%) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
   }
 
   .comments {
@@ -305,6 +307,11 @@
   .post > .content,
   .commentList {
     overflow-y: auto;
+  }
+
+  /* Here the half height keeps the body's size instead. */
+  .post > .content {
+    min-height: 0;
   }
 }
 

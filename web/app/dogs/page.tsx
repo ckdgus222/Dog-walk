@@ -40,9 +40,8 @@ const DogsPage = () => {
         wide={livingRoom}
         narrow={livingRoomMobile}
         narrowMedia="(max-width: 720px)"
-        // From 1280x800 the room shows whole in the height left under the
-        // cards, so it is narrower than the window.
-        wideSizes="(max-width: 1279px) 100vw, (max-height: 799px) 100vw, 75vw"
+        // As wide as the panel's content, a little narrower than the window.
+        wideSizes="90vw"
         loading="lazy"
         fill
       />

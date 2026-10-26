@@ -10,13 +10,19 @@
 }
 
 .welcome p {
-  padding: var(--space-3) var(--space-5);
+  /* A long nickname wraps instead of leaving a phone's screen. */
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: var(--space-4) var(--space-6);
+  border: 2px solid var(--accent);
   border-radius: var(--radius-full);
-  background: var(--ink);
+  background: var(--accent-soft);
   box-shadow: var(--shadow-card);
-  color: white;
-  font-weight: 700;
-  white-space: nowrap;
+  color: var(--ink);
+  font-family: var(--font-display), var(--font-sans), sans-serif;
+  font-size: var(--text-xl);
+  text-align: center;
+  overflow-wrap: anywhere;
   animation: welcome-in 0.3s ease-out;
 }
 

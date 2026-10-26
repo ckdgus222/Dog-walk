@@ -169,7 +169,10 @@
   display: grid;
   /* The form column and gap narrow with the window down to 900px. */
   grid-template-columns: minmax(0, 1fr) clamp(320px, 30vw, 380px);
-  grid-template-rows: auto 180px;
+  /* The drawing takes the height the rest of the card (about 420px) and
+     the header leave. home-scene.png is 756px tall, so up to 378px it stays
+     sharp on 2x screens. */
+  grid-template-rows: auto clamp(180px, 100vh - 560px, 360px);
   align-items: center;
   column-gap: clamp(32px, 4vw, 56px);
   row-gap: var(--space-4);
