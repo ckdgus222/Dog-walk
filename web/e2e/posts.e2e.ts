@@ -3,6 +3,7 @@ import {
   expect,
   test,
   type APIRequestContext,
+  type Locator,
   type Page,
 } from "@playwright/test";
 
@@ -48,6 +49,17 @@ const login = async (
   await main.getByLabel("비밀번호").fill(account.password);
   await main.getByRole("button", { name: "로그인", exact: true }).click();
   await expect(page).toHaveURL("/");
+};
+
+const expectPostForm = async (main: Locator, title: string, content: string) => {
+  await expect(main.getByLabel("제목", { exact: true })).toHaveValue(title);
+  await expect(main.getByRole("textbox", { name: /^본문/ })).toHaveValue(
+    content,
+  );
+  await expect(main.locator('[data-count$=" / 50"]')).toHaveAttribute(
+    "data-count",
+    `${title.length} / 50`,
+  );
 };
 
 test("게시판 작성·댓글·작성자 권한·삭제·페이지 이동", async ({
@@ -265,4 +277,186 @@ test("게시판 작성·댓글·작성자 권한·삭제·페이지 이동", asy
   } finally {
     await otherContext.close();
   }
+});
+
+test("저장한 게시글 폼은 비우고 저장하지 않은 초안은 유지한다", async ({
+  page,
+  request,
+}) => {
+  const account = await createAccount(request);
+  const main = page.getByRole("main");
+  const title = `폼 초기화 ${randomUUID()}`;
+  const content = "저장한 본문";
+  await login(page, account);
+  await page.goto("/posts/new");
+  await main.getByLabel("제목", { exact: true }).fill(title);
+  await main.getByRole("textbox", { name: /^본문/ }).fill(content);
+  await expect(main.locator('[data-count$=" / 50"]')).toHaveAttribute(
+    "data-count",
+    `${title.length} / 50`,
+  );
+
+  // Keep the form in Next's Activity cache with client-side navigation.
+  await page
+    .getByRole("navigation", { name: "주 메뉴" })
+    .getByRole("link", { name: "내 반려견", exact: true })
+    .click();
+  await expect(page).toHaveURL("/dogs");
+  await page.goBack();
+  await expect(page).toHaveURL("/posts/new");
+  await expectPostForm(main, title, content);
+
+  await main.getByRole("button", { name: "저장하기", exact: true }).click();
+  await expect(page).toHaveURL(/\/posts\/\d+$/);
+  await expect(
+    main.getByRole("heading", { name: title, exact: true }),
+  ).toBeVisible();
+  await main.getByRole("link", { name: "게시판", exact: true }).click();
+  await expect(page).toHaveURL("/posts");
+  await main.getByRole("link", { name: "글쓰기", exact: true }).click();
+  await expect(page).toHaveURL("/posts/new");
+  await expectPostForm(main, "", "");
+  await expect(main.locator('[data-count$=" / 2000"]')).toHaveAttribute(
+    "data-count",
+    "0 / 2000",
+  );
+});
+
+test("게시글 저장 응답 전에 떠나도 다음 작성 폼을 비우고 상세로 이동하지 않는다", async ({
+  page,
+  request,
+}) => {
+  const account = await createAccount(request);
+  const main = page.getByRole("main");
+  const title = `늦은 저장 ${randomUUID()}`;
+  let release!: () => void;
+  const released = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/api/posts", async (route) => {
+    if (route.request().method() !== "POST") {
+      await route.continue();
+      return;
+    }
+    // Save only after leaving so the list first loads without this post.
+    await released;
+    const response = await route.fetch();
+    expect(response.status()).toBe(201);
+    await route.fulfill({ response });
+  });
+  await login(page, account);
+  await page.goto("/posts/new");
+  await main.getByLabel("제목", { exact: true }).fill(title);
+  await main
+    .getByRole("textbox", { name: /^본문/ })
+    .fill("화면을 떠난 뒤 저장돼요.");
+  const saveRequest = page.waitForRequest(
+    (request) =>
+      request.method() === "POST" && request.url().endsWith("/api/posts"),
+  );
+  await main.getByRole("button", { name: "저장하기", exact: true }).click();
+  await saveRequest;
+  const listResponse = page.waitForResponse("**/api/posts?page=1");
+  await main.getByRole("link", { name: "게시판 목록", exact: true }).click();
+  await expect(page).toHaveURL("/posts");
+  await listResponse;
+  await expect(main.getByRole("status")).toHaveCount(0);
+  await expect(
+    main.getByRole("link", { name: title, exact: true }),
+  ).toHaveCount(0);
+  release();
+  // The newly saved row proves the hook's onSuccess ran while the form was hidden.
+  await expect(
+    main.getByRole("link", { name: title, exact: true }),
+  ).toBeVisible();
+  await expect(page).toHaveURL("/posts");
+  await main.getByRole("link", { name: "글쓰기", exact: true }).click();
+  await expect(page).toHaveURL("/posts/new");
+  await expectPostForm(main, "", "");
+});
+
+test("게시글 저장 실패 뒤 목록을 거쳐 돌아와도 입력을 유지한다", async ({
+  page,
+  request,
+}) => {
+  const account = await createAccount(request);
+  const main = page.getByRole("main");
+  const title = "실패한 글의 제목";
+  const content = "실패해도 남아야 하는 본문";
+  await page.route("**/api/posts", (route) =>
+    route.request().method() === "POST"
+      ? route.fulfill({ status: 500, json: { message: "게시글 저장 실패" } })
+      : route.continue(),
+  );
+  await login(page, account);
+  await page.goto("/posts/new");
+  await main.getByLabel("제목", { exact: true }).fill(title);
+  await main.getByRole("textbox", { name: /^본문/ }).fill(content);
+  await main.getByRole("button", { name: "저장하기", exact: true }).click();
+  await expect(main.getByRole("alert")).toHaveText("게시글 저장 실패");
+  await main.getByRole("link", { name: "게시판 목록", exact: true }).click();
+  await expect(page).toHaveURL("/posts");
+  await main.getByRole("link", { name: "글쓰기", exact: true }).click();
+  await expect(page).toHaveURL("/posts/new");
+  await expectPostForm(main, title, content);
+});
+
+test("게시글 상세는 10초 뒤 다시 들어오면 외부에서 바뀐 제목을 읽는다", async ({
+  page,
+  request,
+}) => {
+  const account = await createAccount(request);
+  const title = `상세 갱신 ${randomUUID()}`;
+  const updatedTitle = `새 제목 ${randomUUID()}`;
+  const created = await request.post("/api/posts", {
+    headers: account.headers,
+    data: { title, content: "변경 전 본문" },
+  });
+  expect(created.status()).toBe(201);
+  const { id } = await created.json();
+  const now = Date.now();
+  await page.clock.setFixedTime(now);
+  let detailReads = 0;
+  await page.route(`**/api/posts/${id}`, (route) => {
+    if (route.request().method() === "GET") detailReads++;
+    return route.continue();
+  });
+  await login(page, account);
+  await page.goto(`/posts/${id}`);
+  const main = page.getByRole("main");
+  await expect(
+    main.getByRole("heading", { name: title, exact: true }),
+  ).toBeVisible();
+  expect(detailReads).toBe(1);
+  const updated = await request.patch(`/api/posts/${id}`, {
+    headers: account.headers,
+    data: { title: updatedTitle, content: "외부에서 바꾼 본문" },
+  });
+  expect(updated.status()).toBe(200);
+  await main.getByRole("link", { name: "게시판", exact: true }).click();
+  await expect(page).toHaveURL("/posts");
+  await expect(
+    main.getByRole("link", { name: updatedTitle, exact: true }),
+  ).toBeVisible();
+
+  // A recent detail remains usable; crossing the boundary must fetch it again.
+  await page.clock.setFixedTime(now + 9_999);
+  await main.getByRole("link", { name: updatedTitle, exact: true }).click();
+  await expect(page).toHaveURL(`/posts/${id}`);
+  await expect(
+    main.getByRole("heading", { name: title, exact: true }),
+  ).toBeVisible();
+  expect(detailReads).toBe(1);
+  await main.getByRole("link", { name: "게시판", exact: true }).click();
+  await expect(page).toHaveURL("/posts");
+  await page.clock.setFixedTime(now + 10_001);
+  await main.getByRole("link", { name: updatedTitle, exact: true }).click();
+  await expect(page).toHaveURL(`/posts/${id}`);
+  await expect(
+    main.getByRole("heading", { name: updatedTitle, exact: true }),
+  ).toBeVisible();
+  await expect(
+    main.getByText("외부에서 바꾼 본문", { exact: true }),
+  ).toBeVisible();
+  expect(detailReads).toBe(2);
 });

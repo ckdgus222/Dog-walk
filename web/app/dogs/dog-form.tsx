@@ -12,6 +12,7 @@ import { DogBody } from "../_components/dog-card";
 import { DogFields, readDogFields } from "../_components/dog-fields";
 import formStyles from "../_components/form.module.css";
 import { PictureIcon } from "../_components/icons";
+import { useResetAfterSave } from "../_components/use-reset-after-save";
 import crouchPet from "../../public/illustrations/walking-drawing/crouch-pet.png";
 import styles from "./dogs.module.css";
 
@@ -19,11 +20,26 @@ const tooBig = (file?: File) => (file?.size ?? 0) > 5 * 1024 * 1024;
 const tooBigMessage = "사진은 5MB 이하로 골라 주세요.";
 
 const DogForm = ({ dog, order }: { dog?: Dog; order?: number }) => {
+  const [key, markSaved] = useResetAfterSave();
+  return (
+    <DogFormBody key={key} dog={dog} order={order} onSaved={markSaved} />
+  );
+};
+
+const DogFormBody = ({
+  dog,
+  order,
+  onSaved,
+}: {
+  dog?: Dog;
+  order?: number;
+  onSaved: () => void;
+}) => {
   const router = useRouter();
   const [error, setError] = useState("");
   // The picked photo, shown in place of the current one and sent on saving.
   const [file, setFile] = useState<File>();
-  const saveDog = useSaveDog(dog?.id);
+  const saveDog = useSaveDog(dog?.id, onSaved);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

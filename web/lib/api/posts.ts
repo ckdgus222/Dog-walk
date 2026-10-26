@@ -2,6 +2,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "../auth";
 import type { Comment, Post, PostList } from "../types";
 
+// Cover navigation after saving without keeping other authors' edits stale for long.
+const DETAIL_STALE_TIME = 10_000;
+
 const allPostsKey = ["posts"];
 const postListKey = ["posts", "list"];
 const postDetailKey = (id: number) => ["posts", "detail", id];
@@ -18,7 +21,8 @@ export const usePost = (id: number, forEdit = false) =>
   useQuery({
     queryKey: postDetailKey(id),
     queryFn: ({ signal }) => apiRequest<Post>(`/api/posts/${id}`, { signal }),
-    refetchOnMount: forEdit ? "always" : false,
+    staleTime: DETAIL_STALE_TIME,
+    refetchOnMount: forEdit ? "always" : true,
   });
 
 export const useComments = (postId: number) =>
@@ -28,7 +32,7 @@ export const useComments = (postId: number) =>
       apiRequest<Comment[]>(`/api/posts/${postId}/comments`, { signal }),
   });
 
-export const useSavePost = (id?: number) => {
+export const useSavePost = (id?: number, onSaved?: () => void) => {
   const queryClient = useQueryClient();
   const isNew = id === undefined;
   return useMutation({
@@ -44,6 +48,7 @@ export const useSavePost = (id?: number) => {
       queryClient.setQueryData(detailKey, post);
       await queryClient.cancelQueries({ queryKey: postListKey });
       void queryClient.invalidateQueries({ queryKey: postListKey });
+      onSaved?.();
     },
   });
 };

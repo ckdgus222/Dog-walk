@@ -11,14 +11,26 @@ import { DogFace } from "../_components/dog-card";
 import formStyles from "../_components/form.module.css";
 import { CameraIcon, CloseIcon } from "../_components/icons";
 import { BlobImage } from "../_components/blob-image";
+import { useResetAfterSave } from "../_components/use-reset-after-save";
 import styles from "./diaries.module.css";
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 
 const DiaryForm = ({ diary }: { diary?: Diary }) => {
+  const [key, markSaved] = useResetAfterSave();
+  return <DiaryFormBody key={key} diary={diary} onSaved={markSaved} />;
+};
+
+const DiaryFormBody = ({
+  diary,
+  onSaved,
+}: {
+  diary?: Diary;
+  onSaved: () => void;
+}) => {
   const router = useRouter();
   const myDogs = useMyDogs();
-  const saveDiary = useSaveDiary(diary?.id);
+  const saveDiary = useSaveDiary(diary?.id, onSaved);
   const [error, setError] = useState("");
   const [images, setImages] = useState<File[]>([]);
   const [removeImageIds, setRemoveImageIds] = useState<number[]>([]);

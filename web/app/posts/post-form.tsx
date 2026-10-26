@@ -6,11 +6,23 @@ import { useState, type FormEvent } from "react";
 import { useSavePost } from "../../lib/api/posts";
 import type { Post } from "../../lib/types";
 import formStyles from "../_components/form.module.css";
+import { useResetAfterSave } from "../_components/use-reset-after-save";
 import styles from "./posts.module.css";
 
 const PostForm = ({ post }: { post?: Post }) => {
+  const [key, markSaved] = useResetAfterSave();
+  return <PostFormBody key={key} post={post} onSaved={markSaved} />;
+};
+
+const PostFormBody = ({
+  post,
+  onSaved,
+}: {
+  post?: Post;
+  onSaved: () => void;
+}) => {
   const router = useRouter();
-  const savePost = useSavePost(post?.id);
+  const savePost = useSavePost(post?.id, onSaved);
   const [error, setError] = useState("");
   const [titleLength, setTitleLength] = useState(post?.title.length ?? 0);
   const [contentLength, setContentLength] = useState(

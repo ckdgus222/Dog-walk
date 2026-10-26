@@ -471,3 +471,105 @@ test("일기 7개를 두 쪽으로 보고 빈 쪽에서 돌아오며 반려견�
   await expect(page).toHaveURL("/diaries?page=1");
   await expect(main.getByRole("article")).toHaveCount(6);
 });
+
+test("저장한 일기를 다시 쓰면 입력과 사진 미리보기를 비운다", async ({
+  page,
+  request,
+}) => {
+  const account = await createAccount(request);
+  const main = page.getByRole("main");
+  await login(page, account);
+  await page.goto("/diaries/new");
+  const date = main.getByLabel("산책한 날짜");
+  const today = await date.inputValue();
+  await main
+    .getByRole("combobox", { name: /^반려견/ })
+    .selectOption(String(account.dogId));
+  await date.fill("2020-10-21");
+  await main.getByLabel("제목", { exact: true }).fill("저장한 산책");
+  await main.getByRole("textbox", { name: /^글/ }).fill("두부와 걸었어요.");
+  await main
+    .getByLabel("사진 (최대 5장, 장당 5MB 이하)")
+    .setInputFiles([photoA, photoB]);
+  await expect(
+    main.getByRole("img", { name: /^새 사진 \d 미리보기$/ }),
+  ).toHaveCount(2);
+  await main.getByRole("button", { name: "저장하기", exact: true }).click();
+  await expect(page).toHaveURL(/\/diaries\/\d+$/);
+  await expect(
+    main.getByRole("heading", { name: "저장한 산책", exact: true }),
+  ).toBeVisible();
+  await main.getByRole("link", { name: "일기 목록", exact: true }).click();
+  await expect(page).toHaveURL("/diaries");
+  await main.getByRole("link", { name: "일기 쓰기", exact: true }).click();
+  await expect(page).toHaveURL("/diaries/new");
+  await expect(main.getByLabel("제목", { exact: true })).toHaveValue("");
+  await expect(main.getByRole("textbox", { name: /^글/ })).toHaveValue("");
+  await expect(main.getByRole("combobox", { name: /^반려견/ })).toHaveValue("");
+  await expect(date).toHaveValue(today);
+  await expect(main.locator("[data-count]")).toHaveAttribute(
+    "data-count",
+    "0 / 2000",
+  );
+  await expect(
+    main.getByRole("img", { name: /^새 사진 \d 미리보기$/ }),
+  ).toHaveCount(0);
+  await expect(
+    main.getByText("최대 5장 · 장당 5MB까지 · 지금 0장", { exact: true }),
+  ).toBeVisible();
+});
+
+test("일기 상세는 10초 뒤 다시 들어오면 외부에서 바뀐 내용을 읽는다", async ({
+  page,
+  request,
+}) => {
+  const account = await createAccount(request);
+  const diary = {
+    dogId: account.dogId,
+    walkedOn: "2020-10-21",
+    title: "변경 전 산책",
+    content: "변경 전 일기 내용",
+  };
+  const created = await request.post("/api/diaries", {
+    headers: account.headers,
+    multipart: { diary: JSON.stringify(diary) },
+  });
+  expect(created.status()).toBe(201);
+  const { id } = await created.json();
+  const now = Date.now();
+  await page.clock.setFixedTime(now);
+  let detailReads = 0;
+  await page.route(`**/api/diaries/${id}`, (route) => {
+    if (route.request().method() === "GET") detailReads++;
+    return route.continue();
+  });
+  await login(page, account);
+  await page.goto(`/diaries/${id}`);
+  const main = page.getByRole("main");
+  await expect(main.getByText(diary.content, { exact: true })).toBeVisible();
+  expect(detailReads).toBe(1);
+  await main.getByRole("link", { name: "일기 목록", exact: true }).click();
+  await expect(page).toHaveURL("/diaries");
+  await expect(main.getByRole("article")).toHaveCount(1);
+  const updated = await request.patch(`/api/diaries/${id}`, {
+    headers: account.headers,
+    multipart: {
+      diary: JSON.stringify({
+        ...diary,
+        title: "외부에서 바꾼 산책",
+        content: "외부에서 바꾼 일기 내용",
+      }),
+    },
+  });
+  expect(updated.status()).toBe(200);
+  await page.clock.setFixedTime(now + 10_001);
+  await main.getByRole("article").getByRole("link").click();
+  await expect(page).toHaveURL(`/diaries/${id}`);
+  await expect(
+    main.getByRole("heading", { name: "외부에서 바꾼 산책", exact: true }),
+  ).toBeVisible();
+  await expect(
+    main.getByText("외부에서 바꾼 일기 내용", { exact: true }),
+  ).toBeVisible();
+  expect(detailReads).toBe(2);
+});
