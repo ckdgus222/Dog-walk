@@ -20,12 +20,16 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import type { Request } from 'express';
 import { ParseIdPipe } from '../common/db-id.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { rejectDemoUploads } from '../auth/guards/not-demo.guard.js';
 import type { PublicUser } from '../users/users.service.js';
 import { DiariesService } from './diaries.service.js';
 import { DiaryFormDto, UpdateDiaryFormDto } from './dto/diary-form.dto.js';
 import { ListDiariesDto } from './dto/list-diaries.dto.js';
 
-const photoOptions = { limits: { fileSize: 5 * 1024 * 1024, files: 5 } };
+const photoOptions = {
+  limits: { fileSize: 5 * 1024 * 1024, files: 5 },
+  fileFilter: rejectDemoUploads,
+};
 
 @Controller('diaries')
 @UseGuards(JwtAuthGuard)

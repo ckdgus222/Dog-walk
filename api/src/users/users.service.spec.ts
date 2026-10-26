@@ -9,7 +9,12 @@ import {
 
 vi.mock('bcrypt', () => ({ hash: vi.fn(), compare: vi.fn() }));
 
-const user = { id: 1, email: 'owner@example.com', nickname: '보호자' };
+const user = {
+  id: 1,
+  email: 'owner@example.com',
+  nickname: '보호자',
+  isDemo: false,
+};
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -36,7 +41,7 @@ describe('UsersService', () => {
     expect(update).toHaveBeenCalledExactlyOnceWith({
       where: { id: user.id },
       data: { nickname },
-      select: { id: true, email: true, nickname: true },
+      select: { id: true, email: true, nickname: true, isDemo: true },
     });
     expect(findUnique).not.toHaveBeenCalled();
     expect(bcrypt.compare).not.toHaveBeenCalled();
@@ -73,7 +78,7 @@ describe('UsersService', () => {
           passwordHash: 'new-hash',
           refreshTokenHash: 'new-refresh-hash',
         },
-        select: { id: true, email: true, nickname: true },
+        select: { id: true, email: true, nickname: true, isDemo: true },
       });
     },
   );

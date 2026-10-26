@@ -10,7 +10,12 @@ import type { SignupDto } from './dto/signup.dto.js';
 
 vi.mock('bcrypt', () => ({ hash: vi.fn(), compare: vi.fn() }));
 
-const user = { id: 1, email: 'owner@example.com', nickname: '보호자' };
+const user = {
+  id: 1,
+  email: 'owner@example.com',
+  nickname: '보호자',
+  isDemo: false,
+};
 const input: SignupDto = {
   ...user,
   password: 'password123',
@@ -72,7 +77,7 @@ describe('AuthService', () => {
         passwordHash: 'hashed-password',
         dogs: { create: input.dog },
       },
-      select: { id: true, email: true, nickname: true },
+      select: { id: true, email: true, nickname: true, isDemo: true },
     });
   });
 
@@ -213,11 +218,16 @@ describe('AuthService', () => {
     expect(findUnique).toHaveBeenCalledExactlyOnceWith({
       where: {
         id: user.id,
-        refreshTokenHash: createHash('sha256')
-          .update(login.refreshToken)
-          .digest('hex'),
+        OR: [
+          {
+            refreshTokenHash: createHash('sha256')
+              .update(login.refreshToken)
+              .digest('hex'),
+          },
+          { isDemo: true },
+        ],
       },
-      select: { id: true, email: true, nickname: true },
+      select: { id: true, email: true, nickname: true, isDemo: true },
     });
     await expect(service.refresh(login.refreshToken)).resolves.toEqual({
       accessToken: expect.any(String),
@@ -269,7 +279,7 @@ describe('AuthService', () => {
     });
     expect(findUnique).toHaveBeenCalledExactlyOnceWith({
       where: { id: user.id },
-      select: { id: true, email: true, nickname: true },
+      select: { id: true, email: true, nickname: true, isDemo: true },
     });
   });
 

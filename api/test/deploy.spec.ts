@@ -38,13 +38,24 @@ case "$command" in
           exit 1
         fi ;;
     esac
+    if [ "$SCENARIO" = delayed ]; then
+      [ "$(grep -c '|curl|' "$TEST_LOG")" -gt 3 ] || exit 1
+    fi
+    if [ "$SCENARIO" = last-attempt ]; then
+      [ "$(grep -c '|curl|' "$TEST_LOG")" -eq 60 ] || exit 1
+    fi
     exit 0 ;;
   git)
     [ "$*" = 'pull --ff-only' ] || exit 99
     [ "$SCENARIO" != update-pull-failed ]; exit $? ;;
+  backup.sh)
+    [ "$#" -eq 1 ] || exit 99
+    [ "$SCENARIO" != backup-failed ] && [ "$SCENARIO" != locked ]; exit $? ;;
   date) echo 2026-11-01-040000; exit 0 ;;
 esac
 case "$*" in
+  'compose exec -T api node dist/demo/reset-demo.main.js')
+    [ "$SCENARIO" != reset-failed ] ;;
   'compose ps --status running --services')
     case "$SCENARIO" in
       update-ps-failed) exit 1 ;;
@@ -124,6 +135,7 @@ describe('deployment scripts', () => {
       'restore.sh',
       'reload-nginx.sh',
       'update.sh',
+      'on-boot.sh',
     ]) {
       copyFileSync(join(source, name), join(repo, 'deploy', name));
     }
@@ -192,6 +204,157 @@ describe('deployment scripts', () => {
   function commands() {
     return readFileSync(log, 'utf8');
   }
+
+  describe('on boot', () => {
+    beforeEach(() => {
+      writeFileSync(join(repo, 'deploy', 'backup.sh'), fakeCommand);
+    });
+
+    it('checks health, backs up, then locks and resets from the repository', () => {
+      const result = run('on-boot.sh', 'success', [dirname(backup)]);
+      expect(result.status, result.stderr).toBe(0);
+      expect(commands().trim().split('\n')).toEqual([
+        `${repo}|curl|-fsSLk --max-time 5 http://localhost/api/health`,
+        `${repo}|backup.sh|${dirname(backup)}`,
+        `${repo}|flock|-n 9`,
+        `${repo}|docker|compose exec -T api node dist/demo/reset-demo.main.js`,
+      ]);
+      expect(existsSync(join(repo, '.maintenance.lock'))).toBe(true);
+      expect(result.stdout.trim().split('\n')).toEqual([
+        '앱 준비 확인 시작',
+        '앱 준비 확인 성공',
+        '백업 시작',
+        '백업 성공',
+        '데모 초기화 시작',
+        '데모 초기화 성공',
+      ]);
+      expect(statSync(join(source, 'on-boot.sh')).mode & 0o111).toBe(0o111);
+    });
+
+    it('waits five seconds between failed health checks before proceeding', () => {
+      const result = run('on-boot.sh', 'delayed');
+      expect(result.status, result.stderr).toBe(0);
+      const calls = commands().trim().split('\n');
+      const check = `${repo}|curl|-fsSLk --max-time 5 http://localhost/api/health`;
+      expect(calls.slice(0, 7)).toEqual([
+        check,
+        `${repo}|sleep|5`,
+        check,
+        `${repo}|sleep|5`,
+        check,
+        `${repo}|sleep|5`,
+        check,
+      ]);
+      expect(calls.slice(7)).toEqual([
+        `${repo}|backup.sh|${backup}`,
+        `${repo}|flock|-n 9`,
+        `${repo}|docker|compose exec -T api node dist/demo/reset-demo.main.js`,
+      ]);
+    });
+
+    it('backs up and resets when the sixtieth health check succeeds', () => {
+      const result = run('on-boot.sh', 'last-attempt');
+      expect(result.status, result.stderr).toBe(0);
+      const calls = commands().trim().split('\n');
+      expect(calls.filter((line) => line.includes('|curl|'))).toHaveLength(60);
+      expect(calls.filter((line) => line === `${repo}|sleep|5`)).toHaveLength(
+        59,
+      );
+      expect(calls.slice(-3)).toEqual([
+        `${repo}|backup.sh|${backup}`,
+        `${repo}|flock|-n 9`,
+        `${repo}|docker|compose exec -T api node dist/demo/reset-demo.main.js`,
+      ]);
+    });
+
+    it('stops after sixty failed health checks without backing up or resetting', () => {
+      const result = run('on-boot.sh', 'unhealthy');
+      expect(result.status).toBe(1);
+      const calls = commands().trim().split('\n');
+      const checks = calls.filter((line) => line.includes('|curl|'));
+      expect(checks).toHaveLength(60);
+      for (const check of checks) {
+        expect(check).toBe(
+          `${repo}|curl|-fsSLk --max-time 5 http://localhost/api/health`,
+        );
+      }
+      expect(calls.filter((line) => line === `${repo}|sleep|5`)).toHaveLength(
+        59,
+      );
+      expect(commands()).not.toMatch(/\|backup.sh\||\|flock\||\|docker\|/);
+      expect(result.stderr).toContain(
+        '앱이 준비되지 않아 백업과 초기화를 하지 않아요',
+      );
+    });
+
+    it('still resets and reports failure when the backup fails', () => {
+      const result = run('on-boot.sh', 'backup-failed');
+      expect(result.status).toBe(1);
+      expect(commands()).toMatch(
+        /\|backup.sh\|[\s\S]*\|flock\|-n 9[\s\S]*compose exec -T api node dist\/demo\/reset-demo.main.js/,
+      );
+      expect(result.stdout).toContain('백업 실패');
+      expect(result.stdout).toContain('데모 초기화 성공');
+    });
+
+    it('reports failure when the reset fails', () => {
+      const result = run('on-boot.sh', 'reset-failed');
+      expect(result.status).toBe(1);
+      expect(result.stdout).toContain('백업 성공');
+      expect(result.stderr).toContain('데모 초기화 실패');
+      expect(result.stdout).not.toContain('데모 초기화 성공');
+    });
+
+    it.each([[], ['one', 'two']])(
+      'requires exactly one path: %j',
+      (...args) => {
+        const result = run('on-boot.sh', 'success', args);
+        expect(result.status).toBe(1);
+        expect(result.stderr).toContain('사용법:');
+        expect(commands()).toBe('');
+      },
+    );
+
+    it('attempts the backup but never resets when the lock is held', () => {
+      const result = run('on-boot.sh', 'locked');
+      expect(result.status).toBe(1);
+      expect(commands()).toContain(`${repo}|backup.sh|${backup}`);
+      expect(commands()).toContain(`${repo}|flock|-n 9`);
+      expect(commands()).not.toContain('|docker|');
+      expect(result.stderr).toContain(
+        '다른 백업이나 복원이 진행 중이라 초기화하지 않아요',
+      );
+    });
+
+    it('skips backup but checks health and resets when path resolution fails', () => {
+      const result = run('on-boot.sh', 'success', [
+        join(root, 'missing', 'usb'),
+      ]);
+      expect(result.status).toBe(1);
+      expect(commands().trim().split('\n')).toEqual([
+        `${repo}|curl|-fsSLk --max-time 5 http://localhost/api/health`,
+        `${repo}|flock|-n 9`,
+        `${repo}|docker|compose exec -T api node dist/demo/reset-demo.main.js`,
+      ]);
+      expect(result.stdout).toContain('USB 경로를 확인하지 못해 백업 실패');
+      expect(result.stdout).toContain('데모 초기화 성공');
+    });
+
+    it('resolves a relative USB path before changing to the repository', () => {
+      const usb = join(root, 'usb with spaces');
+      mkdirSync(usb);
+      const result = run('on-boot.sh', 'success', ['.'], usb);
+      expect(result.status, result.stderr).toBe(0);
+      expect(commands()).toContain(`${repo}|backup.sh|${usb}\n`);
+    });
+
+    it('has valid bash syntax', () => {
+      const result = spawnSync('bash', ['-n', join(source, 'on-boot.sh')], {
+        encoding: 'utf8',
+      });
+      expect(result.status, result.stderr).toBe(0);
+    });
+  });
 
   it('backs up both archives outside the repository and restarts before checking health', () => {
     const result = run('backup.sh', 'success', ['.'], dirname(backup));

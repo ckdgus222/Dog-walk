@@ -13,10 +13,18 @@ import {
 } from '../prisma/prisma-errors.js';
 import type { UpdateUserDto } from './dto/update-user.dto.js';
 
+export const publicUserSelect = {
+  id: true,
+  email: true,
+  nickname: true,
+  isDemo: true,
+} as const;
+
 export interface PublicUser {
   id: number;
   email: string;
   nickname: string;
+  isDemo: boolean;
 }
 
 export class WrongCurrentPasswordException extends BadRequestException {
@@ -36,7 +44,7 @@ export class UsersService {
   findPublicById(id: number): Promise<PublicUser | null> {
     return this.prisma.user.findUnique({
       where: { id },
-      select: { id: true, email: true, nickname: true },
+      select: publicUserSelect,
     });
   }
 
@@ -89,7 +97,7 @@ export class UsersService {
       return await this.prisma.user.update({
         where: { id, passwordHash: verifiedPasswordHash },
         data,
-        select: { id: true, email: true, nickname: true },
+        select: publicUserSelect,
       });
     } catch (error) {
       if (isUniqueConstraintError(error, 'nickname', 'users_nickname_key')) {

@@ -8,8 +8,10 @@ import type { Diary } from "../../lib/types";
 import Link from "next/link";
 import { DiaryImage } from "./diary-image";
 import { DogFace } from "../_components/dog-card";
+import { useAuth } from "../_components/auth-provider";
 import formStyles from "../_components/form.module.css";
-import { CameraIcon, CloseIcon } from "../_components/icons";
+import uiStyles from "../_components/ui.module.css";
+import { CameraIcon, CloseIcon, InfoIcon } from "../_components/icons";
 import { BlobImage } from "../_components/blob-image";
 import { useResetAfterSave } from "../_components/use-reset-after-save";
 import styles from "./diaries.module.css";
@@ -28,6 +30,7 @@ const DiaryFormBody = ({
   diary?: Diary;
   onSaved: () => void;
 }) => {
+  const { user } = useAuth();
   const router = useRouter();
   const myDogs = useMyDogs();
   const saveDiary = useSaveDiary(diary?.id, onSaved);
@@ -263,11 +266,18 @@ const DiaryFormBody = ({
               </div>
               );
             })}
-            <label className={styles.addSlot}>
-              {photoInput}
-              <CameraIcon size={32} />
-              <strong>{images.length > 0 ? "다시 고르기" : "사진 추가"}</strong>
-            </label>
+            {user?.isDemo ? (
+              <p className={uiStyles.notice}>
+                <InfoIcon />
+                데모 계정은 사진을 올릴 수 없어요.
+              </p>
+            ) : (
+              <label className={styles.addSlot}>
+                {photoInput}
+                <CameraIcon size={32} />
+                <strong>{images.length > 0 ? "다시 고르기" : "사진 추가"}</strong>
+              </label>
+            )}
           </div>
         </div>
       </fieldset>

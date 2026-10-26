@@ -9,7 +9,12 @@ import {
   type PublicUser,
 } from './users.service.js';
 
-const user = { id: 1, email: 'owner@example.com', nickname: '보호자' };
+const user = {
+  id: 1,
+  email: 'owner@example.com',
+  nickname: '보호자',
+  isDemo: false,
+};
 const request = { user } as Request & { user: PublicUser };
 const changes = {
   currentPassword: 'old-password',

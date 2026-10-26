@@ -18,6 +18,7 @@ import { SignupDto } from './dto/signup.dto.js';
 import { JsonBodyGuard } from './guards/json-body.guard.js';
 import { LoginLimiter } from './login-limiter.js';
 import {
+  DEMO_REFRESH_COOKIE_MAX_AGE,
   REFRESH_COOKIE,
   REFRESH_COOKIE_MAX_AGE,
   refreshCookieOptions,
@@ -70,6 +71,18 @@ export class AuthController {
     response.cookie(REFRESH_COOKIE, refreshToken, {
       ...refreshCookieOptions(),
       maxAge: REFRESH_COOKIE_MAX_AGE,
+    });
+    return { accessToken, user };
+  }
+
+  @Post('demo')
+  @HttpCode(200)
+  @UseGuards(JsonBodyGuard)
+  async demo(@Res({ passthrough: true }) response: Response) {
+    const { accessToken, refreshToken, user } = await this.auth.demo();
+    response.cookie(REFRESH_COOKIE, refreshToken, {
+      ...refreshCookieOptions(),
+      maxAge: DEMO_REFRESH_COOKIE_MAX_AGE,
     });
     return { accessToken, user };
   }

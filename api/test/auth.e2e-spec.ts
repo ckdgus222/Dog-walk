@@ -77,6 +77,7 @@ describe('Auth (e2e)', () => {
       id: expect.any(Number),
       email: signup.email,
       nickname: signup.nickname,
+      isDemo: false,
     });
     expect(response.headers['set-cookie']).toBeUndefined();
     const user = await prisma.user.findUniqueOrThrow({
@@ -241,6 +242,7 @@ describe('Auth (e2e)', () => {
         id: expect.any(Number),
         email: signup.email,
         nickname: signup.nickname,
+        isDemo: false,
       },
     });
     const header = (response.headers['set-cookie'] as unknown as string[])[0];

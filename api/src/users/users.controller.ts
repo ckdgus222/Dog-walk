@@ -13,6 +13,7 @@ import {
 import type { Request, Response } from 'express';
 import { AuthService } from '../auth/auth.service.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { NotDemoGuard } from '../auth/guards/not-demo.guard.js';
 import { JsonBodyGuard } from '../auth/guards/json-body.guard.js';
 import { LoginLimiter } from '../auth/login-limiter.js';
 import {
@@ -46,7 +47,7 @@ export class UsersController {
   // A new password ends every earlier refresh token; this browser gets the
   // new one, so it stays logged in.
   @Patch('me')
-  @UseGuards(JsonBodyGuard)
+  @UseGuards(NotDemoGuard, JsonBodyGuard)
   async update(
     @Req() request: Request & { user: PublicUser },
     @Body() body: UpdateUserDto,

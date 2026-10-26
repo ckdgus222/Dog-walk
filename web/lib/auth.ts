@@ -4,6 +4,7 @@ export interface User {
   id: number;
   email: string;
   nickname: string;
+  isDemo: boolean;
 }
 
 interface AuthResponse {
@@ -90,9 +91,9 @@ export const refresh = (): Promise<User> => {
   return refreshPromise;
 };
 
-export const login = (
-  email: string,
-  password: string,
+const requestLogin = (
+  path: string,
+  body: string | undefined,
   canNavigate: () => boolean = () => true,
 ): Promise<boolean> => {
   // Logout waits only for loginPromise, so a second login would hide the
@@ -101,10 +102,10 @@ export const login = (
   if (loginPromise) return Promise.reject(new Error("로그인하고 있어요."));
 
   loginPromise = (async () => {
-    const response = await fetch("/api/auth/login", {
+    const response = await fetch(path, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body,
     });
     if (!response.ok) throw await responseError(response);
     const { user, accessToken }: AuthResponse = await response.json();
@@ -118,6 +119,15 @@ export const login = (
   });
   return loginPromise;
 };
+
+export const login = (
+  email: string,
+  password: string,
+  canNavigate?: () => boolean,
+): Promise<boolean> =>
+  requestLogin("/api/auth/login", JSON.stringify({ email, password }), canNavigate);
+
+export const loginDemo = (canNavigate?: () => boolean): Promise<boolean> => requestLogin("/api/auth/demo", undefined, canNavigate);
 
 // Shows a saved nickname. A token refresh started before the save answers
 // with the old nickname and replaces the whole user, so wait for it first.
