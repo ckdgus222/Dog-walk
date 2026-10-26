@@ -105,6 +105,7 @@ export const login = (
     // Saving auth remounts the forms, so check departure before saving it.
     const shouldNavigate = canNavigate();
     useAuthStore.getState().setAuth(user, accessToken);
+    useAuthStore.setState({ welcomeNickname: user.nickname });
     return shouldNavigate;
   })().finally(() => {
     loginPromise = null;

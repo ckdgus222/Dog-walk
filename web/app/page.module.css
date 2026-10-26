@@ -161,21 +161,21 @@
   }
 }
 
-/* Guest home: one sheet of paper the size of every page's panel, the
-   welcome on the left, the login form on the right and the walk by the
-   river along the bottom. */
+/* Guest home: one card in the middle of the field, like a welcome window:
+   the welcome on the left, the login form on the right and a small walk by
+   the river along the bottom. */
 .guest {
   composes: panel from "./_components/ui.module.css";
-  flex: 1 0 auto;
   display: grid;
   /* The form column and gap narrow with the window down to 900px. */
-  grid-template-columns: minmax(0, 1fr) clamp(340px, 32vw, 400px);
-  grid-template-rows: auto minmax(200px, 1fr);
+  grid-template-columns: minmax(0, 1fr) clamp(320px, 30vw, 380px);
+  grid-template-rows: auto 180px;
   align-items: center;
-  column-gap: clamp(40px, 5vw, 64px);
+  column-gap: clamp(32px, 4vw, 56px);
   row-gap: var(--space-4);
-  width: var(--page-width);
-  margin: var(--space-4) auto;
+  width: min(var(--page-width), 1040px);
+  /* Centered across and down the space under the header. */
+  margin: auto;
   padding: var(--space-6) var(--panel-pad-x) 0;
   box-shadow: var(--shadow-panel);
   animation: card-rise 0.5s ease-out both;
@@ -230,7 +230,7 @@
    field beside the card. */
 .welcome .title {
   font-family: var(--font-display), var(--font-sans), sans-serif;
-  font-size: clamp(36px, 3.4vw, 48px);
+  font-size: clamp(32px, 2.8vw, 42px);
   font-weight: 400;
   letter-spacing: 0;
 }
@@ -279,7 +279,7 @@
 @media (max-width: 900px) {
   .guest {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto minmax(200px, 1fr);
+    grid-template-rows: auto auto 140px;
     row-gap: var(--space-6);
   }
 

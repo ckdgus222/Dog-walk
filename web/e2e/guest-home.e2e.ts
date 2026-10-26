@@ -99,6 +99,33 @@ test("홈 카드에서 로그인하면 주소가 그대로이고 대시보드가
   await expect(page.getByRole("dialog")).toHaveCount(0);
 });
 
+test("로그인하면 환영 문구가 헤더 밖에 잠깐 보이고, 로그인된 채 새로고침하면 보이지 않는다", async ({
+  page,
+  request,
+}) => {
+  const account = await createAccount(request);
+  await page.goto("/");
+  const main = page.getByRole("main");
+  await main.getByLabel("이메일").fill(account.email);
+  await main.getByLabel("비밀번호").fill(account.password);
+  await main.getByRole("button", { name: "로그인", exact: true }).click();
+
+  const welcome = page.getByText(`${account.nickname}님, 환영해요!`, {
+    exact: true,
+  });
+  await expect(welcome).toBeVisible();
+  // Live notices own the header's status messages.
+  await expect(page.getByRole("banner").getByRole("status")).toHaveCount(0);
+  await expect(welcome).toHaveCount(0, { timeout: 6_000 });
+
+  await page.reload();
+  await expect(main.getByText(`${account.nickname}님, 안녕하세요`)).toBeVisible();
+  // Checked once, not retried: a retried check would wait out the 3 s and
+  // pass even if the welcome had shown. The greeting and the welcome render
+  // from the same login, so once the greeting shows the welcome would too.
+  expect(await welcome.count()).toBe(0);
+});
+
 test("홈 카드의 회원가입 링크는 회원가입 모달을 연다", async ({ page }) => {
   await page.goto("/");
   const main = page.getByRole("main");

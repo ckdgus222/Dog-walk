@@ -5,6 +5,7 @@ import { AuthProvider } from "./_components/auth-provider";
 import { FieldScene } from "./_components/field-scene";
 import { QueryProvider } from "./_components/query-provider";
 import { NotificationsProvider } from "./_components/notifications-provider";
+import { LoginWelcome } from "./_components/login-welcome";
 import { SiteHeader } from "./_components/site-header";
 import { WalkRequestModal } from "./_components/walk-request-modal";
 import { Intro } from "./_components/intro";
@@ -69,6 +70,9 @@ const RootLayout = ({ children, modal }: LayoutProps<"/">) => {
             account changes, so the background never restarts. */}
         <FieldScene variant="home" />
         <AuthProvider>
+          {/* Above the query provider, which is built anew when the account
+              changes and would restart the welcome's timer. */}
+          <LoginWelcome />
           <QueryProvider>
             <NotificationsProvider>
               <SiteHeader />

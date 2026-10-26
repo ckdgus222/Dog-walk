@@ -238,12 +238,6 @@
     overflow-y: auto;
   }
 
-  .livingRoom img {
-    height: 100%;
-    object-fit: cover;
-    object-position: center bottom;
-  }
-
   .formPage {
     grid-template-rows: auto auto minmax(0, 1fr);
   }
