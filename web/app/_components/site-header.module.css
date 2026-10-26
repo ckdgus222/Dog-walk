@@ -76,8 +76,8 @@
   white-space: nowrap;
 }
 
-.account button,
-.account a + a {
+/* Every item after the first, under a line on its left. */
+.account > * + * {
   flex: none;
   padding: 0 0 0 20px;
   border: 0;
@@ -209,8 +209,7 @@
     font-size: 12px;
   }
 
-  .account button,
-  .account a + a {
+  .account > * + * {
     padding-left: 12px;
   }
 

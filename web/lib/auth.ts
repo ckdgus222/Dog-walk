@@ -112,6 +112,13 @@ export const login = (
   return loginPromise;
 };
 
+// Shows a saved nickname. A token refresh started before the save answers
+// with the old nickname and replaces the whole user, so wait for it first.
+export const applySavedUser = async (user: User) => {
+  if (refreshPromise) await refreshPromise.catch(() => {});
+  useAuthStore.getState().updateUser(user);
+};
+
 export const signup = async (body: SignupBody): Promise<void> => {
   await postJson("/api/auth/signup", body);
 };

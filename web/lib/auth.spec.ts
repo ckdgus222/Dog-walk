@@ -445,4 +445,29 @@ describe("Browser auth client", () => {
       expect(client.getAccessToken()).toBeNull();
     },
   );
+
+  it("waits for a refresh started before the save, so the old nickname cannot win", async () => {
+    useAuthStore.getState().setAuth(accountA, "old-token");
+    let releaseRefresh!: (response: Response) => void;
+    fetchMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          releaseRefresh = resolve;
+        }),
+    );
+    // The refresh read the account before the nickname changed.
+    const refreshing = client.refresh();
+    const saved = { ...accountA, nickname: "새닉네임" };
+    const applying = client.applySavedUser(saved);
+    releaseRefresh(authResponse(accountA, "new-token"));
+    await Promise.all([refreshing, applying]);
+    expect(useAuthStore.getState().user).toEqual(saved);
+    expect(client.getAccessToken()).toBe("new-token");
+  });
+
+  it("drops a saved nickname that answers after another account logged in", async () => {
+    useAuthStore.getState().setAuth(accountB, "b-token");
+    await client.applySavedUser({ ...accountA, nickname: "새닉네임" });
+    expect(useAuthStore.getState().user).toEqual(accountB);
+  });
 });
