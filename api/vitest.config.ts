@@ -3,8 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 export default defineConfig({
-  // Resolves the path aliases declared in tsconfig.json, including the ones
-  // added by `nest g library`. Requires Vite 8, which ships this option.
+  // Resolves path aliases declared in tsconfig.json.
   resolve: { tsconfigPaths: true },
   test: {
     globals: true,

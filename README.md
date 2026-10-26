@@ -1,12 +1,14 @@
 # 강아지 산책
 
-0단계: Next.js 첫 화면과 DB 연결을 확인하는 `GET /api/health`를 제공한다.
-Node.js 24와 Docker Compose가 필요하다. 각 앱의 패키지는 이미 설치돼 있다.
+강아지 산책 매칭 서비스. 포트폴리오·학습용 MVP이며 Docker로 운영한다.
+Node.js 24와 Docker Compose가 필요하다. 처음 한 번 `npm --prefix api ci`와 `npm --prefix web ci`로 각 앱의 패키지를 설치한다.
 
 서버 배포는 [docs/phase-8-deploy.md](docs/phase-8-deploy.md)를 따른다.
 첫 설치 뒤 코드 업데이트는 아래 '서버 업데이트'를 따른다.
 
 ## 로컬 개발
+
+지도 사용을 위해 `web/.env.local`에 `NEXT_PUBLIC_KAKAO_MAP_KEY`를 설정한다. Docker는 루트 `.env`의 같은 이름 값을 빌드 인자로 사용한다.
 
 저장소 루트에서 처음 한 번 실행한다.
 

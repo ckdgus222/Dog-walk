@@ -522,7 +522,8 @@ describe('Auth (e2e)', () => {
       .send(credentials)
       .expect(200);
     const refreshed = await request(app.getHttpServer())
-      .post('/api/auth/refresh').send({})
+      .post('/api/auth/refresh')
+      .send({})
       .set('Cookie', cookie(login))
       .expect(200);
     expect(refreshed.headers['set-cookie']).toBeUndefined();
@@ -570,7 +571,9 @@ describe('Auth (e2e)', () => {
                 { secret: 'test-only-wrong-secret', jwtid: 'invalid' },
               )
             : 'invalid';
-      const req = request(app.getHttpServer()).post('/api/auth/refresh').send({});
+      const req = request(app.getHttpServer())
+        .post('/api/auth/refresh')
+        .send({});
       if (kind !== 'missing') req.set('Cookie', `refresh_token=${token}`);
       const response = await req.expect(401);
       expect(response.headers['set-cookie']).toBeUndefined();
@@ -589,7 +592,8 @@ describe('Auth (e2e)', () => {
     const responses = await Promise.all(
       [0, 1].map(() =>
         request(app.getHttpServer())
-          .post('/api/auth/refresh').send({})
+          .post('/api/auth/refresh')
+          .send({})
           .set('Cookie', cookie(login)),
       ),
     );
@@ -613,19 +617,25 @@ describe('Auth (e2e)', () => {
       .send(credentials)
       .expect(200);
     const response = await request(app.getHttpServer())
-      .post('/api/auth/logout').send({})
+      .post('/api/auth/logout')
+      .send({})
       .set('Cookie', cookie(login))
       .expect(204);
     expect(cookie(response)).toBe('refresh_token=');
     expect((await prisma.user.findFirstOrThrow()).refreshTokenHash).toBeNull();
     const rejected = await request(app.getHttpServer())
-      .post('/api/auth/refresh').send({})
+      .post('/api/auth/refresh')
+      .send({})
       .set('Cookie', cookie(login))
       .expect(401);
     expect(rejected.headers['set-cookie']).toBeUndefined();
-    await request(app.getHttpServer()).post('/api/auth/logout').send({}).expect(204);
     await request(app.getHttpServer())
-      .post('/api/auth/logout').send({})
+      .post('/api/auth/logout')
+      .send({})
+      .expect(204);
+    await request(app.getHttpServer())
+      .post('/api/auth/logout')
+      .send({})
       .set('Cookie', 'refresh_token=invalid')
       .expect(204);
   });
@@ -645,15 +655,18 @@ describe('Auth (e2e)', () => {
       .expect(200);
     expect(cookie(deviceA)).not.toBe(cookie(deviceB));
     await request(app.getHttpServer())
-      .post('/api/auth/logout').send({})
+      .post('/api/auth/logout')
+      .send({})
       .set('Cookie', cookie(deviceA))
       .expect(204);
     await request(app.getHttpServer())
-      .post('/api/auth/refresh').send({})
+      .post('/api/auth/refresh')
+      .send({})
       .set('Cookie', cookie(deviceB))
       .expect(200);
     const rejected = await request(app.getHttpServer())
-      .post('/api/auth/refresh').send({})
+      .post('/api/auth/refresh')
+      .send({})
       .set('Cookie', cookie(deviceA))
       .expect(401);
     expect(rejected.headers['set-cookie']).toBeUndefined();
