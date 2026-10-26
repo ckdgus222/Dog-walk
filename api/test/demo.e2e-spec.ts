@@ -5,6 +5,8 @@ import type { App } from 'supertest/types.js';
 import { Client } from 'pg';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { AppModule } from '../src/app.module.js';
 import { setupApp } from '../src/app-setup.js';
 import { LoginLimiter } from '../src/auth/login-limiter.js';
@@ -19,7 +21,13 @@ const counts = {
   diaries: 7,
   walkRequests: 2,
   chatMessages: 6,
+  dogPhotos: 9,
+  diaryImages: 4,
 };
+const publicDirectory = process.env.PUBLIC_UPLOAD_DIR!;
+const privateDirectory = process.env.PRIVATE_UPLOAD_DIR!;
+const photoSource = new URL('../demo-photos/', import.meta.url);
+
 const dog = {
   name: '산책친구',
   breed: '믹스',
@@ -63,10 +71,14 @@ describe('Demo reset (e2e)', () => {
     await prisma.walkRequest.deleteMany();
     await prisma.dog.deleteMany();
     await prisma.user.deleteMany();
+    await rm(publicDirectory, { recursive: true, force: true });
+    await rm(privateDirectory, { recursive: true, force: true });
   });
 
   afterAll(async () => {
     await app?.close();
+    await rm(publicDirectory, { recursive: true, force: true });
+    await rm(privateDirectory, { recursive: true, force: true });
   });
 
   async function snapshot() {
@@ -90,12 +102,16 @@ describe('Demo reset (e2e)', () => {
 
   async function expectCounts(extraPosts = 0) {
     const state = await snapshot();
-    for (const [name, count] of Object.entries(counts)) {
-      expect(state[name as keyof typeof counts]).toHaveLength(
+    const { dogPhotos, diaryImages, ...rowCounts } = counts;
+    for (const [name, count] of Object.entries(rowCounts)) {
+      expect(state[name as keyof typeof rowCounts]).toHaveLength(
         count + (name === 'posts' ? extraPosts : 0),
       );
     }
-    expect(state.images).toHaveLength(0);
+    expect(state.dogs.filter((entry) => entry.photoUrl !== null)).toHaveLength(
+      dogPhotos,
+    );
+    expect(state.images).toHaveLength(diaryImages);
   }
 
   function createRealUser(suffix = 'real', email = `${suffix}@example.com`) {
@@ -143,7 +159,7 @@ describe('Demo reset (e2e)', () => {
     );
   }
 
-  it('creates the complete photo-free dataset and preserves user IDs on repeated resets', async () => {
+  it('creates the complete dataset with photos and preserves user IDs on repeated resets', async () => {
     const startedAt = new Date();
     expect(await resetDemo(prisma)).toEqual(counts);
     await expectCounts();
@@ -157,7 +173,25 @@ describe('Demo reset (e2e)', () => {
       first.users.every((user) => /^\$2[ab]\$10\$/.test(user.passwordHash)),
     ).toBe(true);
     expect(new Set(first.users.map((user) => user.passwordHash)).size).toBe(6);
-    expect(first.dogs.every((entry) => entry.photoUrl === null)).toBe(true);
+    const dogPhotos = [
+      ['콩이', 'dog-kongi.webp'],
+      ['두부', 'dog-dubu.webp'],
+      ['호두', 'dog-hodu.webp'],
+      ['보리', 'dog-bori.webp'],
+      ['밤이', 'dog-bami.webp'],
+      ['별이', 'dog-byeoli.webp'],
+      ['구름', 'dog-gureum.webp'],
+      ['참깨', 'dog-chamkkae.webp'],
+      ['토리', 'dog-tori.webp'],
+    ];
+    for (const [name, photo] of dogPhotos) {
+      expect(first.dogs.find((entry) => entry.name === name)?.photoUrl).toBe(
+        `/uploads/dogs/demo-${photo}`,
+      );
+      expect(
+        await readFile(join(publicDirectory, 'dogs', `demo-${photo}`)),
+      ).toEqual(await readFile(new URL(photo, photoSource)));
+    }
     const demo = first.users.find(
       (user) => user.email === 'demo@dogwalk.invalid',
     )!;
@@ -167,6 +201,35 @@ describe('Demo reset (e2e)', () => {
     expect(
       first.diaries.filter((entry) => entry.authorId === demo.id),
     ).toHaveLength(2);
+    const demoDiaries = first.diaries
+      .filter((entry) => entry.authorId === demo.id)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    for (const [index, diary] of demoDiaries.entries()) {
+      const images = first.images
+        .filter((image) => image.diaryId === diary.id)
+        .sort((a, b) => a.sortOrder - b.sortOrder);
+      expect(
+        images.map(({ fileName, sortOrder }) => ({ fileName, sortOrder })),
+      ).toEqual([
+        { fileName: `demo-diary-${index + 1}a.webp`, sortOrder: 0 },
+        { fileName: `demo-diary-${index + 1}b.webp`, sortOrder: 1 },
+      ]);
+      for (const image of images) {
+        expect(
+          await readFile(join(privateDirectory, 'diaries', image.fileName)),
+        ).toEqual(
+          await readFile(
+            new URL(image.fileName.slice('demo-'.length), photoSource),
+          ),
+        );
+      }
+    }
+    const neighborDiaryIds = first.diaries
+      .filter((entry) => entry.authorId !== demo.id)
+      .map((entry) => entry.id);
+    expect(
+      first.images.filter((image) => neighborDiaryIds.includes(image.diaryId)),
+    ).toEqual([]);
     for (const user of first.users.filter((entry) => entry.id !== demo.id)) {
       const owned = first.dogs.filter((entry) => entry.ownerId === user.id);
       expect(owned.length).toBeGreaterThanOrEqual(1);
@@ -208,6 +271,93 @@ describe('Demo reset (e2e)', () => {
         (user) => user.id,
       ),
     ).toEqual(first.users.map((user) => user.id));
+  });
+
+  it('serves a demo diary image as webp to the demo account', async () => {
+    await resetDemo(prisma);
+    const login = await request(app.getHttpServer())
+      .post('/api/auth/demo')
+      .send({})
+      .expect(200);
+    const image = await prisma.diaryImage.findFirstOrThrow({
+      where: { fileName: 'demo-diary-1a.webp' },
+    });
+    const response = await request(app.getHttpServer())
+      .get(`/api/diaries/${image.diaryId}/images/${image.id}`)
+      .set('Authorization', `Bearer ${login.body.accessToken}`)
+      .expect(200)
+      .expect('Content-Type', /image\/webp/);
+    expect(response.body).toEqual(
+      await readFile(new URL('diary-1a.webp', photoSource)),
+    );
+  });
+
+  it('overwrites fixed demo files, restores missing photos and preserves real photos', async () => {
+    const dogDirectory = join(publicDirectory, 'dogs');
+    const diaryDirectory = join(privateDirectory, 'diaries');
+    await mkdir(dogDirectory, { recursive: true });
+    await mkdir(diaryDirectory, { recursive: true });
+    const realPhoto = await readFile(new URL('dog-kongi.webp', photoSource));
+    const realFileName = '7cb11ffd-5ec2-449b-9b9e-663940dc9ee3.webp';
+    await writeFile(join(dogDirectory, realFileName), realPhoto);
+    await writeFile(join(diaryDirectory, realFileName), realPhoto);
+    await resetDemo(prisma);
+    const dogFiles = (await readdir(dogDirectory)).sort();
+    const diaryFiles = (await readdir(diaryDirectory)).sort();
+    expect(dogFiles.filter((name) => name.startsWith('demo-'))).toHaveLength(9);
+    expect(diaryFiles.filter((name) => name.startsWith('demo-'))).toHaveLength(
+      4,
+    );
+    await writeFile(join(dogDirectory, 'demo-dog-kongi.webp'), 'damaged');
+    await rm(join(diaryDirectory, 'demo-diary-1a.webp'));
+    await resetDemo(prisma);
+    expect((await readdir(dogDirectory)).sort()).toEqual(dogFiles);
+    expect((await readdir(diaryDirectory)).sort()).toEqual(diaryFiles);
+    expect(await readFile(join(dogDirectory, 'demo-dog-kongi.webp'))).toEqual(
+      realPhoto,
+    );
+    expect(await readFile(join(diaryDirectory, 'demo-diary-1a.webp'))).toEqual(
+      await readFile(new URL('diary-1a.webp', photoSource)),
+    );
+    expect(await readFile(join(dogDirectory, realFileName))).toEqual(realPhoto);
+    expect(await readFile(join(diaryDirectory, realFileName))).toEqual(
+      realPhoto,
+    );
+    await expectCounts();
+  });
+
+  it.each([
+    ['PUBLIC_UPLOAD_DIR', undefined],
+    ['PUBLIC_UPLOAD_DIR', ''],
+    ['PRIVATE_UPLOAD_DIR', undefined],
+    ['PRIVATE_UPLOAD_DIR', ''],
+  ] as const)(
+    'rejects %s=%s before changing the database',
+    async (variable, value) => {
+      const transaction = vi.spyOn(prisma, '$transaction');
+      vi.stubEnv(variable, value);
+      try {
+        await expect(resetDemo(prisma)).rejects.toThrow(
+          `${variable} is required`,
+        );
+        expect(transaction).not.toHaveBeenCalled();
+      } finally {
+        vi.unstubAllEnvs();
+        transaction.mockRestore();
+      }
+    },
+  );
+
+  it('fails before changing the database when the photo destination is not a directory', async () => {
+    await mkdir(publicDirectory, { recursive: true });
+    await writeFile(join(publicDirectory, 'dogs'), 'occupied');
+    const transaction = vi.spyOn(prisma, '$transaction');
+    try {
+      await expect(resetDemo(prisma)).rejects.toMatchObject({ code: 'EEXIST' });
+      expect(transaction).not.toHaveBeenCalled();
+    } finally {
+      transaction.mockRestore();
+    }
   });
 
   it('restores edited profiles, deleted posts and newly written data', async () => {

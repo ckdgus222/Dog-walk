@@ -329,6 +329,15 @@ describe('Demo authentication and limits (e2e)', () => {
     const beforeDiaries = await prisma.diary.findMany({
       orderBy: { id: 'asc' },
     });
+    const beforePublicFiles = (
+      await readdir(publicDirectory, { recursive: true })
+    ).sort();
+    const beforePrivateFiles = (
+      await readdir(privateDirectory, { recursive: true })
+    ).sort();
+    const beforeImages = await prisma.diaryImage.findMany({
+      orderBy: { id: 'asc' },
+    });
     const routes = [
       ['post', '/api/dogs', 'dog', dog, 'photo'],
       ['patch', `/api/dogs/${createdDog.body.id}`, 'dog', dog, 'photo'],
@@ -349,8 +358,15 @@ describe('Demo authentication and limits (e2e)', () => {
         .attach(imageField, jpeg, 'photo.jpg')
         .expect(403);
       expect(denied.body.message).toBe(forbiddenMessage);
-      expect(await readdir(publicDirectory, { recursive: true })).toEqual([]);
-      expect(await readdir(privateDirectory, { recursive: true })).toEqual([]);
+      expect(
+        (await readdir(publicDirectory, { recursive: true })).sort(),
+      ).toEqual(beforePublicFiles);
+      expect(
+        (await readdir(privateDirectory, { recursive: true })).sort(),
+      ).toEqual(beforePrivateFiles);
+      expect(
+        await prisma.diaryImage.findMany({ orderBy: { id: 'asc' } }),
+      ).toEqual(beforeImages);
     }
     expect(await prisma.dog.findMany({ orderBy: { id: 'asc' } })).toEqual(
       beforeDogs,
@@ -358,7 +374,9 @@ describe('Demo authentication and limits (e2e)', () => {
     expect(await prisma.diary.findMany({ orderBy: { id: 'asc' } })).toEqual(
       beforeDiaries,
     );
-    expect(await prisma.diaryImage.count()).toBe(0);
+    expect(
+      await prisma.diaryImage.findMany({ orderBy: { id: 'asc' } }),
+    ).toEqual(beforeImages);
   });
 
   it.each([false, true])(

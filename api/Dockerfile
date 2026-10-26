@@ -14,6 +14,7 @@ COPY --from=build --chown=node:node /app/package.json ./package.json
 # Prisma CLI is needed to apply migrations when the container starts.
 COPY --from=build --chown=node:node /app/node_modules ./node_modules
 COPY --from=build --chown=node:node /app/dist ./dist
+COPY --from=build --chown=node:node /app/demo-photos ./demo-photos
 COPY --from=build --chown=node:node /app/prisma ./prisma
 COPY --from=build --chown=node:node /app/prisma.config.ts ./prisma.config.ts
 RUN mkdir -p /app/uploads /app/private-uploads && chown node:node /app/uploads /app/private-uploads

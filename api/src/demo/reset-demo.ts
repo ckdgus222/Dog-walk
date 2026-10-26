@@ -1,4 +1,6 @@
 import { randomBytes } from 'node:crypto';
+import { copyFile, mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
 import * as bcrypt from 'bcrypt';
 import { PASSWORD_HASH_ROUNDS } from '../common/account-rules.js';
 import { DEMO_EMAIL } from './demo.constants.js';
@@ -50,7 +52,146 @@ const accounts = [
   },
 ];
 
+const dogData = [
+  {
+    owner: 0,
+    name: '콩이',
+    photo: 'dog-kongi.webp',
+    breed: '믹스',
+    size: 'SMALL',
+    gender: 'FEMALE',
+    neutered: true,
+    birthYear: 2022,
+    personality: '처음에는 조심스럽지만 금방 친해져요.',
+  },
+  {
+    owner: 1,
+    name: '두부',
+    photo: 'dog-dubu.webp',
+    breed: '푸들',
+    size: 'SMALL',
+    gender: 'MALE',
+    neutered: true,
+    birthYear: 2020,
+    personality: '친구와 나란히 걷는 걸 좋아해요.',
+  },
+  {
+    owner: 1,
+    name: '호두',
+    photo: 'dog-hodu.webp',
+    breed: '믹스',
+    size: 'MEDIUM',
+    gender: 'FEMALE',
+    neutered: true,
+    birthYear: 2019,
+    personality: '느긋하게 냄새를 맡으며 걸어요.',
+  },
+  {
+    owner: 2,
+    name: '보리',
+    photo: 'dog-bori.webp',
+    breed: '리트리버',
+    size: 'LARGE',
+    gender: 'FEMALE',
+    neutered: true,
+    birthYear: 2021,
+    personality: '사람을 좋아하고 활발해요.',
+  },
+  {
+    owner: 3,
+    name: '밤이',
+    photo: 'dog-bami.webp',
+    breed: '시바',
+    size: 'MEDIUM',
+    gender: 'MALE',
+    neutered: false,
+    birthYear: 2023,
+    personality: '혼자 탐색하다 친구에게 다가가요.',
+  },
+  {
+    owner: 3,
+    name: '별이',
+    photo: 'dog-byeoli.webp',
+    breed: '믹스',
+    size: 'SMALL',
+    gender: 'FEMALE',
+    neutered: true,
+    birthYear: 2017,
+    personality: '조용히 천천히 걷는 걸 좋아해요.',
+  },
+  {
+    owner: 4,
+    name: '구름',
+    photo: 'dog-gureum.webp',
+    breed: '믹스',
+    size: 'LARGE',
+    gender: 'MALE',
+    neutered: true,
+    birthYear: 2022,
+    personality: '덩치는 크지만 겁이 조금 많아요.',
+  },
+  {
+    owner: 5,
+    name: '참깨',
+    photo: 'dog-chamkkae.webp',
+    breed: '비글',
+    size: 'MEDIUM',
+    gender: 'FEMALE',
+    neutered: false,
+    birthYear: 2024,
+    personality: '새로운 길을 탐험하는 게 즐거워요.',
+  },
+  {
+    owner: 5,
+    name: '토리',
+    photo: 'dog-tori.webp',
+    breed: '푸들',
+    size: 'SMALL',
+    gender: 'MALE',
+    neutered: true,
+    birthYear: 2018,
+    personality: '익숙한 길에서 편안하게 걸어요.',
+  },
+] satisfies (Omit<Prisma.DogCreateManyInput, 'ownerId'> & {
+  owner: number;
+  photo: string;
+})[];
+
+const diaryData = [
+  { dog: 0, photos: ['diary-1a.webp', 'diary-1b.webp'] },
+  { dog: 0, photos: ['diary-2a.webp', 'diary-2b.webp'] },
+  { dog: 1, photos: [] },
+  { dog: 3, photos: [] },
+  { dog: 4, photos: [] },
+  { dog: 6, photos: [] },
+  { dog: 7, photos: [] },
+];
+
 export async function resetDemo(prisma: PrismaClient) {
+  const publicDirectory = process.env.PUBLIC_UPLOAD_DIR;
+  if (!publicDirectory) throw new Error('PUBLIC_UPLOAD_DIR is required');
+  const privateDirectory = process.env.PRIVATE_UPLOAD_DIR;
+  if (!privateDirectory) throw new Error('PRIVATE_UPLOAD_DIR is required');
+
+  const photoSource = new URL('../../demo-photos/', import.meta.url);
+  const dogDirectory = join(publicDirectory, 'dogs');
+  const diaryDirectory = join(privateDirectory, 'diaries');
+  await mkdir(dogDirectory, { recursive: true });
+  await mkdir(diaryDirectory, { recursive: true });
+  for (const { photo } of dogData) {
+    await copyFile(
+      new URL(photo, photoSource),
+      join(dogDirectory, `demo-${photo}`),
+    );
+  }
+  const diaryPhotos = diaryData.flatMap((diary) => diary.photos);
+  for (const photo of diaryPhotos) {
+    await copyFile(
+      new URL(photo, photoSource),
+      join(diaryDirectory, `demo-${photo}`),
+    );
+  }
+
   // Nobody knows these passwords, so demo users can't use ordinary login.
   // Hash outside the transaction to keep the locks short.
   const passwordHashes = await Promise.all(
@@ -120,104 +261,16 @@ export async function resetDemo(prisma: PrismaClient) {
         `;
       }
 
-      const dogData = [
-        {
-          owner: 0,
-          name: '콩이',
-          breed: '믹스',
-          size: 'SMALL',
-          gender: 'FEMALE',
-          neutered: true,
-          birthYear: 2022,
-          personality: '처음에는 조심스럽지만 금방 친해져요.',
-        },
-        {
-          owner: 1,
-          name: '두부',
-          breed: '푸들',
-          size: 'SMALL',
-          gender: 'MALE',
-          neutered: true,
-          birthYear: 2020,
-          personality: '친구와 나란히 걷는 걸 좋아해요.',
-        },
-        {
-          owner: 1,
-          name: '호두',
-          breed: '믹스',
-          size: 'MEDIUM',
-          gender: 'FEMALE',
-          neutered: true,
-          birthYear: 2019,
-          personality: '느긋하게 냄새를 맡으며 걸어요.',
-        },
-        {
-          owner: 2,
-          name: '보리',
-          breed: '리트리버',
-          size: 'LARGE',
-          gender: 'FEMALE',
-          neutered: true,
-          birthYear: 2021,
-          personality: '사람을 좋아하고 활발해요.',
-        },
-        {
-          owner: 3,
-          name: '밤이',
-          breed: '시바',
-          size: 'MEDIUM',
-          gender: 'MALE',
-          neutered: false,
-          birthYear: 2023,
-          personality: '혼자 탐색하다 친구에게 다가가요.',
-        },
-        {
-          owner: 3,
-          name: '별이',
-          breed: '믹스',
-          size: 'SMALL',
-          gender: 'FEMALE',
-          neutered: true,
-          birthYear: 2017,
-          personality: '조용히 천천히 걷는 걸 좋아해요.',
-        },
-        {
-          owner: 4,
-          name: '구름',
-          breed: '믹스',
-          size: 'LARGE',
-          gender: 'MALE',
-          neutered: true,
-          birthYear: 2022,
-          personality: '덩치는 크지만 겁이 조금 많아요.',
-        },
-        {
-          owner: 5,
-          name: '참깨',
-          breed: '비글',
-          size: 'MEDIUM',
-          gender: 'FEMALE',
-          neutered: false,
-          birthYear: 2024,
-          personality: '새로운 길을 탐험하는 게 즐거워요.',
-        },
-        {
-          owner: 5,
-          name: '토리',
-          breed: '푸들',
-          size: 'SMALL',
-          gender: 'MALE',
-          neutered: true,
-          birthYear: 2018,
-          personality: '익숙한 길에서 편안하게 걸어요.',
-        },
-      ] satisfies (Omit<Prisma.DogCreateManyInput, 'ownerId'> & {
-        owner: number;
-      })[];
       const dogs: Dog[] = [];
-      for (const { owner, ...dog } of dogData) {
+      for (const { owner, photo, ...dog } of dogData) {
         dogs.push(
-          await tx.dog.create({ data: { ...dog, ownerId: users[owner].id } }),
+          await tx.dog.create({
+            data: {
+              ...dog,
+              ownerId: users[owner].id,
+              photoUrl: `/uploads/dogs/demo-${photo}`,
+            },
+          }),
         );
       }
 
@@ -298,20 +351,13 @@ export async function resetDemo(prisma: PrismaClient) {
         }),
       });
 
-      const diaries = await tx.diary.createMany({
-        data: [
-          dogs[0],
-          dogs[0],
-          dogs[1],
-          dogs[3],
-          dogs[4],
-          dogs[6],
-          dogs[7],
-        ].map((dog, index) => {
-          const createdAt = new Date(
-            now.getTime() - (index + 1) * 24 * 60 * 60 * 1000,
-          );
-          return {
+      for (const [index, entry] of diaryData.entries()) {
+        const dog = dogs[entry.dog];
+        const createdAt = new Date(
+          now.getTime() - (index + 1) * 24 * 60 * 60 * 1000,
+        );
+        await tx.diary.create({
+          data: {
             authorId: dog.ownerId,
             dogId: dog.id,
             walkedOn: createdAt,
@@ -319,9 +365,15 @@ export async function resetDemo(prisma: PrismaClient) {
             content: `오늘의 산책 친구는 ${dog.name}. 공원 길을 함께 걸으며 냄새도 맡고 물도 마시며 여유롭게 쉬었어요.`,
             createdAt,
             updatedAt: createdAt,
-          };
-        }),
-      });
+            images: {
+              create: entry.photos.map((photo, sortOrder) => ({
+                fileName: `demo-${photo}`,
+                sortOrder,
+              })),
+            },
+          },
+        });
+      }
 
       const accepted = await tx.walkRequest.create({
         data: {
@@ -363,9 +415,11 @@ export async function resetDemo(prisma: PrismaClient) {
         dogs: dogs.length,
         posts: posts.length,
         comments: comments.count,
-        diaries: diaries.count,
+        diaries: diaryData.length,
         walkRequests: 2,
         chatMessages: chatMessages.count,
+        dogPhotos: dogData.length,
+        diaryImages: diaryPhotos.length,
       };
     },
     { timeout: 30_000 },
