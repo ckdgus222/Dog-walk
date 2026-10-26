@@ -26,7 +26,7 @@
     "prestart": "npm run prisma:generate",
     "prestart:dev": "npm run prisma:generate",
     "prestart:debug": "npm run prisma:generate",
-    "start:container": "prisma migrate deploy && node dist/main.js",
+    "start:container": "prisma migrate deploy && exec node dist/main.js",
     "pretest": "npm run prisma:generate"
   },
   "dependencies": {
@@ -48,7 +48,8 @@
     "pg": "8.23.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "sharp": "^0.35.5"
+    "sharp": "^0.35.5",
+    "socket.io": "^4.8.4"
   },
   "devDependencies": {
     "@nestjs/cli": "^12.0.0",

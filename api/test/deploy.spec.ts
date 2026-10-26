@@ -19,7 +19,7 @@ import { fileURLToPath } from 'node:url';
 
 const source = fileURLToPath(new URL('../../deploy/', import.meta.url));
 
-// Only copied scripts run here. Docker, mountpoint, flock, curl, and sleep
+// Only copied scripts run here. Docker, git, mountpoint, flock, curl, and sleep
 // are replaced so these tests cannot stop or restore the shared Docker stack.
 const fakeCommand = `#!/usr/bin/env bash
 set -euo pipefail
@@ -29,12 +29,37 @@ case "$command" in
   mountpoint) [ "$SCENARIO" != unmounted ]; exit $? ;;
   flock) [ "$SCENARIO" != locked ]; exit $? ;;
   sleep) exit 0 ;;
-  curl) [ "$SCENARIO" != unhealthy ]; exit $? ;;
+  curl)
+    case "$SCENARIO:$*" in
+      unhealthy:*|update-health-failed:*api/health|update-login-failed:*login) exit 1 ;;
+      update-retry:*login)
+        if [ ! -e "$TEST_ROOT/retried" ]; then
+          touch "$TEST_ROOT/retried"
+          exit 1
+        fi ;;
+    esac
+    exit 0 ;;
+  git)
+    [ "$*" = 'pull --ff-only' ] || exit 99
+    [ "$SCENARIO" != update-pull-failed ]; exit $? ;;
   date) echo 2026-11-01-040000; exit 0 ;;
 esac
 case "$*" in
   'compose ps --status running --services')
+    case "$SCENARIO" in
+      update-ps-failed) exit 1 ;;
+      update-stopped-*)
+        for service in db api web nginx; do
+          if [ "$SCENARIO" != "update-stopped-$service" ]; then echo "$service"; fi
+        done
+        exit 0 ;;
+      update-*) printf 'db\\napi\\nweb\\nnginx\\n'; exit 0 ;;
+    esac
     if [ "$SCENARIO" != stopped ]; then echo api; fi ;;
+  'compose up -d --build')
+    [ "$SCENARIO" != update-build-failed ] ;;
+  'compose up -d --force-recreate --no-deps nginx')
+    [ "$SCENARIO" != update-nginx-failed ] ;;
   'compose stop api'|'compose stop api web')
     [ "$SCENARIO" != stop-failed ] ;;
   'compose start api'|'compose up -d api web')
@@ -94,11 +119,17 @@ describe('deployment scripts', () => {
     ]) {
       mkdirSync(dir, { recursive: true });
     }
-    for (const name of ['backup.sh', 'restore.sh', 'reload-nginx.sh']) {
+    for (const name of [
+      'backup.sh',
+      'restore.sh',
+      'reload-nginx.sh',
+      'update.sh',
+    ]) {
       copyFileSync(join(source, name), join(repo, 'deploy', name));
     }
     for (const name of [
       'docker',
+      'git',
       'mountpoint',
       'flock',
       'curl',
@@ -409,4 +440,120 @@ describe('deployment scripts', () => {
         expect(call.startsWith(`${repo}|docker|`)).toBe(true);
     },
   );
+
+  const curlCall = (path: string) =>
+    `${repo}|curl|-fsSLk --max-time 5 -o /dev/null http://localhost${path}`;
+
+  it.each(['repository', 'another directory'])(
+    'updates from %s with every command running in the repository',
+    (directory) => {
+      const result = run(
+        'update.sh',
+        'update-success',
+        [],
+        directory === 'repository' ? repo : root,
+      );
+      expect(result.status, result.stderr).toBe(0);
+      expect(result.stdout).toContain('업데이트를 마쳤어요');
+      expect(statSync(join(source, 'update.sh')).mode & 0o777).toBe(0o755);
+      expect(existsSync(join(repo, '.maintenance.lock'))).toBe(true);
+      expect(commands().trim().split('\n')).toEqual([
+        `${repo}|flock|-n 9`,
+        `${repo}|docker|compose ps --status running --services`,
+        `${repo}|git|pull --ff-only`,
+        `${repo}|docker|compose up -d --build`,
+        `${repo}|docker|compose up -d --force-recreate --no-deps nginx`,
+        curlCall('/api/health'),
+        curlCall('/login'),
+      ]);
+    },
+  );
+
+  it('refuses an update with a held lock before running any other command', () => {
+    const result = run('update.sh', 'locked', []);
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('다른 백업이나 복원이 진행 중이에요');
+    expect(commands()).toBe(`${repo}|flock|-n 9\n`);
+  });
+
+  it.each(['db', 'api', 'web', 'nginx'])(
+    'refuses an update when %s is stopped before pulling or rebuilding',
+    (service) => {
+      const result = run('update.sh', `update-stopped-${service}`, []);
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain(
+        `꺼진 서비스가 있어 업데이트하지 않아요: ${service}`,
+      );
+      expect(commands().trim().split('\n')).toEqual([
+        `${repo}|flock|-n 9`,
+        `${repo}|docker|compose ps --status running --services`,
+      ]);
+    },
+  );
+
+  it.each([
+    ['update-ps-failed', 'compose ps --status running --services', /\|git\|/],
+    ['update-pull-failed', '|git|pull --ff-only', /compose up/],
+    ['update-build-failed', 'compose up -d --build', /--force-recreate/],
+    [
+      'update-nginx-failed',
+      'compose up -d --force-recreate --no-deps nginx',
+      /\|curl\|/,
+    ],
+  ])('stops an update at %s before the next step', (scenario, last, next) => {
+    const result = run('update.sh', scenario, []);
+    expect(result.status).toBe(1);
+    expect(commands()).toContain(last);
+    expect(commands()).not.toMatch(next);
+    expect(commands()).not.toContain('|curl|');
+  });
+
+  it.each([
+    ['health', 12, 0],
+    ['login', 12, 12],
+  ])(
+    'fails an update after twelve bounded attempts when %s stays unhealthy',
+    (endpoint, healthChecks, loginChecks) => {
+      const result = run('update.sh', `update-${endpoint}-failed`, []);
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain(
+        '응답 확인에 실패했어요. docker compose logs api web nginx를 확인하세요',
+      );
+      expect(result.stdout).not.toContain('업데이트를 마쳤어요');
+      const lines = commands().split('\n');
+      expect(lines.filter((line) => line.includes('|curl|'))).toHaveLength(
+        healthChecks + loginChecks,
+      );
+      expect(
+        lines.filter((line) => line === curlCall('/api/health')),
+      ).toHaveLength(healthChecks);
+      expect(lines.filter((line) => line === curlCall('/login'))).toHaveLength(
+        loginChecks,
+      );
+      // No sleep after the last attempt.
+      expect(lines.filter((line) => line.includes('|sleep|'))).toEqual(
+        Array(11).fill(`${repo}|sleep|5`),
+      );
+    },
+  );
+
+  it('finishes an update when both endpoints respond after retrying', () => {
+    const result = run('update.sh', 'update-retry', []);
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stdout).toContain('업데이트를 마쳤어요');
+    expect(commands().trim().split('\n').slice(-5)).toEqual([
+      curlCall('/api/health'),
+      curlCall('/login'),
+      `${repo}|sleep|5`,
+      curlCall('/api/health'),
+      curlCall('/login'),
+    ]);
+  });
+
+  it('rejects update arguments before running any command', () => {
+    const result = run('update.sh', 'update-success', ['unexpected']);
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('사용법:');
+    expect(commands()).toBe('');
+  });
 });
