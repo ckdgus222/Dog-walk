@@ -18,3 +18,4 @@ certbot-www/
 output/
 .playwright-cli/
 .playwright-mcp/
+docs/

@@ -17,8 +17,7 @@ const notoSansKr = Noto_Sans_KR({
   variable: "--font-sans",
 });
 
-// The round title font of the intro and the guest welcome
-// (docs/screen-fit-and-features.md).
+// The round title font of the intro and the guest welcome.
 const jua = Jua({
   weight: "400",
   subsets: ["latin"],

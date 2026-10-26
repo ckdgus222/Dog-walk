@@ -1,5 +1,5 @@
 /* List: ten short rows under a line of column names, so a full page fits
-   the window at 1440x800 (docs/screen-fit-and-features.md). */
+   the window at 1440x800. */
 .columns,
 .row {
   display: grid;

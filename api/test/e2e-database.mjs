@@ -1,6 +1,7 @@
 // e2e wipes every table, so both run-e2e.mjs (before migrating) and
 // vitest.config.e2e.ts (direct runs) refuse a database not named *_test.
-// The check targets mistakes, not crafted URLs (docs/predeploy-safety.md).
+// The check targets mistakes, not crafted URLs: whoever can set
+// DATABASE_URL already holds the database password.
 const invalidAddressMessage =
   'e2e DB 주소를 읽을 수 없어요. postgresql://<사용자>:<비밀번호>@<호스트>:<포트>/<이름>_test 형식으로 적어 주세요.';
 

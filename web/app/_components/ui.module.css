@@ -1,5 +1,5 @@
-/* Shared parts from docs/design-system.md: buttons, chips, cards, list
-   rows, badges, notices and faces. */
+/* Shared design-system parts: buttons, chips, cards, list rows, badges,
+   notices and faces. */
 
 /* The hand-drawn outline sits on ::before, so the #rough filter (layout.tsx)
    wobbles only the line, never the text, and never blocks a click. Every
