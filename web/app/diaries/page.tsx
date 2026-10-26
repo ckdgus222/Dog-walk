@@ -103,17 +103,14 @@ const DiaryList = () => {
                     </p>
                   </div>
                   {diary.images.length > 0 ? (
-                    // The first two photos, with the count of all of them.
+                    // The first photo, with the count of all of them.
                     <div className={styles.entryPhotos}>
-                      {diary.images.slice(0, 2).map((image, index) => (
-                        <DiaryImage
-                          key={image.id}
-                          diaryId={diary.id}
-                          imageId={image.id}
-                          alt={`${diary.dog.name} 일기 사진 ${index + 1}`}
-                          className={styles.entryPhoto}
-                        />
-                      ))}
+                      <DiaryImage
+                        diaryId={diary.id}
+                        imageId={diary.images[0].id}
+                        alt={`${diary.dog.name} 일기 사진 1`}
+                        className={styles.entryPhoto}
+                      />
                       <p className={styles.photoCount}>
                         <span className={formStyles.visuallyHidden}>사진 </span>
                         {diary.images.length}장
