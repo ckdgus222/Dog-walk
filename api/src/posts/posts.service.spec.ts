@@ -73,7 +73,7 @@ describe('PostsService', () => {
     await expect(service.findAll(3)).resolves.toEqual({
       posts: [{ ...listed, commentCount: 2 }],
       page: 3,
-      totalPages: 3,
+      totalPages: 5,
     });
     expect(prisma.$transaction).toHaveBeenCalledExactlyOnceWith(
       [
@@ -83,8 +83,8 @@ describe('PostsService', () => {
       { isolationLevel: 'RepeatableRead' },
     );
     expect(prisma.post.findMany).toHaveBeenCalledExactlyOnceWith({
-      skip: 40,
-      take: 20,
+      skip: 20,
+      take: 10,
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       select: {
         id: true,
@@ -100,8 +100,8 @@ describe('PostsService', () => {
 
   it.each([
     [1, 0, 1],
-    [4, 45, 3],
-    [1e30, 45, 3],
+    [6, 45, 5],
+    [1e30, 45, 5],
   ])(
     'returns empty page %s with total %s and totalPages %s',
     async (page, total, totalPages) => {

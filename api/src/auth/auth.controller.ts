@@ -11,26 +11,23 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import type { CookieOptions, Request, Response } from 'express';
-import type { PublicUser } from '../users/users.service.js';
+import type { Request, Response } from 'express';
 import { AuthService } from './auth.service.js';
 import { LoginDto } from './dto/login.dto.js';
 import { SignupDto } from './dto/signup.dto.js';
 import { JsonBodyGuard } from './guards/json-body.guard.js';
 import { LoginLimiter } from './login-limiter.js';
+import {
+  REFRESH_COOKIE,
+  REFRESH_COOKIE_MAX_AGE,
+  refreshCookieOptions,
+} from './refresh-cookie.js';
 
 const TOO_MANY_ATTEMPTS =
   '로그인 시도가 너무 많아요. 잠시 뒤에 다시 시도해 주세요.';
 
 @Controller('auth')
 export class AuthController {
-  private readonly cookieOptions: CookieOptions = {
-    httpOnly: true,
-    sameSite: 'strict',
-    path: '/api/auth',
-    secure: process.env.COOKIE_SECURE === 'true',
-  };
-
   constructor(
     @Inject(AuthService) private readonly auth: AuthService,
     @Inject(LoginLimiter) private readonly loginLimiter: LoginLimiter,
@@ -57,23 +54,22 @@ export class AuthController {
         HttpStatus.TOO_MANY_REQUESTS,
       );
     }
-    let authenticatedUser: PublicUser;
+    let verified: Awaited<ReturnType<AuthService['validateUser']>>;
     try {
-      authenticatedUser = await this.auth.validateUser(
-        input.email,
-        input.password,
-      );
+      verified = await this.auth.validateUser(input.email, input.password);
     } catch (error) {
       if (error instanceof UnauthorizedException) this.loginLimiter.failed(ip);
       else this.loginLimiter.release(ip);
       throw error;
     }
     this.loginLimiter.release(ip);
-    const { accessToken, refreshToken, user } =
-      await this.auth.login(authenticatedUser);
-    response.cookie('refresh_token', refreshToken, {
-      ...this.cookieOptions,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+    const { accessToken, refreshToken, user } = await this.auth.login(
+      verified.user,
+      verified.passwordHash,
+    );
+    response.cookie(REFRESH_COOKIE, refreshToken, {
+      ...refreshCookieOptions(),
+      maxAge: REFRESH_COOKIE_MAX_AGE,
     });
     return { accessToken, user };
   }
@@ -99,7 +95,7 @@ export class AuthController {
     try {
       await this.auth.logout(typeof cookie === 'string' ? cookie : undefined);
     } finally {
-      response.clearCookie('refresh_token', this.cookieOptions);
+      response.clearCookie(REFRESH_COOKIE, refreshCookieOptions());
     }
   }
 }

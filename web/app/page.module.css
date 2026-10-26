@@ -1,23 +1,378 @@
-.main {
+/* Dashboard: the greeting and actions on one line, four cards of news,
+   then the walk by the river in the height left. */
+.dashboard {
+  grid-template-rows: auto auto minmax(200px, 1fr);
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--space-5);
+}
+
+.greeting {
+  composes: eyebrow from "./_components/heading.module.css";
+  color: var(--muted);
+}
+
+.title {
+  composes: title from "./_components/heading.module.css";
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+.actions {
   display: flex;
-  flex: 1;
-  flex-direction: column;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.card {
+  display: grid;
+  align-content: start;
+  gap: var(--space-3);
+  overflow-wrap: anywhere;
+}
+
+.cardTitle {
+  composes: cardTitle from "./_components/ui.module.css";
+  display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 24px;
-  padding: 24px;
+  justify-content: space-between;
 }
 
-.main nav {
+.cardLink::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+/* A link inside a card, above the card's own stretched link. */
+.inner {
+  position: relative;
+  z-index: 1;
+}
+
+.inner:hover,
+.inner:hover strong {
+  color: var(--accent);
+}
+
+.dogs {
   display: flex;
-  gap: 24px;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-6);
+  list-style: none;
 }
 
-.main a {
-  text-decoration: underline;
+.dog {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
 }
 
-.main button {
-  padding: 10px 20px;
-  font: inherit;
+.dogName {
+  color: var(--ink);
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+
+.countCard {
+  justify-items: center;
+  text-align: center;
+}
+
+.countCard .cardTitle {
+  justify-self: stretch;
+}
+
+.count {
+  color: var(--accent);
+  font-size: var(--text-3xl);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+/* The latest diary: its first photo beside the title and walk date. */
+.recent {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.recent strong {
+  display: block;
+  color: var(--ink);
+}
+
+/* A fixed box, so the loading line cannot move the title. */
+.recentPhoto {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--sage-soft);
+  font-size: var(--text-xs);
+}
+
+.recentPhoto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The newest posts, one line each with the author under it. */
+.newPosts {
+  display: grid;
+  gap: var(--space-2);
+  list-style: none;
+}
+
+.newPosts li {
+  display: grid;
+  min-width: 0;
+}
+
+.newPosts a {
+  overflow: hidden;
+  color: var(--ink);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* From 1280x800 up many dogs scroll inside their card, so the cards keep
+   their height and the drawing its room. */
+@media (min-width: 1280px) and (min-height: 800px) {
+  /* Two rows of 64px faces. */
+  .dogs {
+    max-height: calc(2 * 64px + var(--space-4));
+    overflow-y: auto;
+  }
+}
+
+/* Guest home: one card in the middle of the field, like a welcome window:
+   the welcome on the left, the login form on the right and a small walk by
+   the river along the bottom. */
+.guest {
+  composes: panel from "./_components/ui.module.css";
+  display: grid;
+  /* The form column and gap narrow with the window down to 900px. */
+  grid-template-columns: minmax(0, 1fr) clamp(320px, 30vw, 380px);
+  /* The drawing takes the height the rest of the card (about 420px) and
+     the header leave. home-scene.png is 756px tall, so up to 378px it stays
+     sharp on 2x screens. */
+  grid-template-rows: auto clamp(180px, 100vh - 560px, 360px);
+  align-items: center;
+  column-gap: clamp(32px, 4vw, 56px);
+  row-gap: var(--space-4);
+  width: min(var(--page-width), 1040px);
+  /* Centered across and down the space under the header. */
+  margin: auto;
+  padding: var(--space-6) var(--panel-pad-x) 0;
+  box-shadow: var(--shadow-panel);
+  animation: card-rise 0.5s ease-out both;
+}
+
+/* The drawing fits the row whole, standing on the sheet's bottom edge
+   (through the bottom padding of a page panel). */
+.bottomScene {
+  position: relative;
+  grid-column: 1 / -1;
+  align-self: stretch;
+  margin-bottom: calc(-1 * var(--panel-pad-bottom, 0px));
+}
+
+/* As tall as the row and only as wide as the drawing, so the fade below
+   lands on the drawing's own sides. */
+.bottomScene > picture {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  /* home-scene.png; the phone drawing's ratio is set below. */
+  aspect-ratio: 2079 / 756;
+  translate: -50% 0;
+}
+
+.bottomScene img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  /* The drawing's cut sides fade into the paper. */
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 6%,
+    black 94%,
+    transparent
+  );
+}
+
+.eyebrow {
+  margin-bottom: var(--space-2);
+  color: var(--accent);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+/* The title shrinks with the window so it stays on two lines above the
+   field beside the card. */
+.welcome .title {
+  font-family: var(--font-display), var(--font-sans), sans-serif;
+  font-size: clamp(32px, 2.8vw, 42px);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.intro {
+  margin-top: var(--space-3);
+  font-size: var(--text-md);
+  line-height: 1.65;
+}
+
+.features {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+  list-style: none;
+}
+
+.features li {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  column-gap: var(--space-4);
+  align-items: center;
+}
+
+.features img {
+  grid-row: span 2;
+}
+
+.features strong {
+  color: var(--ink);
+  font-size: var(--text-lg);
+}
+
+.features span {
+  color: var(--text);
+  font-size: var(--text-md);
+}
+
+/* A line splits the welcome from the form. */
+.loginCard {
+  padding-left: clamp(40px, 5vw, 64px);
+  border-left: 1px solid var(--line);
+}
+
+/* Tablets in portrait put the form under the welcome. */
+@media (max-width: 900px) {
+  .guest {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto 140px;
+    row-gap: var(--space-6);
+  }
+
+  .loginCard {
+    padding: var(--space-6) 0 0;
+    border-top: 1px solid var(--line);
+    border-left: 0;
+  }
+}
+
+@keyframes card-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .guest {
+    animation: none;
+  }
+}
+
+/* Narrower windows: the dog card on a row of its own, the other three
+   under it. */
+@media (max-width: 1279px) {
+  .cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .cards > :first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 720px) {
+  .guest {
+    margin: var(--space-3) auto;
+    padding: var(--space-5) var(--panel-pad-x) 0;
+    row-gap: var(--space-5);
+  }
+
+  /* home-scene-mobile.png */
+  .bottomScene > picture {
+    aspect-ratio: 1620 / 971;
+  }
+
+  .welcome .title {
+    font-size: var(--text-2xl);
+    line-height: 37px;
+  }
+
+  .features {
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+  }
+
+  .features li {
+    grid-template-columns: 36px 1fr;
+    column-gap: var(--space-3);
+  }
+
+  .features img {
+    grid-row: auto;
+    width: 36px;
+    height: 36px;
+  }
+
+  .features strong {
+    font-size: var(--text-md);
+  }
+
+  /* Phones keep only the feature names. */
+  .features span {
+    display: none;
+  }
+
+  .loginCard {
+    padding-top: var(--space-5);
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .actions > * {
+    flex: 1;
+  }
+
+  .cards {
+    grid-template-columns: 1fr;
+  }
 }

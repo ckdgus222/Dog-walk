@@ -1,59 +1,32 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
-import { useAuth } from "../_components/auth-provider";
-import styles from "../_components/shared.module.css";
+import loginSceneMobile from "../../public/illustrations/walking-drawing/login-scene-mobile.png";
+import loginScene from "../../public/illustrations/walking-drawing/login-scene.png";
+import styles from "../_components/auth.module.css";
+import layoutStyles from "../_components/layout.module.css";
+import { LoginForm } from "../_components/login-form";
+import { SceneImage } from "../_components/walk-scene";
 
+// The form on the left, the walk by the river in the space on the right.
 const LoginPage = () => {
-  const { login, loading } = useAuth();
   const router = useRouter();
-  const [error, setError] = useState("");
-  const [pending, setPending] = useState(false);
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    setError("");
-    setPending(true);
-    try {
-      await login(String(form.get("email")), String(form.get("password")));
-      router.push("/");
-    } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "로그인하지 못했습니다.",
-      );
-    } finally {
-      setPending(false);
-    }
-  };
 
   return (
-    <main className={`${styles.main} ${styles.narrow}`}>
-      <h1>로그인</h1>
-      <form className={styles.form} onSubmit={handleSubmit}>
-        <label>
-          이메일
-          <input name="email" type="email" autoComplete="username" required />
-        </label>
-        <label>
-          비밀번호
-          <input
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-          />
-        </label>
-        <button disabled={pending || loading}>
-          {pending ? "로그인 중…" : "로그인"}
-        </button>
-        {loading && <p role="status">로그인 상태를 확인하고 있어요.</p>}
-        {error && <p role="alert">{error}</p>}
-      </form>
-      <Link href="/signup">회원가입</Link>
-      <Link href="/">홈으로</Link>
+    <main
+      className={`${layoutStyles.main} ${layoutStyles.fit} ${styles.loginPage}`}
+    >
+      <div>
+        <LoginForm onSuccess={() => router.push("/")} />
+      </div>
+      <SceneImage
+        className={styles.pageScene}
+        fill
+        wide={loginScene}
+        narrow={loginSceneMobile}
+        narrowMedia="(max-width: 720px)"
+        wideSizes="(max-width: 1024px) 90vw, 44vw"
+      />
     </main>
   );
 };

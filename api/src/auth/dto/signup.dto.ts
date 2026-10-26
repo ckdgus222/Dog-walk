@@ -1,13 +1,6 @@
 import { Transform, Type } from 'class-transformer';
-import {
-  IsByteLength,
-  IsEmail,
-  IsObject,
-  IsString,
-  Length,
-  MaxLength,
-  ValidateNested,
-} from 'class-validator';
+import { IsEmail, IsObject, MaxLength, ValidateNested } from 'class-validator';
+import { NewPasswordRules, NicknameRules } from '../../common/account-rules.js';
 import { DogDto } from '../../dogs/dto/dog.dto.js';
 
 export class SignupDto {
@@ -18,16 +11,10 @@ export class SignupDto {
   @MaxLength(254)
   email: string;
 
-  @IsString()
-  @Length(8, 20)
-  @IsByteLength(0, 72)
+  @NewPasswordRules()
   password: string;
 
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim() : value,
-  )
-  @IsString()
-  @Length(2, 20)
+  @NicknameRules()
   nickname: string;
 
   @IsObject()

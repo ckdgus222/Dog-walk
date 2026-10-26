@@ -1,0 +1,52 @@
+.empty {
+  composes: card from "./ui.module.css";
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-5) var(--space-7);
+  text-align: center;
+}
+
+.image {
+  width: auto;
+  max-width: 100%;
+  height: 180px;
+  margin-bottom: var(--space-3);
+  object-fit: contain;
+}
+
+.title {
+  color: var(--ink);
+  font-size: var(--text-xl);
+  font-weight: 700;
+}
+
+.description {
+  max-width: 32em;
+  color: var(--muted);
+  font-size: var(--text-lg);
+  line-height: 1.6;
+  text-wrap: balance;
+}
+
+.action {
+  margin-top: var(--space-3);
+}
+
+@media (max-width: 720px) {
+  .empty {
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .image {
+    height: 120px;
+  }
+
+  .title {
+    font-size: var(--text-lg);
+  }
+
+  .description {
+    font-size: var(--text-md);
+  }
+}

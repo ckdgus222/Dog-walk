@@ -7,6 +7,7 @@ import { LoginLimiter } from './login-limiter.js';
 
 const credentials = { email: 'owner@example.com', password: 'password123' };
 const user = { id: 1, email: credentials.email, nickname: '보호자' };
+const verified = { user, passwordHash: 'stored-hash' };
 const request = { ip: '203.0.113.1' } as Request;
 
 describe('AuthController login limiting', () => {
@@ -33,8 +34,8 @@ describe('AuthController login limiting', () => {
     const rejectAttempts: Array<(reason: Error) => void> = [];
     validateUser.mockImplementation(
       () =>
-        new Promise<PublicUser>((_resolve, reject) =>
-          rejectAttempts.push(reject),
+        new Promise<{ user: PublicUser; passwordHash: string }>(
+          (_resolve, reject) => rejectAttempts.push(reject),
         ),
     );
     const attempts = Array.from({ length: 5 }, () =>
@@ -71,7 +72,7 @@ describe('AuthController login limiting', () => {
         controller.login(credentials, request, response),
       ).rejects.toBe(error);
     }
-    validateUser.mockResolvedValue(user);
+    validateUser.mockResolvedValue(verified);
     await expect(
       controller.login(credentials, request, response),
     ).resolves.toEqual({ accessToken: 'access', user });
@@ -86,7 +87,7 @@ describe('AuthController login limiting', () => {
         controller.login(credentials, request, response),
       ).rejects.toMatchObject({ status: 401 });
     }
-    validateUser.mockResolvedValue(user);
+    validateUser.mockResolvedValue(verified);
     await controller.login(credentials, request, response);
     validateUser.mockRejectedValue(new UnauthorizedException());
     await expect(

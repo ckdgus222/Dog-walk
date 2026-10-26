@@ -9,8 +9,14 @@ import {
 } from "../../lib/api/posts";
 import { useAuthStore } from "../../lib/auth-store";
 import type { Comment } from "../../lib/types";
-import styles from "../_components/shared.module.css";
-import postStyles from "./posts.module.css";
+import formStyles from "../_components/form.module.css";
+import { PersonFace } from "../_components/person-face";
+import uiStyles from "../_components/ui.module.css";
+import styles from "./posts.module.css";
+
+const smallPrimary = `${uiStyles.button} ${uiStyles.sm} ${uiStyles.primary}`;
+const smallSecondary = `${uiStyles.button} ${uiStyles.sm}`;
+const smallDanger = `${smallSecondary} ${uiStyles.danger}`;
 
 // Mounted only while editing, so closing it drops the draft and any error.
 const CommentEditForm = ({
@@ -39,20 +45,32 @@ const CommentEditForm = ({
   };
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
+    <form
+      className={`${formStyles.form} ${styles.commentEdit}`}
+      onSubmit={handleSubmit}
+    >
       <label>
         댓글 수정
-        <textarea
-          required
-          maxLength={300}
-          value={content}
-          disabled={update.isPending}
-          onChange={(event) => setContent(event.target.value)}
-        />
+        <span className={formStyles.control}>
+          <textarea
+            required
+            maxLength={300}
+            value={content}
+            disabled={update.isPending}
+            onChange={(event) => setContent(event.target.value)}
+          />
+        </span>
       </label>
-      <div className={styles.actions}>
-        <button disabled={update.isPending}>저장</button>
-        <button type="button" disabled={update.isPending} onClick={onDone}>
+      <div className={styles.commentActions}>
+        <button className={smallPrimary} disabled={update.isPending}>
+          저장
+        </button>
+        <button
+          type="button"
+          className={smallSecondary}
+          disabled={update.isPending}
+          onClick={onDone}
+        >
           취소
         </button>
       </div>
@@ -69,19 +87,23 @@ const CommentItem = ({ comment }: { comment: Comment }) => {
   const [editing, setEditing] = useState(false);
 
   return (
-    <article className={styles.card}>
-      <p>{comment.author.nickname}</p>
-      <time dateTime={comment.createdAt}>
-        {new Date(comment.createdAt).toLocaleString("ko-KR")}
+    <article className={styles.comment}>
+      <p className={styles.author}>
+        <PersonFace userId={comment.author.id} size={32} />
+        {comment.author.nickname}
+      </p>
+      <time className={uiStyles.meta} dateTime={comment.createdAt}>
+        {new Date(comment.createdAt).toLocaleDateString("ko-KR")}
       </time>
       {editing ? (
         <CommentEditForm comment={comment} onDone={() => setEditing(false)} />
       ) : (
         <>
-          <p className={postStyles.content}>{comment.content}</p>
+          <p className={styles.content}>{comment.content}</p>
           {userId === comment.author.id && (
-            <div className={styles.actions}>
+            <div className={styles.commentActions}>
               <button
+                className={smallPrimary}
                 disabled={remove.isPending}
                 onClick={() => {
                   remove.reset();
@@ -91,6 +113,7 @@ const CommentItem = ({ comment }: { comment: Comment }) => {
                 수정
               </button>
               <button
+                className={smallDanger}
                 disabled={remove.isPending}
                 onClick={() => {
                   if (window.confirm("댓글을 삭제할까요?"))
@@ -126,17 +149,27 @@ export const Comments = ({ postId }: { postId: number }) => {
   };
 
   return (
-    <section aria-label="댓글" className={styles.cards}>
-      <h2>댓글</h2>
-      {query.error && <p role="alert">{query.error.message}</p>}
-      {query.isPending && <p role="status">댓글을 불러오고 있어요.</p>}
-      {query.data?.map((comment) => (
-        <CommentItem key={comment.id} comment={comment} />
-      ))}
-      <form className={styles.form} onSubmit={handleSubmit}>
-        <label>
-          댓글 내용
+    <section aria-label="댓글" className={styles.comments}>
+      <h2>
+        댓글 {query.data && <span>{query.data.length}</span>}
+      </h2>
+      <div className={styles.commentList}>
+        {query.error && <p role="alert">{query.error.message}</p>}
+        {query.isPending && <p role="status">댓글을 불러오고 있어요.</p>}
+        {query.data?.map((comment) => (
+          <CommentItem key={comment.id} comment={comment} />
+        ))}
+      </div>
+      <form className={styles.commentForm} onSubmit={handleSubmit}>
+        <label className={`${formStyles.control} ${formStyles.counted}`}>
+          <span className={formStyles.visuallyHidden}>댓글 내용</span>
+          <span
+            className={formStyles.count}
+            aria-hidden="true"
+            data-count={`${content.length} / 300`}
+          />
           <textarea
+            placeholder="댓글을 입력해주세요. (최대 300자)"
             required
             maxLength={300}
             value={content}
@@ -144,7 +177,9 @@ export const Comments = ({ postId }: { postId: number }) => {
             onChange={(event) => setContent(event.target.value)}
           />
         </label>
-        <button disabled={add.isPending}>댓글 달기</button>
+        <button className={formStyles.submit} disabled={add.isPending}>
+          댓글 달기
+        </button>
         {(error || add.error) && (
           <p role="alert">{error || add.error?.message}</p>
         )}

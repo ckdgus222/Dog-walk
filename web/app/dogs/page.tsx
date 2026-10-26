@@ -2,19 +2,49 @@
 
 import Link from "next/link";
 import { AuthGate } from "../_components/auth-gate";
+import { dangerButton, secondaryButton } from "../_components/buttons";
 import { DogCard } from "../_components/dog-card";
+import headingStyles from "../_components/heading.module.css";
+import { InfoIcon, PlusIcon } from "../_components/icons";
+import layoutStyles from "../_components/layout.module.css";
+import uiStyles from "../_components/ui.module.css";
+import { SceneImage } from "../_components/walk-scene";
 import { useDeleteDog, useMyDogs } from "../../lib/api/dogs";
 import type { Dog } from "../../lib/types";
-import styles from "../_components/shared.module.css";
+import livingRoomMobile from "../../public/illustrations/walking-drawing/living-room-mobile.png";
+import livingRoom from "../../public/illustrations/walking-drawing/living-room.png";
+import styles from "./dogs.module.css";
 
 const DogsPage = () => {
   return (
-    <main className={styles.main}>
-      <h1>내 반려견</h1>
+    <main
+      className={`${layoutStyles.main} ${layoutStyles.fit} ${styles.listPage}`}
+    >
+      <div className={layoutStyles.head}>
+        <div>
+          <h1 className={headingStyles.title}>내 반려견</h1>
+          <p className={headingStyles.lead}>
+            함께 산책하는 소중한 가족을 소개해 주세요.
+          </p>
+        </div>
+        <Link href="/dogs/new" className={layoutStyles.headAction}>
+          <PlusIcon />
+          반려견 추가
+        </Link>
+      </div>
       <AuthGate>
         <DogList />
       </AuthGate>
-      <Link href="/">홈으로</Link>
+      <SceneImage
+        className={styles.livingRoom}
+        wide={livingRoom}
+        narrow={livingRoomMobile}
+        narrowMedia="(max-width: 720px)"
+        // As wide as the panel's content, a little narrower than the window.
+        wideSizes="90vw"
+        loading="lazy"
+        fill
+      />
     </main>
   );
 };
@@ -32,18 +62,28 @@ const DogList = () => {
 
   return (
     <>
-      <Link href="/dogs/new">반려견 추가</Link>
-      {error && <p role="alert">{error}</p>}
       {query.isPending && !error && (
         <p role="status">반려견을 불러오고 있어요.</p>
       )}
-      <div className={styles.cards}>
-        {query.data?.map((dog) => (
-          <DogCard key={dog.id} dog={dog} heading="h2">
+      <div className={styles.list}>
+        {query.data?.map((dog, index) => (
+          <DogCard
+            key={dog.id}
+            dog={dog}
+            heading="h2"
+            className={styles.card}
+            order={index}
+          >
             <div className={styles.actions}>
-              <Link href={`/dogs/${dog.id}/edit`}>수정</Link>
+              <Link
+                href={`/dogs/${dog.id}/edit`}
+                className={secondaryButton}
+              >
+                수정
+              </Link>
               <button
                 type="button"
+                className={dangerButton}
                 disabled={remove.isPending}
                 onClick={() => removeDog(dog)}
               >
@@ -55,6 +95,18 @@ const DogList = () => {
           </DogCard>
         ))}
       </div>
+      {/* The bar always explains the one-dog rule, and shows the error in
+          its place when something fails. */}
+      {(error || query.isSuccess) && (
+        <p
+          key={error ? "error" : "hint"}
+          role={error ? "alert" : undefined}
+          className={uiStyles.notice}
+        >
+          <InfoIcon size={24} />
+          {error || "반려견은 최소 한 마리 있어야 해요."}
+        </p>
+      )}
     </>
   );
 };

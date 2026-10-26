@@ -1,0 +1,197 @@
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  margin-top: var(--space-5);
+  font-size: var(--text-lg);
+}
+
+.links a {
+  padding: 0 var(--space-5);
+  color: var(--accent);
+}
+
+.links a + a {
+  border-left: 1px solid var(--line);
+}
+
+.loginForm {
+  gap: var(--space-4);
+  width: min(100%, 440px);
+  margin-top: var(--space-7);
+}
+
+.loginForm button {
+  margin-top: var(--space-2);
+}
+
+/* In the modal card the form fills the card under a smaller title. */
+.modalForm.modalForm {
+  width: 100%;
+  margin-top: var(--space-5);
+}
+
+/* "처음이세요? 회원가입" under the guest home's login card. */
+.cardLinks {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  color: var(--muted);
+  font-size: var(--text-md);
+}
+
+.cardLinks a {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.loginForm + .links {
+  width: min(100%, 440px);
+  margin-top: var(--space-6);
+}
+
+.intro > p:first-child {
+  font-size: var(--text-lg);
+}
+
+.signupForm {
+  gap: var(--space-4);
+}
+
+/* The button and an error under it share one place in the page grid. */
+.signupSubmit {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.signupLinks {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
+  font-size: var(--text-md);
+}
+
+.signupLinks a {
+  text-decoration: underline;
+}
+
+.signupLinks a + a {
+  border-color: var(--accent);
+}
+
+.signupLinks a:first-of-type {
+  margin-left: var(--space-3);
+}
+
+/* Login page: the form on the left, the drawing in the space on the right,
+   standing on the panel's bottom edge. */
+.loginPage {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  column-gap: var(--space-6);
+}
+
+.pageScene {
+  align-self: end;
+  min-width: 0;
+  margin-bottom: calc(-1 * var(--panel-pad-bottom));
+}
+
+/* Signup page from 721px: the account card and the button under the
+   title, the dog card beside them, then the drawing. The form and its
+   wrapper give their parts to this grid with display: contents. Phones and
+   the signup modal keep the form's own stacked layout. */
+@media (min-width: 721px) {
+  .signupPage {
+    column-gap: var(--space-5);
+    row-gap: var(--space-3);
+  }
+
+  .signupPage .signupBody,
+  .signupPage .signupForm {
+    display: contents;
+  }
+
+  .signupPage .intro {
+    grid-area: intro;
+  }
+
+  .signupPage .account {
+    grid-area: account;
+  }
+
+  .signupPage .dog {
+    grid-area: dog;
+    align-self: start;
+  }
+
+  .signupPage .signupSubmit {
+    grid-area: submit;
+  }
+
+  .signupPage .signupLinks {
+    grid-area: links;
+    align-self: start;
+    margin-top: 0;
+  }
+
+  .signupPage > .pageScene {
+    grid-area: art;
+  }
+}
+
+/* Two cards side by side with the drawing under them... */
+@media (min-width: 721px) and (max-width: 1279px) {
+  .signupPage {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      "intro dog"
+      "account dog"
+      "submit dog"
+      "links dog"
+      "art art";
+    grid-template-rows: auto auto auto 1fr auto;
+  }
+}
+
+/* ...and from 1280px the drawing in a third column. */
+@media (min-width: 1280px) {
+  .signupPage {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 0.8fr);
+    grid-template-areas:
+      "intro dog art"
+      "account dog art"
+      "submit dog art"
+      "links dog art";
+    grid-template-rows: auto auto auto 1fr;
+  }
+}
+
+/* From 1280x800 up the login form sits in the middle of the height. */
+@media (min-width: 1280px) and (min-height: 800px) {
+  .loginPage {
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .loginPage > div {
+    align-self: center;
+  }
+}
+
+@media (max-width: 1024px) {
+  .loginPage {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .loginForm {
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+  }
+
+  .loginForm + .links {
+    margin-top: var(--space-5);
+  }
+}

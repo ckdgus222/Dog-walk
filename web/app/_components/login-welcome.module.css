@@ -1,0 +1,40 @@
+/* Always in the page, so screen readers hear the line when it appears. It
+   floats under the header line, in the middle. */
+.welcome {
+  position: fixed;
+  top: 84px;
+  left: 50%;
+  z-index: 25;
+  translate: -50% 0;
+  pointer-events: none;
+}
+
+.welcome p {
+  /* A long nickname wraps instead of leaving a phone's screen. */
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: var(--space-4) var(--space-6);
+  border: 2px solid var(--accent);
+  border-radius: var(--radius-full);
+  background: var(--accent-soft);
+  box-shadow: var(--shadow-card);
+  color: var(--ink);
+  font-family: var(--font-display), var(--font-sans), sans-serif;
+  font-size: var(--text-xl);
+  text-align: center;
+  overflow-wrap: anywhere;
+  animation: welcome-in 0.3s ease-out;
+}
+
+@keyframes welcome-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .welcome p {
+    animation: none;
+  }
+}

@@ -9,24 +9,25 @@ interface LoginRecord {
   lockedUntil: number;
 }
 
+// Login uses IP keys; password changes use user:<id> keys.
 @Injectable()
 export class LoginLimiter {
   // This single API instance keeps records in memory. An owner-initiated
   // container restart clears them; sharing records across instances is not needed.
   private readonly records = new Map<string, LoginRecord>();
 
-  begin(ip: string): boolean {
+  begin(key: string): boolean {
     const now = Date.now();
     if (this.records.size > 1000) {
-      for (const [address, record] of this.records) {
-        this.removeIfUnused(address, record, now);
+      for (const [recordKey, record] of this.records) {
+        this.removeIfUnused(recordKey, record, now);
       }
     }
 
-    let record = this.records.get(ip);
+    let record = this.records.get(key);
     if (!record) {
       record = { failures: [], pending: 0, lockedUntil: 0 };
-      this.records.set(ip, record);
+      this.records.set(key, record);
     }
     if (record.lockedUntil > now) return false;
 
@@ -37,16 +38,16 @@ export class LoginLimiter {
     return true;
   }
 
-  release(ip: string): void {
-    const record = this.records.get(ip);
+  release(key: string): void {
+    const record = this.records.get(key);
     if (!record || record.pending === 0) return;
 
     record.pending -= 1;
-    this.removeIfUnused(ip, record, Date.now());
+    this.removeIfUnused(key, record, Date.now());
   }
 
-  failed(ip: string): void {
-    const record = this.records.get(ip);
+  failed(key: string): void {
+    const record = this.records.get(key);
     if (!record || record.pending === 0) return;
 
     const now = Date.now();
@@ -57,17 +58,17 @@ export class LoginLimiter {
       record.lockedUntil = now + WINDOW_MS;
       record.failures = [];
     }
-    this.removeIfUnused(ip, record, now);
+    this.removeIfUnused(key, record, now);
   }
 
   clear(): void {
     this.records.clear();
   }
 
-  private removeIfUnused(ip: string, record: LoginRecord, now: number): void {
+  private removeIfUnused(key: string, record: LoginRecord, now: number): void {
     if (record.pending > 0 || record.lockedUntil > now) return;
     if (record.failures.some((time) => time > now - WINDOW_MS)) return;
 
-    this.records.delete(ip);
+    this.records.delete(key);
   }
 }

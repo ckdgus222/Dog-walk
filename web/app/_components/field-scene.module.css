@@ -1,0 +1,302 @@
+/* Layer positions shared by the intro and the background of every page. */
+.scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(#cfe5e3 0%, #e4eedf 45%, var(--paper) 75%);
+}
+
+.ground {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: max(100vw, 180vh);
+  transform: translateX(-50%);
+}
+
+.ground > div {
+  position: absolute;
+  inset: 0;
+}
+
+/* The field's top edge sits lower than the hills' foot, so the hills show
+   above it. It runs past the bottom of the window, which is clipped. */
+.ground > .field {
+  inset: 24% 0 -24%;
+}
+
+.grass img {
+  transform-origin: bottom;
+}
+
+/* Keep in step with the cloud sizes in field-scene.tsx. */
+.cloud {
+  position: absolute;
+  left: 0;
+  width: clamp(150px, 20vw, 320px);
+}
+
+.cloud img {
+  display: block;
+  width: 100%;
+  height: auto;
+  animation: drift var(--drift) linear var(--drift-delay) infinite;
+}
+
+.cloud1 {
+  top: 6vh;
+  --drift: 60s;
+  --drift-delay: -22s;
+}
+
+.cloud2 {
+  top: 17vh;
+  width: clamp(120px, 15vw, 240px);
+  --drift: 80s;
+  --drift-delay: -58s;
+}
+
+.cloud3 {
+  top: 28vh;
+  width: clamp(110px, 13vw, 210px);
+  --drift: 70s;
+  --drift-delay: -8s;
+}
+
+/* Keep in step with the dog sizes in field-scene.tsx. */
+.dog {
+  position: absolute;
+  left: 0;
+  bottom: 9vh;
+  width: clamp(130px, 15vw, 220px);
+  transform: translateX(-120%);
+}
+
+.dog.bami {
+  bottom: 12vh;
+  width: clamp(120px, 13.5vw, 200px);
+}
+
+.body {
+  position: absolute;
+  inset: 0;
+  animation: bounce 0.3s ease-in-out infinite;
+}
+
+/* The poses take turns, stretched (the first) at the top of each bounce and
+   tucked (the second) as it lands. Only one shows at a time: the stretched
+   legs would poke out behind the tucked pose as extra legs. */
+.body img {
+  animation: frame 0.3s steps(1) infinite;
+}
+
+.body img + img {
+  animation-delay: -0.15s;
+}
+
+/* Intro: each layer rises a little and fades in at its own time, and the
+   dogs run across once. The intro holds every animation until it plays. */
+.intro .layer {
+  opacity: 0;
+  animation: reveal 0.9s ease-out var(--reveal-delay) forwards;
+}
+
+.intro .sky {
+  --reveal-delay: 0s;
+}
+
+.intro .hills {
+  --reveal-delay: 0.4s;
+}
+
+.intro .field {
+  --reveal-delay: 0.8s;
+}
+
+.intro .cloud1 {
+  --reveal-delay: 1.2s;
+}
+
+.intro .cloud2 {
+  --reveal-delay: 1.3s;
+}
+
+.intro .cloud3 {
+  --reveal-delay: 1.4s;
+}
+
+.intro .grass {
+  --reveal-delay: 1.6s;
+}
+
+.intro .dog {
+  animation: run 2.8s linear var(--run-delay) forwards;
+}
+
+.intro .dubu {
+  --run-delay: 2.4s;
+}
+
+.intro .bami {
+  --run-delay: 2.7s;
+}
+
+/* The background sits behind the whole window, header included, and keeps
+   still while the page scrolls. */
+.home {
+  position: fixed;
+  z-index: -1;
+}
+
+/* The header sits over the top of the scene, so the clouds start below it. */
+.home .cloud {
+  margin-top: 64px;
+}
+
+@media (max-width: 1024px) {
+  .home .cloud {
+    margin-top: 96px;
+  }
+}
+
+/* Home: the clouds, grass and dogs wait for the intro to finish, so nothing
+   moves twice while the intro fades over the home. The dogs run past every
+   14 seconds. */
+.home .cloud,
+.home .dog {
+  opacity: 0;
+}
+
+/* The dogs run on the home only; see useFieldSceneDogs. */
+:global(body:not([data-home-scene])) .home .dog {
+  display: none;
+}
+
+.home .cloud img,
+.home .grass img,
+.home .dog,
+.home .body,
+.home .body img {
+  animation-play-state: paused;
+}
+
+:global(html[data-intro="done"]) .home .cloud,
+:global(html[data-intro="done"]) .home .dog {
+  opacity: 1;
+  transition: opacity 0.6s ease-out;
+}
+
+:global(html[data-intro="done"]) .home .cloud img,
+:global(html[data-intro="done"]) .home .grass img,
+:global(html[data-intro="done"]) .home .dog,
+:global(html[data-intro="done"]) .home .body,
+:global(html[data-intro="done"]) .home .body img {
+  animation-play-state: running;
+}
+
+.home .grass img {
+  animation: sway 3s ease-in-out infinite alternate;
+}
+
+.home .dog {
+  animation: run-past 14s linear 2s infinite;
+}
+
+.home .bami {
+  animation-delay: 2.3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home * {
+    animation: none !important;
+  }
+
+  .home .cloud {
+    opacity: 1;
+  }
+
+  .home .dog {
+    display: none;
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes drift {
+  from {
+    transform: translateX(-40vw);
+  }
+
+  to {
+    transform: translateX(120vw);
+  }
+}
+
+@keyframes sway {
+  from {
+    transform: skewX(-1.5deg);
+  }
+
+  to {
+    transform: skewX(1.5deg);
+  }
+}
+
+@keyframes run {
+  from {
+    transform: translateX(-120%);
+  }
+
+  to {
+    transform: translateX(110vw);
+  }
+}
+
+/* The run takes the first fifth (2.8 seconds) of each 14-second loop. */
+@keyframes run-past {
+  0% {
+    transform: translateX(-120%);
+  }
+
+  20%,
+  100% {
+    transform: translateX(110vw);
+  }
+}
+
+@keyframes bounce {
+  50% {
+    transform: translateY(-6%);
+  }
+}
+
+/* Shown for the middle half of each bounce; steps(1) holds each value until
+   the next keyframe. */
+@keyframes frame {
+  0% {
+    opacity: 0;
+  }
+
+  25% {
+    opacity: 1;
+  }
+
+  75% {
+    opacity: 0;
+  }
+}

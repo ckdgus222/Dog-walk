@@ -1,0 +1,151 @@
+"use client";
+
+import Link from "next/link";
+import { useState, type FormEvent } from "react";
+import { signup } from "../../lib/auth";
+import styles from "./auth.module.css";
+import formStyles from "./form.module.css";
+import headingStyles from "./heading.module.css";
+import { DogFields, readDogFields, Required } from "./dog-fields";
+import { useAuthRequest } from "./use-auth-request";
+
+export const SignupForm = ({
+  onSuccess,
+  onPendingChange,
+  modal = false,
+}: {
+  onSuccess: () => void;
+  onPendingChange?: (pending: boolean) => void;
+  modal?: boolean;
+}) => {
+  const [error, setError] = useState("");
+  const [pending, setPending] = useState(false);
+
+  const startRequest = useAuthRequest();
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (pending) return;
+    const request = startRequest();
+    const form = new FormData(event.currentTarget);
+    setError("");
+    setPending(true);
+    onPendingChange?.(true);
+    try {
+      await signup({
+        email: form.get("email"),
+        password: form.get("password"),
+        nickname: form.get("nickname"),
+        dog: readDogFields(form),
+      });
+      if (!request.left) onSuccess();
+    } catch (error) {
+      if (request.left) return;
+      setError(error instanceof Error ? error.message : "가입하지 못했습니다.");
+    } finally {
+      setPending(false);
+      onPendingChange?.(false);
+    }
+  };
+
+  // Labels sit beside their fields on the page and above them in the modal.
+  const cardClass = `${formStyles.card} ${modal ? "" : formStyles.besideLabels}`;
+
+  return (
+    <>
+      <div className={styles.intro}>
+        <p className={headingStyles.eyebrow}>함께 걷는, 더 특별한 하루</p>
+        <h1 className={headingStyles.title}>회원가입</h1>
+        <p
+          className={`${headingStyles.lead} ${modal ? headingStyles.modalLead : ""}`}
+        >
+          근처의 반려인과 산책하고,
+          <br />
+          소중한 일상을 함께 나눠보세요.
+        </p>
+      </div>
+      {/* On the page its parts join the page grid (auth.module.css
+          .signupPage); in the modal they stack. */}
+      <div className={styles.signupBody}>
+        <form
+          className={`${formStyles.form} ${styles.signupForm} ${modal ? styles.modalForm : ""}`}
+          onSubmit={handleSubmit}
+        >
+          <fieldset
+            className={`${cardClass} ${styles.account}`}
+            disabled={pending}
+          >
+            <legend>계정 정보</legend>
+            <label>
+              <span>
+                이메일
+                <Required />
+              </span>
+              <span className={formStyles.control}>
+                <input
+                  name="email"
+                  type="email"
+                  maxLength={254}
+                  autoComplete="username"
+                  placeholder="이메일을 입력해주세요"
+                  required
+                />
+              </span>
+            </label>
+            <label>
+              <span>
+                비밀번호
+                <span className={formStyles.visuallyHidden}> (8~20자)</span>
+                <Required />
+              </span>
+              <span className={formStyles.control}>
+                <input
+                  name="password"
+                  type="password"
+                  autoComplete="new-password"
+                  placeholder="8~20자의 비밀번호를 입력해주세요"
+                  required
+                />
+              </span>
+            </label>
+            <label>
+              <span>
+                닉네임
+                <Required />
+              </span>
+              <span className={formStyles.control}>
+                <input
+                  name="nickname"
+                  placeholder="2~20자의 닉네임을 입력해주세요"
+                  required
+                />
+              </span>
+            </label>
+          </fieldset>
+          <fieldset
+            className={`${cardClass} ${formStyles.signupFields} ${styles.dog}`}
+            disabled={pending}
+          >
+            <legend>반려견 정보</legend>
+            <DogFields variant="signup" />
+          </fieldset>
+          {/* One cell on the page grid, so an error never needs a row of
+              its own. */}
+          <div className={styles.signupSubmit}>
+            <button className={formStyles.submit} disabled={pending}>
+              {pending ? "가입 중…" : "가입하기"}
+            </button>
+            {error && <p role="alert">{error}</p>}
+          </div>
+        </form>
+        <p className={`${styles.links} ${styles.signupLinks}`}>
+          이미 계정이 있으신가요?
+          <Link href="/login" replace={modal}>
+            로그인
+          </Link>
+          <Link href="/">홈으로</Link>
+        </p>
+      </div>
+    </>
+  );
+};

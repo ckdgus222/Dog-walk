@@ -118,7 +118,7 @@ test("산책 요청 실시간 알림·재접속 동기화·로그아웃 정리",
         .click();
       await b
         .getByRole("navigation", { name: "주 메뉴" })
-        .getByRole("link", { name: "지도", exact: true })
+        .getByRole("link", { name: "주변 친구", exact: true })
         .click();
       await expect(a).toHaveURL("/walk-requests");
       await expect(b).toHaveURL("/map");
@@ -167,8 +167,12 @@ test("산책 요청 실시간 알림·재접속 동기화·로그아웃 정리",
           includeHidden: true,
         });
       await expect(
-        received.getByText("대기 중", { exact: true }),
-      ).toBeVisible();
+        received.getByRole("button", {
+          name: "수락",
+          exact: true,
+          includeHidden: true,
+        }),
+      ).toHaveCount(1);
     });
 
     await test.step("A가 수락하면 양쪽 화면이 새로고침 없이 바뀐다", async () => {
@@ -213,7 +217,7 @@ test("산책 요청 실시간 알림·재접속 동기화·로그아웃 정리",
         .getByRole("region", { name: "보낸 요청", exact: true })
         .getByRole("article")
         .filter({ hasText: "재접속 확인" });
-      await expect(sent.getByText("대기 중", { exact: true })).toBeVisible();
+      await expect(sent.getByText("요청 중", { exact: true })).toBeVisible();
       const previousConnections = connectionsB;
       await contextB.setOffline(true);
       for (const socket of socketsB) await socket.close();
@@ -225,7 +229,7 @@ test("산책 요청 실시간 알림·재접속 동기화·로그아웃 정리",
           })
         ).status(),
       ).toBe(200);
-      await expect(sent.getByText("대기 중", { exact: true })).toBeVisible();
+      await expect(sent.getByText("요청 중", { exact: true })).toBeVisible();
       await contextB.setOffline(false);
       await expect
         .poll(() => connectionsB)
@@ -238,8 +242,8 @@ test("산책 요청 실시간 알림·재접속 동기화·로그아웃 정리",
 
     await test.step("모달이 열린 상태의 로그아웃은 알림을 모두 비우고, 재로그인하면 대기 수를 읽는다", async () => {
       await a
-        .getByRole("navigation", { name: "주 메뉴" })
-        .getByRole("link", { name: "홈", exact: true })
+        .getByRole("banner")
+        .getByRole("link", { name: "강아지 산책", exact: true })
         .click();
       const headersB = { Authorization: authorizations[1] };
       // Leave a notice as well as a pending modal to check that both are removed.
@@ -274,7 +278,7 @@ test("산책 요청 실시간 알림·재접속 동기화·로그아웃 정리",
       // it is open (for example, refresh fails after a login elsewhere). Invoke
       // the logout button's handler to end the session with the modal still up.
       await a
-        .getByRole("main", { includeHidden: true })
+        .getByRole("banner", { includeHidden: true })
         .getByRole("button", {
           name: "로그아웃",
           exact: true,
@@ -283,9 +287,14 @@ test("산책 요청 실시간 알림·재접속 동기화·로그아웃 정리",
         .dispatchEvent("click");
       await expect(modal).toHaveCount(0);
       await expect(badge).toHaveCount(0);
-      await expect(a.getByRole("banner")).toHaveCount(0);
       await expect(
-        a.getByRole("main").getByRole("link", { name: "로그인", exact: true }),
+        a.getByRole("banner").getByRole("button", { name: "로그아웃" }),
+      ).toHaveCount(0);
+      await expect(
+        a.getByRole("banner").getByRole("link", { name: "로그인", exact: true }),
+      ).toBeVisible();
+      await expect(
+        a.getByRole("main").getByRole("button", { name: "로그인", exact: true }),
       ).toBeVisible();
       const offline = await request.post("/api/walk-requests", {
         headers: headersB,

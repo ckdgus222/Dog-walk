@@ -1,0 +1,26 @@
+.eyebrow {
+  margin-bottom: var(--space-3);
+  font-size: var(--text-md);
+}
+
+/* One title size on every page, so the title stays put when moving
+   between pages of the same panel size. */
+.title {
+  color: var(--ink);
+  font-size: var(--text-3xl);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.lead {
+  margin-top: var(--space-2);
+  font-size: var(--text-lg);
+  line-height: 1.6;
+}
+
+/* Login and signup inside the modal card. */
+.lead.modalLead {
+  font-size: var(--text-md);
+}
+

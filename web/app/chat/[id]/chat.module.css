@@ -1,37 +1,279 @@
-.messages {
-  height: min(50vh, 480px);
-  overflow-y: auto;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 12px;
-  border: 1px solid #888;
-  border-radius: 8px;
+/* The counterpart's dog on the left, the title and the dog's details beside
+   it, and a short note at the right. */
+.head {
+  display: grid;
+  grid-template-areas:
+    "face title note"
+    "face line note"
+    "face personality note";
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: var(--space-5);
+  row-gap: var(--space-1);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--line);
 }
 
+.faces {
+  composes: facePair from "../../_components/ui.module.css";
+  --face-ring: var(--paper);
+  grid-area: face;
+}
+
+.head h1 {
+  grid-area: title;
+  align-self: end;
+  color: var(--ink);
+  font-size: var(--text-3xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+.dogLine {
+  grid-area: line;
+  font-size: var(--text-lg);
+  word-spacing: 6px;
+}
+
+.personality {
+  grid-area: personality;
+  align-self: start;
+  font-size: var(--text-lg);
+}
+
+.note {
+  grid-area: note;
+  color: var(--muted);
+  font-size: var(--text-md);
+  line-height: 1.7;
+  text-align: right;
+}
+
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  height: min(55vh, 470px);
+  padding: var(--space-2) var(--space-3);
+  overflow-y: auto;
+  list-style: none;
+}
+
+/* Name above the bubble, time beside its lower end. */
 .mine,
 .theirs {
-  max-width: 85%;
-  padding: 12px;
-  border: 1px solid #888;
-  border-radius: 8px;
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: end;
+  column-gap: var(--space-3);
+  row-gap: var(--space-1);
+  max-width: min(78%, 640px);
   overflow-wrap: anywhere;
+}
+
+/* The other person's face sits left of their name and bubble. */
+.theirs {
+  align-self: flex-start;
+}
+
+.theirs > img {
+  grid-row: 1 / span 2;
+  grid-column: 1;
+  align-self: start;
 }
 
 .mine {
   align-self: flex-end;
 }
 
-.theirs {
-  align-self: flex-start;
+.messages strong {
+  grid-row: 1;
+  color: var(--ink);
+  font-size: var(--text-lg);
+}
+
+.messages strong,
+.messages p {
+  grid-column: 2;
+}
+
+.mine strong {
+  justify-self: end;
 }
 
 .messages p {
-  margin: 8px 0;
+  position: relative;
+  grid-row: 2;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-lg);
+  line-height: 1.6;
   white-space: pre-wrap;
 }
 
+/* A small tail pointing at the speaker. */
+.messages p::before {
+  content: "";
+  position: absolute;
+  top: 18px;
+  width: 12px;
+  height: 12px;
+  rotate: 45deg;
+}
+
+.theirs p {
+  background: white;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+}
+
+.theirs p::before {
+  left: -6px;
+  background: white;
+}
+
+.mine p {
+  background: var(--accent);
+  color: white;
+}
+
+.mine p::before {
+  right: -6px;
+  background: var(--accent);
+}
+
 .messages time {
-  font-size: 0.8rem;
+  grid-row: 2;
+  color: var(--muted);
+  font-size: var(--text-md);
+  white-space: nowrap;
+}
+
+.theirs time {
+  grid-column: 3;
+}
+
+.mine time {
+  grid-column: 1;
+}
+
+/* The message box and the send button share one field outline. Rough is
+   listed too, because composes reaches only two classes deep. */
+.composer {
+  composes: rough from "../../_components/ui.module.css";
+  composes: control from "../../_components/form.module.css";
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-5);
+}
+
+/* The input sits in a label, so .control's bare-input rule misses it. */
+.composer input {
+  width: 100%;
+  min-width: 0;
+  height: var(--field-height);
+  border: 0;
+  outline: none;
+  background: none;
+  color: var(--text);
+  font: inherit;
+}
+
+.send {
+  composes: button primary from "../../_components/ui.module.css";
+  width: 120px;
+}
+
+.composer > p {
+  grid-column: 1 / -1;
+}
+
+/* From 1280x800 up the messages take the height between the head and the
+   message box; they always scroll inside their own list, so a new message
+   can scroll it to the bottom. */
+@media (min-width: 1280px) and (min-height: 800px) {
+  .page {
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+  }
+
+  .messages {
+    height: auto;
+  }
+}
+
+@media (max-width: 720px) {
+  .theirs > img {
+    width: 32px;
+    height: 32px;
+  }
+
+  .head {
+    grid-template-areas:
+      "face title"
+      "face line"
+      "face personality"
+      "note note";
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: var(--space-4);
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+
+  .head h1 {
+    font-size: var(--text-xl);
+  }
+
+  .dogLine {
+    font-size: var(--text-sm);
+    word-spacing: 2px;
+  }
+
+  .personality {
+    font-size: var(--text-sm);
+  }
+
+  .note {
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--line);
+    font-size: var(--text-sm);
+    text-align: center;
+  }
+
+  .wideBreak {
+    display: none;
+  }
+
+  .messages {
+    gap: var(--space-3);
+    padding: var(--space-1);
+  }
+
+  .mine,
+  .theirs {
+    max-width: 92%;
+  }
+
+  .messages strong {
+    font-size: var(--text-md);
+  }
+
+  .messages p {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--text-md);
+  }
+
+  .messages time {
+    font-size: var(--text-sm);
+  }
+
+  .composer {
+    padding-left: var(--space-4);
+  }
+
+  .send {
+    width: 84px;
+  }
 }

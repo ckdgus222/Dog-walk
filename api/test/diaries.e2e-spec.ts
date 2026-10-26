@@ -18,7 +18,11 @@ const dog = {
   birthYear: 2020,
   personality: '산책을 좋아해요',
 };
-const diary = { walkedOn: '2020-10-20', content: '함께 걸었어요.' };
+const diary = {
+  title: '공원 산책',
+  walkedOn: '2020-10-20',
+  content: '함께 걸었어요.',
+};
 const privateDirectory = process.env.PRIVATE_UPLOAD_DIR!;
 const publicDirectory = process.env.PUBLIC_UPLOAD_DIR!;
 const photoDirectory = join(privateDirectory, 'diaries');
@@ -154,12 +158,14 @@ describe('Diaries (e2e)', () => {
 
   it('creates without photos and returns only the defined response fields', async () => {
     const owner = await signup();
-    const response = await create(owner, { content: ' 산책했어요. ' }).expect(
-      201,
-    );
+    const response = await create(owner, {
+      title: ' 공원 산책 ',
+      content: ' 산책했어요. ',
+    }).expect(201);
     expect(response.body).toEqual({
       id: expect.any(Number),
       dog: { id: owner.dogId, name: dog.name },
+      title: diary.title,
       walkedOn: diary.walkedOn,
       content: '산책했어요.',
       createdAt: expect.any(String),
@@ -209,6 +215,10 @@ describe('Diaries (e2e)', () => {
   });
 
   it.each([
+    { title: undefined },
+    { title: '' },
+    { title: '   ' },
+    { title: '가'.repeat(51) },
     { content: '' },
     { content: '   ' },
     { content: 'a'.repeat(2001) },
@@ -313,29 +323,94 @@ describe('Diaries (e2e)', () => {
       .get('/api/diaries')
       .set('Authorization', owner.authorization)
       .expect(200);
-    expect(list.body.map((entry: { id: number }) => entry.id)).toEqual([
-      latest.body.id,
-      newer.body.id,
-      older.body.id,
-    ]);
+    expect(list.body).toEqual({
+      diaries: [latest.body, newer.body, older.body],
+      page: 1,
+      totalPages: 1,
+    });
     const filtered = await request(app.getHttpServer())
       .get(`/api/diaries?dogId=${owner.dogId}`)
       .set('Authorization', owner.authorization)
       .expect(200);
-    expect(filtered.body.map((entry: { id: number }) => entry.id)).toEqual([
-      latest.body.id,
-      older.body.id,
-    ]);
+    expect(filtered.body).toEqual({
+      diaries: [latest.body, older.body],
+      page: 1,
+      totalPages: 1,
+    });
     const foreign = await request(app.getHttpServer())
       .get(`/api/diaries?dogId=${other.dogId}`)
       .set('Authorization', owner.authorization)
       .expect(200);
-    expect(foreign.body).toEqual([]);
+    expect(foreign.body).toEqual({ diaries: [], page: 1, totalPages: 1 });
     for (const filter of ['abc', '0', '-1', '1.5']) {
       await request(app.getHttpServer())
         .get(`/api/diaries?dogId=${filter}`)
         .set('Authorization', owner.authorization)
         .expect(400);
+    }
+  });
+
+  it('paginates seven diaries with stable date and id order, including empty and huge pages', async () => {
+    const owner = await signup();
+    const other = await signup('other');
+    const secondDog = await prisma.dog.create({
+      data: { ...dog, size: 'SMALL', gender: 'FEMALE', ownerId: owner.userId },
+    });
+    const diaries = [];
+    for (let index = 0; index < 7; index++) {
+      const created = await create(owner, {
+        title: `산책 ${index + 1}`,
+        walkedOn: '2020-10-21',
+      }).expect(201);
+      diaries.push(created.body);
+    }
+    await create(owner, { dogId: secondDog.id }).expect(201);
+    await create(other).expect(201);
+    for (const [page, expected] of [
+      ['1', diaries.slice(1).reverse()],
+      ['2', diaries.slice(0, 1)],
+      ['3', []],
+      ['1000000000000000000000000000000', []],
+    ] as const) {
+      const response = await request(app.getHttpServer())
+        .get(`/api/diaries?dogId=${owner.dogId}&page=${page}`)
+        .set('Authorization', owner.authorization)
+        .expect(200);
+      expect(response.body).toEqual({
+        diaries: expected,
+        page: Number(page),
+        totalPages: 2,
+      });
+    }
+    for (const page of [
+      '0',
+      '-1',
+      '1.5',
+      'abc',
+      '',
+      '1e2',
+      'Infinity',
+      '1&page=2',
+    ]) {
+      await request(app.getHttpServer())
+        .get(`/api/diaries?page=${page}`)
+        .set('Authorization', owner.authorization)
+        .expect(400);
+    }
+  });
+
+  it('rejects invalid title updates without changing the diary or photos', async () => {
+    const owner = await signup();
+    const created = await create(owner, {}, [jpeg]).expect(201);
+    const beforeFiles = await files();
+    for (const title of [undefined, '', '   ', '가'.repeat(51)]) {
+      await update(owner, created.body.id, { title }, [jpeg]).expect(400);
+      const detail = await request(app.getHttpServer())
+        .get(`/api/diaries/${created.body.id}`)
+        .set('Authorization', owner.authorization)
+        .expect(200);
+      expect(detail.body).toEqual(created.body);
+      expect(await files()).toEqual(beforeFiles);
     }
   });
 
@@ -414,6 +489,7 @@ describe('Diaries (e2e)', () => {
       {
         dogId: secondDog.id,
         walkedOn: '2020-10-19',
+        title: ' 바뀐 산책 제목 ',
         content: ' 새 산책 기록 ',
         removeImageIds: [previous[0].id],
       },
@@ -422,6 +498,7 @@ describe('Diaries (e2e)', () => {
     expect(response.body).toMatchObject({
       dog: { id: secondDog.id, name: '두부' },
       walkedOn: '2020-10-19',
+      title: '바뀐 산책 제목',
       content: '새 산책 기록',
     });
     const current = await prisma.diaryImage.findMany({

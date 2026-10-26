@@ -4,6 +4,10 @@ const nextConfig: NextConfig = {
   output: "standalone",
   cacheComponents: true,
   partialPrefetching: true,
+  experimental: {
+    // Next.js 16.4.2 omits parallel catch-all params when predicting sibling routes.
+    optimisticRouting: false,
+  },
   async rewrites() {
     if (process.env.NODE_ENV !== "development") return [];
 

@@ -133,21 +133,40 @@ test("계정 전환 중 이전 계정의 반려견 캐시를 보여 주지 않�
   await expect(
     main.getByRole("heading", { name: a.dog.name, exact: true }),
   ).toBeVisible();
-  await main.getByRole("link", { name: "홈으로" }).click();
-  await main.getByRole("button", { name: "로그아웃" }).click();
-  await main.getByRole("link", { name: "로그인", exact: true }).click();
-  await login(page, b);
+  await page
+    .getByRole("banner")
+    .getByRole("link", { name: "강아지 산책", exact: true })
+    .click();
+  await expect(page).toHaveURL("/");
+  await page
+    .getByRole("banner")
+    .getByRole("button", { name: "로그아웃" })
+    .click();
+  await expect(
+    main.getByRole("button", { name: "로그인", exact: true }),
+  ).toBeVisible();
+  // The home page loads my dogs right after login, so hold that first request.
   const held = await holdNextResponse(page, "**/api/dogs/me");
-  await main.getByRole("link", { name: "내 반려견", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "로그인", exact: true });
+  await expect(dialog).toHaveCount(0);
+  await main.getByLabel("이메일").fill(b.email);
+  await main.getByLabel("비밀번호").fill(b.password);
+  await main.getByRole("button", { name: "로그인", exact: true }).click();
+  await expect(page).toHaveURL("/");
+  await expect(dialog).toHaveCount(0);
+  await expect(main.getByText(`${b.nickname}님, 안녕하세요`)).toBeVisible();
   await held.captured;
-  await expect(main.getByRole("status")).toHaveText(
+  // The home's other cards load at the same time, so look in the dog card.
+  const dogCard = main.locator("section").filter({
+    has: page.getByRole("heading", { name: "내 반려견", exact: true }),
+  });
+  await expect(dogCard.getByRole("status")).toHaveText(
     "반려견을 불러오고 있어요.",
   );
-  await expect(main.getByRole("article")).toHaveCount(0);
-  await expect(
-    page.getByRole("heading", { name: a.dog.name, exact: true }),
-  ).toHaveCount(0);
+  await expect(page.getByText(a.dog.name)).toHaveCount(0);
   await held.release();
+  await expect(main.getByText(b.dog.name, { exact: true })).toBeVisible();
+  await main.getByRole("link", { name: "내 반려견", exact: true }).click();
   await expect(
     main.getByRole("heading", { name: b.dog.name, exact: true }),
   ).toBeVisible();
@@ -199,7 +218,9 @@ test("수정 폼은 재진입과 목록 삭제 중에도 최신 값을 읽고 �
     await main.getByRole("link", { name: "내 반려견", exact: true }).click();
     await listResponse;
     await expect(
-      firstCard.getByText(`${breed} · 소형 · 암컷`, { exact: true }),
+      firstCard.getByText(`${breed} · 소형 · 암컷 · 중성화 · 2021년생`, {
+        exact: true,
+      }),
     ).toBeVisible();
   }
 
@@ -301,13 +322,17 @@ test("위치 동의를 철회한 뒤 늦은 조회가 공개 상태를 되살리
     await publishLocation(request, account.headers);
     await page.goto("/login");
     await login(page, account);
-    await main.getByRole("link", { name: "지도", exact: true }).click();
+    await main.getByRole("link", { name: "주변 친구 찾기", exact: true }).click();
     await expect(
       main.getByRole("button", { name: "위치 공개 끄기" }),
     ).toBeVisible();
-    await main.getByRole("link", { name: "홈으로" }).click();
+    await page
+      .getByRole("banner")
+      .getByRole("link", { name: "강아지 산책", exact: true })
+      .click();
+    await expect(page).toHaveURL("/");
     const held = await holdNextResponse(page, "**/api/users/me/location");
-    await main.getByRole("link", { name: "지도", exact: true }).click();
+    await main.getByRole("link", { name: "주변 친구 찾기", exact: true }).click();
     const { response } = await held.captured;
     expect(await response.json()).toMatchObject({ consented: true });
     page.once("dialog", (dialog) => dialog.accept());
@@ -344,7 +369,7 @@ for (const moved of [true, false]) {
       await publishLocation(request, neighbor.headers, 37.57);
       await page.goto("/login");
       await login(page, account);
-      await main.getByRole("link", { name: "지도", exact: true }).click();
+      await main.getByRole("link", { name: "주변 친구 찾기", exact: true }).click();
       const neighbors = main.getByRole("region", {
         name: "주변 산책 친구",
         exact: true,
@@ -475,10 +500,10 @@ test("회원가입에서 입력한 반려견 필드를 로그인 후 카드에 �
   await main.getByLabel("닉네임").fill(account.nickname);
   await main.getByLabel("이름", { exact: true }).fill("가입두부");
   await main.getByLabel("견종").fill("진돗개");
-  await main.getByLabel("크기").selectOption("MEDIUM");
-  await main.getByLabel("성별").selectOption("MALE");
+  await main.getByRole("radio", { name: "중형", exact: true }).check();
+  await main.getByRole("radio", { name: "수컷", exact: true }).check();
   await main.getByLabel("중성화했어요").check();
-  await main.getByLabel("태어난 해").fill("2022");
+  await main.getByLabel("태어난 해").selectOption({ label: "2022년" });
   await main.getByLabel("성격 소개").fill("천천히 걷는 걸 좋아해요.");
   await main.getByRole("button", { name: "가입하기", exact: true }).click();
   await expect(page).toHaveURL("/login");
@@ -489,10 +514,9 @@ test("회원가입에서 입력한 반려견 필드를 로그인 후 카드에 �
     card.getByRole("heading", { name: "가입두부", exact: true }),
   ).toBeVisible();
   await expect(
-    card.getByText("진돗개 · 중형 · 수컷", { exact: true }),
-  ).toBeVisible();
-  await expect(
-    card.getByText("중성화했어요 · 2022년생", { exact: true }),
+    card.getByText("진돗개 · 중형 · 수컷 · 중성화 · 2022년생", {
+      exact: true,
+    }),
   ).toBeVisible();
   await expect(
     card.getByText("천천히 걷는 걸 좋아해요.", { exact: true }),

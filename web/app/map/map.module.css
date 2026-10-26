@@ -1,9 +1,67 @@
+/* The page grid puts the location status to the right of the title. The
+   status comes from the location panel, which renders without a wrapper. */
+.page {
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: var(--space-5);
+}
+
+.page > * {
+  grid-column: 1 / -1;
+}
+
+.page > .head {
+  grid-column: 1;
+}
+
+.page > .status {
+  grid-row: 1;
+  grid-column: 2;
+  align-self: start;
+}
+
+.consent {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-4);
+  line-height: 1.7;
+}
+
+/* "위치 공개 중" and its off button, with the last update under them. */
+.status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: end;
+  gap: var(--space-2) var(--space-3);
+}
+
+.status p {
+  flex-basis: 100%;
+  text-align: right;
+}
+
+/* The map, with the neighbor list and the chosen neighbor in a column
+   beside it. */
+.mapRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  align-items: start;
+  gap: var(--space-5);
+}
+
+.mapFrame {
+  position: relative;
+}
+
 .map,
-.mapFallback {
+.mapFallback,
+.mapWaiting {
   width: 100%;
-  height: 360px;
-  border: 1px solid #888;
-  border-radius: 8px;
+  height: 620px;
+  border-radius: var(--radius-md);
+  background: var(--card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
 }
 
 .mapFallback {
@@ -11,22 +69,387 @@
   place-items: center;
 }
 
+/* The map's place before the first location is saved. */
+.mapWaiting {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  color: var(--muted);
+}
+
+.mapWaiting img {
+  width: min(100%, 640px);
+  height: auto;
+}
+
+/* Kakao has no map styling API, so only the tile images are toned.
+   Overlays live in a different layer and keep their colors. */
+.map :global(img[src*="/api/v1/tile/"]) {
+  filter: sepia(0.35) saturate(0.55) brightness(1.04) contrast(0.92);
+}
+
+.mapNote {
+  position: absolute;
+  bottom: var(--space-3);
+  left: var(--space-3);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: rgb(255 253 247 / 0.92);
+  color: var(--text);
+  font-size: var(--text-sm);
+}
+
+.mapNote svg {
+  color: var(--muted);
+}
+
+/* Map overlays, drawn as plain elements inside the Kakao map. The marker box
+   is only the face and its tail, so the overlay anchor at its bottom center is
+   the tail tip. The label sits beside it out of the flow. */
+.marker {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.marker::after {
+  content: "";
+  margin-top: -1px;
+  border-top: 10px solid var(--field);
+  border-right: 7px solid transparent;
+  border-left: 7px solid transparent;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.15));
+}
+
+.markerFace {
+  flex: none;
+  width: 80px;
+  height: 80px;
+  border: 3px solid var(--field);
+  border-radius: 50%;
+  background: var(--sage-soft);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.15);
+  object-fit: cover;
+}
+
+.markerLabel {
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  margin-left: 6px;
+  transform: translateY(-50%);
+  display: grid;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgb(255 253 247 / 0.95);
+  color: var(--text);
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+.markerLabel strong {
+  color: var(--ink);
+  font-size: 18px;
+}
+
+.markerSelected .markerFace {
+  border: 4px solid var(--accent);
+}
+
+.markerSelected::after {
+  border-top-color: var(--accent);
+}
+
+.markerSelected .markerLabel span {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* My own marker: teal instead of cream, and not clickable. */
+.me {
+  cursor: default;
+}
+
+.me .markerFace {
+  border-color: var(--ink);
+}
+
+.me::after {
+  border-top-color: var(--ink);
+}
+
+/* The neighbor list over the chosen neighbor. */
+.columns {
+  display: grid;
+  align-content: start;
+  gap: var(--space-4);
+}
+
+.pickHint {
+  padding: var(--space-6) var(--space-5);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-md);
+  color: var(--muted);
+  text-align: center;
+  text-wrap: balance;
+}
+
+.neighborList h2 {
+  margin-bottom: var(--space-3);
+  color: var(--ink);
+  font-size: var(--text-lg);
+}
+
 .neighbors {
   list-style: none;
-  display: grid;
-  gap: 10px;
-  padding: 0;
 }
 
 .neighbors button {
-  width: 100%;
   display: grid;
-  gap: 6px;
+  grid-template-areas:
+    "face name distance"
+    "face dogs distance";
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: var(--space-3);
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
   text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+/* The button stretches over its row, so the whole row picks the neighbor. */
+.neighbors button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.neighbors button > img {
+  grid-area: face;
+}
+
+.neighbors strong {
+  grid-area: name;
+  align-self: end;
+  color: var(--ink);
+}
+
+.neighbors .distance {
+  display: flex;
+  grid-area: distance;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.neighbors button[aria-pressed="true"] .distance {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.dogNames {
+  grid-area: dogs;
+  align-self: start;
+}
+
+/* Chosen neighbor: the first dog's picture on the left, the owner, the dog
+   name and the distance beside it, then details across the whole card. */
+.selected {
+  --photo: 96px;
+  display: grid;
+  grid-template-columns: var(--photo) minmax(0, 1fr) auto;
+  align-content: start;
+  column-gap: var(--space-4);
+  row-gap: var(--space-1);
   overflow-wrap: anywhere;
 }
 
-.selected {
-  display: grid;
-  gap: 16px;
+.selected > h2 {
+  grid-row: 1;
+  grid-column: 2;
+  align-self: end;
+  color: var(--text);
+  font-size: var(--text-md);
+  font-weight: 400;
+}
+
+.selected > .distance {
+  grid-row: 1;
+  grid-column: 3;
+  align-self: end;
+  color: var(--accent);
+}
+
+/* The card itself takes no box: its parts join the panel grid. */
+.dog {
+  display: contents;
+}
+
+.dog > img {
+  grid-column: 1;
+  width: var(--photo);
+  height: var(--photo);
+  border-radius: var(--radius-md);
+  background: var(--sage-soft);
+  object-fit: cover;
+}
+
+.selected > .dog:first-of-type > img {
+  grid-row: 1 / span 2;
+}
+
+.dog > h3 {
+  grid-column: 2 / -1;
+  align-self: start;
+  color: var(--ink);
+  font-size: var(--text-xl);
+  font-weight: 700;
+}
+
+.dog > p {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.dog > p:first-of-type {
+  margin-top: var(--space-3);
+}
+
+.dog > p:last-of-type {
+  color: var(--text);
+  font-size: var(--text-md);
+}
+
+.request {
+  grid-column: 1 / -1;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
+}
+
+.request label {
+  grid-template-columns: 1fr auto;
+}
+
+.request label > span:last-child {
+  grid-column: 1 / -1;
+}
+
+.requestCount::after {
+  content: attr(data-count);
+  color: var(--muted);
+  font-weight: 400;
+}
+
+/* From 1280x800 up the map takes the height under the title, and the list
+   and the chosen neighbor share the column beside it, each scrolling in its
+   own box. An error gets a row of its own above the map. */
+@media (min-width: 1280px) and (min-height: 800px) {
+  .page {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .page:has(> [role="alert"]) {
+    grid-template-rows: auto auto minmax(0, 1fr);
+  }
+
+  .page > .mapRow {
+    grid-row: -2;
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .map,
+  .mapFallback,
+  .mapWaiting {
+    height: 100%;
+  }
+
+  .mapWaiting img {
+    min-height: 0;
+    max-height: 70%;
+    width: auto;
+    max-width: 100%;
+  }
+
+  .columns {
+    grid-template-rows: minmax(0, 2fr) minmax(0, 3fr);
+  }
+
+  .columns > * {
+    overflow-y: auto;
+  }
+}
+
+/* Narrower windows put the list column under the map. */
+@media (max-width: 1279px) {
+  .mapRow {
+    grid-template-columns: 1fr;
+  }
+
+  .map,
+  .mapFallback,
+  .mapWaiting {
+    height: 460px;
+  }
+}
+
+@media (max-width: 720px) {
+  .page > .status {
+    grid-row: auto;
+    grid-column: 1 / -1;
+  }
+
+  .status {
+    justify-content: start;
+  }
+
+  .status p {
+    text-align: left;
+  }
+
+  .map,
+  .mapFallback,
+  .mapWaiting {
+    height: 360px;
+  }
+
+  .mapNote {
+    bottom: var(--space-2);
+    left: var(--space-2);
+    padding: var(--space-1) var(--space-2);
+    font-size: var(--text-xs);
+  }
+
+  .markerFace {
+    width: 48px;
+    height: 48px;
+  }
+
+  .markerLabel {
+    padding: 4px 8px;
+    font-size: 13px;
+  }
+
+  .markerLabel strong {
+    font-size: 14px;
+  }
 }

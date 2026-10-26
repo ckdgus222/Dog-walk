@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useSendWalkRequest } from "../../lib/api/walk-requests";
-import styles from "../_components/shared.module.css";
+import formStyles from "../_components/form.module.css";
+import styles from "./map.module.css";
 
 export const SendWalkRequest = ({ receiverId }: { receiverId: number }) => {
   const request = useSendWalkRequest();
@@ -20,16 +21,31 @@ export const SendWalkRequest = ({ receiverId }: { receiverId: number }) => {
   };
 
   return (
-    <form className={styles.form} onSubmit={send}>
+    <form className={`${formStyles.form} ${styles.request}`} onSubmit={send}>
       <label>
-        메시지 (선택)
-        <input
-          value={message}
-          onChange={(event) => setMessage(event.target.value)}
-          maxLength={100}
+        <span>
+          요청 메시지{" "}
+          <span className={formStyles.optional}>(선택)</span>
+        </span>
+        <span
+          className={styles.requestCount}
+          aria-hidden="true"
+          data-count={`${message.length} / 100`}
         />
+        <span className={formStyles.control}>
+          <input
+            value={message}
+            onChange={(event) => setMessage(event.target.value)}
+            maxLength={100}
+            placeholder="안녕하세요! 함께 산책하고 싶어요 :)"
+          />
+        </span>
       </label>
-      <button type="submit" disabled={request.isPending}>
+      <button
+        type="submit"
+        className={formStyles.submit}
+        disabled={request.isPending}
+      >
         산책 요청 보내기
       </button>
       {request.isSuccess && <p role="status">산책 요청을 보냈어요.</p>}

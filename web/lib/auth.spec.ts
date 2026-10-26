@@ -36,6 +36,95 @@ describe("Browser auth client", () => {
     });
   });
 
+  it.each([false, true])(
+    "checks departure after the response and still saves auth (left: %s)",
+    async (left) => {
+      let releaseLogin!: (response: Response) => void;
+      fetchMock.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            releaseLogin = resolve;
+          }),
+      );
+      let hasLeft = false;
+      const canNavigate = vi.fn(() => {
+        expect(useAuthStore.getState().user).toBeNull();
+        return !hasLeft;
+      });
+      const loggingIn = client.login(accountA.email, "password123", canNavigate);
+      expect(canNavigate).not.toHaveBeenCalled();
+      hasLeft = left;
+      releaseLogin(authResponse());
+
+      await expect(loggingIn).resolves.toBe(!left);
+      expect(canNavigate).toHaveBeenCalledTimes(1);
+      expect(useAuthStore.getState().user).toEqual(accountA);
+      expect(client.getAccessToken()).toBe("access-token");
+    },
+  );
+
+  it("rejects a second login while one is running, so logout still waits for the first", async () => {
+    let releaseLogin!: (response: Response) => void;
+    fetchMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          releaseLogin = resolve;
+        }),
+    );
+    const first = client.login(accountA.email, "password123");
+    await expect(client.login(accountB.email, "password123")).rejects.toThrow(
+      "로그인하고 있어요.",
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 204 }));
+    const loggingOut = client.logout();
+    await Promise.resolve();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    releaseLogin(authResponse());
+    await first;
+    await loggingOut;
+    expect(fetchMock.mock.calls.map(([path]) => path)).toEqual([
+      "/api/auth/login",
+      "/api/auth/logout",
+    ]);
+    expect(useAuthStore.getState().user).toBeNull();
+  });
+
+  it("rejects a login without fetching while logout is running", async () => {
+    let releaseLogout!: (response: Response) => void;
+    fetchMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          releaseLogout = resolve;
+        }),
+    );
+    const loggingOut = client.logout();
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    await expect(client.login(accountA.email, "password123")).rejects.toThrow(
+      "로그아웃하고 있어요.",
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    releaseLogout(new Response(null, { status: 204 }));
+    await loggingOut;
+  });
+
+  it("keeps the navigation decision when saving auth removes the form", async () => {
+    fetchMock.mockResolvedValueOnce(authResponse());
+    let left = false;
+    const unsubscribe = useAuthStore.subscribe(() => {
+      left = true;
+    });
+    try {
+      await expect(
+        client.login(accountA.email, "password123", () => !left),
+      ).resolves.toBe(true);
+      expect(left).toBe(true);
+    } finally {
+      unsubscribe();
+    }
+  });
+
   it("retries multipart data without setting Content-Type", async () => {
     fetchMock.mockResolvedValueOnce(authResponse(accountA, "old-token"));
     await client.login(accountA.email, "password123");
@@ -156,6 +245,96 @@ describe("Browser auth client", () => {
     const { user, loading } = useAuthStore.getState();
     expect({ user, loading }).toEqual({ user: null, loading: false });
     expect(client.getAccessToken()).toBeNull();
+  });
+
+  it.each([200, 400])(
+    "waits for every password change (%s) before sending logout",
+    async (status) => {
+      useAuthStore.getState().setAuth(accountA, "access-token");
+      const releases: Array<(response: Response) => void> = [];
+      fetchMock.mockImplementation((path) => {
+        if (path === "/api/auth/logout") {
+          return Promise.resolve(new Response(null, { status: 204 }));
+        }
+        return new Promise((resolve) => releases.push(resolve));
+      });
+      const body = {
+        currentPassword: "old-password",
+        newPassword: "new-password",
+      };
+      const first = client.changePassword(body);
+      const second = client.changePassword(body);
+      const firstAssertion =
+        status === 200
+          ? expect(first).resolves.toEqual(accountA)
+          : expect(first).rejects.toMatchObject({
+              status: 400,
+              message: "현재 비밀번호가 맞지 않아요.",
+            });
+      const secondAssertion = expect(second).resolves.toEqual(accountA);
+      const loggingOut = client.logout();
+      await Promise.resolve();
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(fetchMock.mock.calls[0]).toEqual([
+        "/api/users/me",
+        expect.objectContaining({
+          method: "PATCH",
+          body: JSON.stringify(body),
+        }),
+      ]);
+      const headers = new Headers(fetchMock.mock.calls[0][1]?.headers);
+      expect(headers.get("Content-Type")).toBe("application/json");
+      expect(headers.get("Authorization")).toBe("Bearer access-token");
+
+      releases[0](
+        status === 200
+          ? Response.json(accountA)
+          : Response.json(
+              { message: "현재 비밀번호가 맞지 않아요." },
+              { status },
+            ),
+      );
+      await firstAssertion;
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      releases[1](Response.json(accountA));
+      await Promise.all([secondAssertion, loggingOut]);
+      expect(fetchMock.mock.calls.map(([path]) => path)).toEqual([
+        "/api/users/me",
+        "/api/users/me",
+        "/api/auth/logout",
+      ]);
+      expect(useAuthStore.getState().user).toBeNull();
+      expect(client.getAccessToken()).toBeNull();
+    },
+  );
+
+  it("rejects new password changes without fetching while logout is running", async () => {
+    let releaseLogout!: (response: Response) => void;
+    fetchMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          releaseLogout = resolve;
+        }),
+    );
+    const loggingOut = client.logout();
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    const body = {
+      currentPassword: "old-password",
+      newPassword: "new-password",
+    };
+    await expect(client.changePassword(body)).rejects.toThrow(
+      "로그아웃하고 있어요.",
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    releaseLogout(new Response(null, { status: 204 }));
+    await loggingOut;
+
+    fetchMock.mockResolvedValueOnce(Response.json(accountA));
+    await expect(client.changePassword(body)).resolves.toEqual(accountA);
+    expect(fetchMock.mock.calls.map(([path]) => path)).toEqual([
+      "/api/auth/logout",
+      "/api/users/me",
+    ]);
   });
 
   it("retries a 401 once with the new token and preserves request options", async () => {
@@ -402,4 +581,29 @@ describe("Browser auth client", () => {
       expect(client.getAccessToken()).toBeNull();
     },
   );
+
+  it("waits for a refresh started before the save, so the old nickname cannot win", async () => {
+    useAuthStore.getState().setAuth(accountA, "old-token");
+    let releaseRefresh!: (response: Response) => void;
+    fetchMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          releaseRefresh = resolve;
+        }),
+    );
+    // The refresh read the account before the nickname changed.
+    const refreshing = client.refresh();
+    const saved = { ...accountA, nickname: "새닉네임" };
+    const applying = client.applySavedUser(saved);
+    releaseRefresh(authResponse(accountA, "new-token"));
+    await Promise.all([refreshing, applying]);
+    expect(useAuthStore.getState().user).toEqual(saved);
+    expect(client.getAccessToken()).toBe("new-token");
+  });
+
+  it("drops a saved nickname that answers after another account logged in", async () => {
+    useAuthStore.getState().setAuth(accountB, "b-token");
+    await client.applySavedUser({ ...accountA, nickname: "새닉네임" });
+    expect(useAuthStore.getState().user).toEqual(accountB);
+  });
 });

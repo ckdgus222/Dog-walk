@@ -1,11 +1,3 @@
-import { Transform } from 'class-transformer';
-import { IsInt, Min } from 'class-validator';
+import { PageQueryDto } from '../../common/page-query.dto.js';
 
-export class ListPostsDto {
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' && /^\d+$/.test(value) ? Number(value) : NaN,
-  )
-  @IsInt()
-  @Min(1)
-  page: number = 1;
-}
+export class ListPostsDto extends PageQueryDto {}

@@ -31,8 +31,10 @@ test("반려견 사진 추가·교체와 마지막 한 마리 삭제 제한", as
   const firstDog = {
     name: "보리",
     breed: "푸들",
-    size: "SMALL",
-    gender: "MALE",
+    // Not the first option of each group, so a form that always checks the
+    // first radio fails the saved-value check below.
+    size: "MEDIUM",
+    gender: "FEMALE",
     neutered: true,
     birthYear: 2021,
     personality: "친구와 걷는 걸 좋아해요.",
@@ -64,12 +66,12 @@ test("반려견 사진 추가·교체와 마지막 한 마리 삭제 제한", as
     await main.getByLabel("비밀번호").fill(password);
     await page.getByRole("button", { name: "로그인", exact: true }).click();
     await expect(page).toHaveURL("/");
-    await expect(page.getByText(`${nickname}님, 안녕하세요`)).toBeVisible();
+    await expect(main.getByText(`${nickname}님, 안녕하세요`)).toBeVisible();
     await main.getByRole("link", { name: "내 반려견", exact: true }).click();
     await expect(page).toHaveURL("/dogs");
     await expect(cards).toHaveCount(1);
     await expect(
-      firstCard.getByText("사진 없음", { exact: true }),
+      firstCard.getByRole("img", { name: "사진 없음", exact: true }),
     ).toBeVisible();
   });
 
@@ -79,8 +81,12 @@ test("반려견 사진 추가·교체와 마지막 한 마리 삭제 제한", as
       firstDog.name,
     );
     await expect(main.getByLabel("견종")).toHaveValue(firstDog.breed);
-    await expect(main.getByLabel("크기")).toHaveValue(firstDog.size);
-    await expect(main.getByLabel("성별")).toHaveValue(firstDog.gender);
+    await expect(
+      main.getByRole("radio", { name: "중형", exact: true }),
+    ).toBeChecked();
+    await expect(
+      main.getByRole("radio", { name: "암컷", exact: true }),
+    ).toBeChecked();
     await expect(main.getByLabel("중성화했어요")).toBeChecked();
     await expect(main.getByLabel("태어난 해")).toHaveValue(
       String(firstDog.birthYear),
@@ -88,7 +94,23 @@ test("반려견 사진 추가·교체와 마지막 한 마리 삭제 제한", as
     await expect(main.getByLabel("성격 소개")).toHaveValue(
       firstDog.personality,
     );
+    // The picked photo shows in place of the drawn dog, and cancelling
+    // brings the drawing back.
+    const preview = main.getByRole("img", {
+      name: "고른 사진 미리보기",
+      exact: true,
+    });
     await photoInput.setInputFiles(photoA);
+    await expect(preview).toBeVisible();
+    await expect
+      .poll(() =>
+        preview.evaluate((image: HTMLImageElement) => image.naturalWidth),
+      )
+      .toBeGreaterThan(0);
+    await main.getByRole("button", { name: "선택 취소", exact: true }).click();
+    await expect(preview).toHaveCount(0);
+    await photoInput.setInputFiles(photoA);
+    await expect(preview).toBeVisible();
     await page.getByRole("button", { name: "저장하기", exact: true }).click();
     await expect(page).toHaveURL("/dogs");
     await expect(cards).toHaveCount(1);
@@ -112,10 +134,10 @@ test("반려견 사진 추가·교체와 마지막 한 마리 삭제 제한", as
     await expect(page).toHaveURL("/dogs/new");
     await main.getByLabel("이름", { exact: true }).fill("두부");
     await main.getByLabel("견종").fill("진돗개");
-    await main.getByLabel("크기").selectOption("MEDIUM");
-    await main.getByLabel("성별").selectOption("FEMALE");
+    await main.getByRole("radio", { name: "중형", exact: true }).check();
+    await main.getByRole("radio", { name: "암컷", exact: true }).check();
     await main.getByLabel("중성화했어요").check();
-    await main.getByLabel("태어난 해").fill("2022");
+    await main.getByLabel("태어난 해").selectOption({ label: "2022년" });
     await main.getByLabel("성격 소개").fill("천천히 냄새 맡는 걸 좋아해요.");
     await photoInput.setInputFiles({
       name: "big.png",
@@ -161,10 +183,9 @@ test("반려견 사진 추가·교체와 마지막 한 마리 삭제 제한", as
     await expect(page).toHaveURL("/dogs");
     await expect(cards).toHaveCount(2);
     await expect(
-      secondCard.getByText("진돗개 · 중형 · 암컷", { exact: true }),
-    ).toBeVisible();
-    await expect(
-      secondCard.getByText("중성화했어요 · 2022년생", { exact: true }),
+      secondCard.getByText("진돗개 · 중형 · 암컷 · 중성화 · 2022년생", {
+        exact: true,
+      }),
     ).toBeVisible();
     await expect(
       secondCard.getByText("천천히 냄새 맡는 걸 좋아해요.", { exact: true }),

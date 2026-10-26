@@ -1,0 +1,223 @@
+/* As wide as the content panel below, with the same side padding, so the
+   logo lines up with the page content. */
+.header {
+  position: relative;
+  z-index: 20;
+  width: var(--page-width);
+  margin: 0 auto;
+}
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  min-height: 70px;
+  padding: 0 var(--panel-pad-x);
+  border-bottom: 1px solid var(--line);
+}
+
+.logo {
+  color: var(--ink);
+  font-size: 29px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.menu {
+  display: flex;
+  align-self: stretch;
+  gap: 46px;
+  margin-left: 64px;
+}
+
+.menu a {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  /* The underline of the current item covers the header line. */
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+
+.menu a[aria-current="page"] {
+  border-bottom-color: var(--ink);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: var(--ink);
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.account {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+  margin-left: auto;
+  font-size: 14px;
+}
+
+.greeting {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Every item after the first, under a line on its left. */
+.account > * + * {
+  flex: none;
+  padding: 0 0 0 20px;
+  border: 0;
+  border-left: 1px solid var(--line);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.account a[aria-current="page"],
+.guestMenu a[aria-current="page"] {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.guestMenu {
+  display: none;
+  position: relative;
+  margin-left: auto;
+}
+
+.guestMenu summary {
+  display: flex;
+  color: var(--ink);
+  list-style: none;
+  cursor: pointer;
+}
+
+.guestMenu summary::-webkit-details-marker {
+  display: none;
+}
+
+.guestMenu div {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 10;
+  display: grid;
+  gap: 12px;
+  min-width: 120px;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--card);
+  font-size: 15px;
+}
+
+/* Notices and errors float over the page below the header line, so they
+   never change the header's height and the panel below keeps its size. */
+.floating {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: var(--panel-pad-x);
+  display: grid;
+  gap: var(--space-2);
+  width: min(480px, 100% - 2 * var(--panel-pad-x));
+}
+
+.message,
+.notice {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card);
+}
+
+.message {
+  background: var(--card);
+}
+
+.notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  background: var(--sage);
+}
+
+.notice a {
+  color: var(--ink);
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.notice button {
+  margin-left: auto;
+  padding: 6px 12px;
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+/* The full menu no longer fits beside the logo, so it moves to its own row. */
+@media (max-width: 1024px) {
+  .bar {
+    padding: 14px var(--panel-pad-x) 0;
+  }
+
+  .menu {
+    order: 1;
+    width: 100%;
+    gap: 24px;
+    margin-left: 0;
+    padding-top: 14px;
+    overflow-x: auto;
+  }
+
+  .menu a {
+    padding-bottom: 10px;
+  }
+}
+
+@media (max-width: 720px) {
+  .logo {
+    font-size: 22px;
+  }
+
+  .menu {
+    gap: 20px;
+    font-size: 13px;
+  }
+
+  .account {
+    gap: 12px;
+    padding-left: 12px;
+    font-size: 12px;
+  }
+
+  .account > * + * {
+    padding-left: 12px;
+  }
+
+  .guestLinks {
+    display: none;
+  }
+
+  .guestMenu {
+    display: block;
+  }
+}

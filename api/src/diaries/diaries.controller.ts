@@ -49,7 +49,7 @@ export class DiariesController {
     @Req() request: Request & { user: PublicUser },
     @Query() query: ListDiariesDto,
   ) {
-    return this.diaries.findMine(request.user.id, query.dogId);
+    return this.diaries.findMine(request.user.id, query.dogId, query.page);
   }
 
   @Get(':id')

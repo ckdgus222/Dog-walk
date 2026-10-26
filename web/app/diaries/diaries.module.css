@@ -1,10 +1,566 @@
-.thumbnail {
-  width: 120px;
-  height: 90px;
+/* List: a chip per dog, then the diaries as rows of text beside two
+   photos, two rows side by side from 1280px. */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: var(--space-3);
+}
+
+.entry {
+  composes: card from "../_components/ui.module.css";
+  --card-pad: var(--space-3) var(--space-4);
+}
+
+.entry > a {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-4);
+  overflow-wrap: anywhere;
+}
+
+.entryText {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+/* The dog's face and name, then the walk date. */
+.entryMeta {
+  composes: meta from "../_components/ui.module.css";
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.entryDog {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.entryTitle {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Two lines of the diary, cut with an ellipsis. */
+.excerpt {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.entryPhotos {
+  position: relative;
+  display: flex;
+  justify-self: start;
+  gap: var(--space-2);
+  height: 104px;
+}
+
+.entryPhoto {
+  height: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+.photoCount {
+  position: absolute;
+  right: var(--space-2);
+  bottom: var(--space-2);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--ink);
+  color: white;
+  font-size: var(--text-sm);
+}
+
+/* The space a short last page leaves invites the next diary. */
+.writeTile {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: var(--space-1);
+  min-height: 120px;
+  padding: var(--space-3);
+  border: 1.5px dashed var(--line);
+  border-radius: var(--radius-md);
+  color: var(--muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.writeTile strong {
+  color: var(--ink);
+  font-size: var(--text-md);
+}
+
+.writeTile:hover {
+  background: var(--card-bg);
+}
+
+/* Detail: the title over the dog, date and actions, then the photos beside
+   the text. */
+.detailHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.detailMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin-top: var(--space-3);
+  color: var(--muted);
+}
+
+.detailMeta strong {
+  color: var(--ink);
+  font-size: var(--text-lg);
+}
+
+.private {
+  composes: badge from "../_components/ui.module.css";
+  height: 32px;
+  background: var(--sage-soft);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.detailBody {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
+}
+
+/* A diary without photos gives its text the whole width. */
+.detailBody > :only-child {
+  grid-column: 1 / -1;
+}
+
+.photos {
+  display: grid;
+  align-content: start;
+  gap: var(--space-3);
+}
+
+.photo {
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  border-radius: var(--radius-sm);
   object-fit: cover;
 }
 
 .content {
+  font-size: var(--text-lg);
+  line-height: 1.8;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+/* Write and edit forms. Writing puts the form beside the drawing; editing
+   puts it on a card. */
+.newPage {
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.55fr);
+  column-gap: var(--space-7);
+}
+
+.newPage > * {
+  grid-column: 1;
+}
+
+/* Row 1 holds the back link, so the note sits beside the title and the
+   drawing beside the form. */
+.newPage > .privateNote {
+  grid-row: 2;
+  grid-column: 2;
+  justify-self: end;
+}
+
+.newPage > .writingScene {
+  grid-row: 3;
+  grid-column: 2;
+  align-self: end;
+  /* The drawing's cut right edge fades into the paper. */
+  mask-image: linear-gradient(to left, transparent, black 12%);
+}
+
+.privateNote {
+  display: flex;
+  gap: var(--space-2);
+  color: var(--ink);
+  font-size: var(--text-md);
+}
+
+.privateNote small {
+  display: block;
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+.fields {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* The dog, the date and the title on one row. */
+.topRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2fr);
+  gap: var(--space-4);
+}
+
+/* The chosen dog's face sits inside the select, on its left. */
+.picker:has(.pickerFace) select {
+  padding-left: var(--space-7);
+}
+
+.pickerFace {
+  composes: face from "../_components/ui.module.css";
+  position: absolute;
+  top: 50%;
+  left: var(--space-3);
+  translate: 0 -50%;
+  pointer-events: none;
+}
+
+.fields textarea {
+  height: var(--body-height, 140px);
+  line-height: 1.6;
+  resize: none;
+}
+
+.photoField {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.photoHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.photoHead > p + p {
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.photoLabel {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* One row of square boxes; more than fit scroll sideways. */
+.slots {
+  display: flex;
+  gap: var(--space-3);
+  overflow-x: auto;
+}
+
+.slot,
+.addSlot {
+  position: relative;
+  flex: none;
+  width: 104px;
+  height: 104px;
+  border-radius: var(--radius-sm);
+}
+
+.slotPhoto {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+/* A photo marked for removal fades. */
+.removing .slotPhoto {
+  opacity: 0.35;
+}
+
+.tooBig .slotPhoto {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.slotNote {
+  position: absolute;
+  top: var(--space-1);
+  left: var(--space-1);
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: white;
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+/* A form checkbox label laid over the bottom of the photo. */
+.fields .slotCheck {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: var(--space-1) var(--space-2);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  background: rgb(255 252 245 / 0.9);
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+
+.slotRemove {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: rgb(39 75 73 / 0.75);
+  color: white;
+  cursor: pointer;
+}
+
+.fields .addSlot {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: var(--space-1);
+  border: 1.5px dashed var(--line);
+  background: var(--field);
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-weight: 400;
+  text-align: center;
+  cursor: pointer;
+}
+
+.addSlot svg {
+  color: #7e8f7f;
+}
+
+.addSlot strong {
+  color: var(--ink);
+  font-size: var(--text-sm);
+}
+
+.addSlot:has(:focus-visible) {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.formActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+/* The write form puts saving first; the edit form puts the list link first. */
+.newForm .formActions > button {
+  order: -1;
+}
+
+.editForm {
+  --body-height: 160px;
+}
+
+.editForm .formActions {
+  grid-template-columns: 200px 1fr 300px;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
+}
+
+.editForm .formActions > button {
+  grid-column: 3;
+}
+
+/* From 1280x800 up the pages fit the window: the list rows share the
+   height, the diary text and photos scroll in their columns and the body
+   field takes what the form leaves. */
+@media (min-width: 1280px) and (min-height: 800px) {
+  .listPage {
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+  }
+
+  /* One chip row; more dogs scroll sideways. */
+  .filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  /* Three rows of two, six a page (DIARY_PAGE_SIZE in lib/api/diaries.ts). */
+  .list {
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+  }
+
+  .entry > a {
+    grid-template-rows: minmax(0, 1fr);
+    height: 100%;
+  }
+
+  .entryPhotos {
+    height: 100%;
+  }
+
+  .detailPage {
+    grid-template-rows: auto auto minmax(0, 1fr);
+  }
+
+  .detailBody {
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .photos,
+  .content {
+    overflow-y: auto;
+  }
+
+  .newPage,
+  .editPage {
+    grid-template-rows: auto auto minmax(0, 1fr);
+  }
+
+  .newPage > form,
+  .editPage > form {
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .fields {
+    --body-height: 100%;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: var(--space-3);
+  }
+
+  .bodyField {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 1279px) {
+  .list {
+    grid-template-columns: 1fr;
+  }
+
+  /* The title takes its own row under the dog and the date. */
+  .topRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .titleField {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 1024px) {
+  .newPage {
+    grid-template-columns: 1fr;
+  }
+
+  .newPage > .privateNote {
+    grid-row: auto;
+    grid-column: 1;
+    justify-self: start;
+  }
+
+  /* Narrow screens end the page with the drawing, out to the panel's
+     edges without widening the content column. */
+  .newPage > .writingScene {
+    grid-row: auto;
+    grid-column: 1;
+    min-width: 0;
+    margin: 0 calc(-1 * var(--panel-pad-x)) calc(-1 * var(--panel-pad-bottom));
+    mask-image: none;
+  }
+
+  .detailBody {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .entry > a {
+    grid-template-columns: 1fr;
+  }
+
+  .entryPhotos {
+    height: 96px;
+  }
+
+  .detailMeta strong {
+    font-size: var(--text-md);
+  }
+
+  .actions {
+    width: 100%;
+  }
+
+  .actions > * {
+    flex: 1;
+  }
+
+  .content {
+    font-size: var(--text-md);
+  }
+
+  .topRow {
+    grid-template-columns: 1fr;
+  }
+
+  .formActions,
+  .editForm .formActions {
+    grid-template-columns: 1fr;
+  }
+
+  .editForm .formActions > button {
+    grid-column: auto;
+    order: -1;
+  }
+
+  .editForm {
+    padding: var(--space-4) var(--space-3);
+  }
+
+  .fields textarea {
+    height: 108px;
+  }
+
+  .slot,
+  .addSlot {
+    width: 88px;
+    height: 88px;
+  }
 }

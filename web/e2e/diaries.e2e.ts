@@ -106,53 +106,87 @@ test("일기 사진 작성·수정·삭제와 반려견 삭제 제한", async ({
 
   await test.step("로그인 후 상단 메뉴에서 일기를 쓴다", async () => {
     await login(page, account);
-    await menu.getByRole("link", { name: "일기", exact: true }).click();
+    await menu.getByRole("link", { name: "산책 일기", exact: true }).click();
     await expect(page).toHaveURL("/diaries");
     await expect(main.getByText("아직 일기가 없어요.")).toBeVisible();
+    await expect(
+      main.getByRole("link", { name: "첫 일기 쓰기", exact: true }),
+    ).toHaveAttribute("href", "/diaries/new");
     await main.getByRole("link", { name: "일기 쓰기", exact: true }).click();
     await expect(page).toHaveURL("/diaries/new");
     await main
       .getByRole("combobox", { name: /^반려견/ })
       .selectOption(String(account.dogId));
     await main.getByLabel("산책한 날짜").fill("2020-10-21");
+    await main.getByRole("textbox", { name: "제목", exact: true }).fill("   ");
     await main
       .getByRole("textbox", { name: /^글/ })
       .fill("두부와 공원을 걸었어요.\n즐거운 산책이었어요.");
-    await photoInput.setInputFiles([photoA, photoB]);
+    await main.getByRole("button", { name: "저장하기", exact: true }).click();
+    await expect(main.getByRole("alert")).toHaveText("제목을 입력해 주세요.");
+    await main
+      .getByRole("textbox", { name: "제목", exact: true })
+      .fill("두부와 공원 산책");
+    // Picked photos show before saving, and one can be taken out again.
+    await photoInput.setInputFiles([photoA, photoB, photoA]);
+    const previews = main.getByRole("img", { name: /^새 사진 \d 미리보기$/ });
+    await expect(previews).toHaveCount(3);
+    await main
+      .getByRole("button", { name: "새 사진 3 빼기", exact: true })
+      .click();
+    await expect(previews).toHaveCount(2);
+    await expect
+      .poll(() =>
+        previews.first().evaluate((image: HTMLImageElement) => image.naturalWidth),
+      )
+      .toBeGreaterThan(0);
     await main.getByRole("button", { name: "저장하기", exact: true }).click();
     await expect(page).toHaveURL(/\/diaries\/\d+$/);
     diaryUrl = new URL(page.url()).pathname;
     await expect(
-      main.getByRole("heading", { name: "2020년 10월 21일" }),
+      main.getByRole("heading", { name: "두부와 공원 산책", exact: true }),
     ).toBeVisible();
     await expectPhotos(page, 2);
   });
 
-  await test.step("목록의 글·첫 사진을 확인하고 사진 한 장을 교체한다", async () => {
-    await main.getByRole("link", { name: "일기 목록" }).click();
+  await test.step("목록의 제목·사진 두 장·사진 수를 확인하고 사진 한 장을 교체한다", async () => {
+    await main.getByRole("link", { name: "일기 목록", exact: true }).click();
     await expect(page).toHaveURL("/diaries");
     const card = main.getByRole("article");
     await expect(card).toHaveCount(1);
+    await expect(
+      card.getByRole("heading", { name: "두부와 공원 산책" }),
+    ).toBeVisible();
     await expect(card.getByText("두부", { exact: true })).toBeVisible();
     await expect(card.getByText("사진 2장", { exact: true })).toBeVisible();
-    await expectPhotos(page, 1);
+    // The row shows up to two photos; the badge counts all of them.
+    await expectPhotos(page, 2);
     await card.getByRole("link").click();
     await expect(page).toHaveURL(/\/diaries\/\d+$/);
     await main.getByRole("link", { name: "수정", exact: true }).click();
     await expect(page).toHaveURL(/\/diaries\/\d+\/edit$/);
-    await expect(main.getByRole("textbox", { name: /^글/ })).toHaveValue(
+    await expect(main.getByRole("textbox", { name: /^일기 내용/ })).toHaveValue(
       "두부와 공원을 걸었어요.\n즐거운 산책이었어요.",
     );
     await main
       .getByRole("checkbox", { name: "이 사진 지우기" })
       .first()
       .check();
+    await expect(
+      main.getByRole("textbox", { name: "제목", exact: true }),
+    ).toHaveValue("두부와 공원 산책");
+    await main
+      .getByRole("textbox", { name: "제목", exact: true })
+      .fill("사진을 바꾼 산책");
     await photoInput.setInputFiles(photoA);
     await main
-      .getByRole("textbox", { name: /^글/ })
+      .getByRole("textbox", { name: /^일기 내용/ })
       .fill("사진을 바꾼 일기예요.");
     await main.getByRole("button", { name: "저장하기", exact: true }).click();
     await expect(page).toHaveURL(diaryUrl);
+    await expect(
+      main.getByRole("heading", { name: "사진을 바꾼 산책" }),
+    ).toBeVisible();
     await expect(
       main.getByText("사진을 바꾼 일기예요.", { exact: true }),
     ).toBeVisible();
@@ -162,7 +196,7 @@ test("일기 사진 작성·수정·삭제와 반려견 삭제 제한", async ({
   await test.step("사진 6장과 5MB 초과 파일은 요청 전에 막는다", async () => {
     await main.getByRole("link", { name: "수정", exact: true }).click();
     await expect(page).toHaveURL(/\/diaries\/\d+\/edit$/);
-    await expect(main.getByRole("textbox", { name: /^글/ })).toHaveValue(
+    await expect(main.getByRole("textbox", { name: /^일기 내용/ })).toHaveValue(
       "사진을 바꾼 일기예요.",
     );
     let patchRequests = 0;
@@ -212,7 +246,7 @@ test("일기 사진 작성·수정·삭제와 반려견 삭제 제한", async ({
   });
 
   await test.step("일기를 삭제하면 목록에서 사라진다", async () => {
-    await menu.getByRole("link", { name: "일기", exact: true }).click();
+    await menu.getByRole("link", { name: "산책 일기", exact: true }).click();
     await expect(page).toHaveURL("/diaries");
     await main.getByRole("article").getByRole("link").click();
     await expect(page).toHaveURL(/\/diaries\/\d+$/);
@@ -234,6 +268,7 @@ test("목록 조회가 실패해도 수정 저장 응답으로 상세에 바로 
     multipart: {
       diary: JSON.stringify({
         dogId: account.dogId,
+        title: "처음 산책 제목",
         walkedOn: "2020-10-21",
         content: "처음 쓴 일기",
       }),
@@ -245,20 +280,23 @@ test("목록 조회가 실패해도 수정 저장 응답으로 상세에 바로 
   await login(page, account);
   await page
     .getByRole("navigation", { name: "주 메뉴" })
-    .getByRole("link", { name: "일기", exact: true })
+    .getByRole("link", { name: "산책 일기", exact: true })
     .click();
   await expect(page).toHaveURL("/diaries");
   await main.getByRole("article").getByRole("link").click();
   await expect(page).toHaveURL(/\/diaries\/\d+$/);
   await main.getByRole("link", { name: "수정", exact: true }).click();
   await expect(page).toHaveURL(/\/diaries\/\d+\/edit$/);
-  await expect(main.getByRole("textbox", { name: /^글/ })).toHaveValue(
+  await expect(main.getByRole("textbox", { name: /^일기 내용/ })).toHaveValue(
     "처음 쓴 일기",
   );
 
-  await page.route("**/api/diaries", (route) =>
+  await page.route("**/api/diaries?*", (route) =>
     route.fulfill({ status: 500, json: { message: "일기 목록 조회 실패" } }),
   );
+  await main
+    .getByRole("textbox", { name: "제목", exact: true })
+    .fill("저장 응답의 새 제목");
   let detailReads = 0;
   await page.route(`**/api/diaries/${id}`, (route) => {
     if (route.request().method() !== "GET") return route.continue();
@@ -269,12 +307,15 @@ test("목록 조회가 실패해도 수정 저장 응답으로 상세에 바로 
     });
   });
   await main
-    .getByRole("textbox", { name: /^글/ })
+    .getByRole("textbox", { name: /^일기 내용/ })
     .fill("저장 응답으로 보여 주는 새 일기");
   await main.getByRole("button", { name: "저장하기", exact: true }).click();
   await expect(page).toHaveURL(`/diaries/${id}`);
   await expect(
     main.getByText("저장 응답으로 보여 주는 새 일기", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    main.getByRole("heading", { name: "저장 응답의 새 제목" }),
   ).toBeVisible();
   expect(detailReads).toBe(0);
 
@@ -283,7 +324,7 @@ test("목록 조회가 실패해도 수정 저장 응답으로 상세에 바로 
       new URL(response.url()).pathname === "/api/diaries" &&
       response.status() === 500,
   );
-  await main.getByRole("link", { name: "일기 목록" }).click();
+  await main.getByRole("link", { name: "일기 목록", exact: true }).click();
   await expect(page).toHaveURL("/diaries");
   await failedList;
   await expect(main.getByRole("alert")).toHaveText("일기 목록 조회 실패");
@@ -296,6 +337,7 @@ test("일기 수정은 첫 진입과 재진입 모두 새 조회를 기다리고
   const account = await createAccount(request);
   const body = {
     dogId: account.dogId,
+    title: "처음 산책 제목",
     walkedOn: "2020-10-21",
     content: "처음 쓴 일기",
   };
@@ -309,7 +351,7 @@ test("일기 수정은 첫 진입과 재진입 모두 새 조회를 기다리고
   await login(page, account);
   await page
     .getByRole("navigation", { name: "주 메뉴" })
-    .getByRole("link", { name: "일기", exact: true })
+    .getByRole("link", { name: "산책 일기", exact: true })
     .click();
   await expect(page).toHaveURL("/diaries");
   await main.getByRole("article").getByRole("link").click();
@@ -345,16 +387,16 @@ test("일기 수정은 첫 진입과 재진입 모두 새 조회를 기다리고
       await expect(main.getByRole("status")).toHaveText(
         "일기를 불러오고 있어요.",
       );
-      await expect(main.getByRole("textbox", { name: /^글/ })).toHaveCount(0);
+      await expect(main.getByRole("textbox", { name: /^일기 내용/ })).toHaveCount(0);
     } finally {
       release.resolve();
     }
     await completed.promise;
-    await expect(main.getByRole("textbox", { name: /^글/ })).toHaveValue(
+    await expect(main.getByRole("textbox", { name: /^일기 내용/ })).toHaveValue(
       content,
     );
     await page.unroute(`**/api/diaries/${id}`);
-    await main.getByRole("link", { name: "일기 목록" }).click();
+    await main.getByRole("link", { name: "일기 목록", exact: true }).click();
     await expect(page).toHaveURL("/diaries");
     await main.getByRole("article").getByRole("link").click();
     await expect(page).toHaveURL(/\/diaries\/\d+$/);
@@ -366,6 +408,66 @@ test("일기 수정은 첫 진입과 재진입 모두 새 조회를 기다리고
   await main.getByRole("link", { name: "수정", exact: true }).click();
   await expect(page).toHaveURL(/\/diaries\/\d+\/edit$/);
   await expect(main.getByRole("alert")).toHaveText("일기 수정 조회 실패");
-  await expect(main.getByRole("textbox", { name: /^글/ })).toHaveCount(0);
+  await expect(main.getByRole("textbox", { name: /^일기 내용/ })).toHaveCount(0);
   await expect(main.locator("form")).toHaveCount(0);
+});
+
+test("일기 7개를 두 쪽으로 보고 빈 쪽에서 돌아오며 반려견을 바꾸면 1쪽으로 간다", async ({
+  page,
+  request,
+}) => {
+  const account = await createAccount(request);
+  for (let index = 1; index <= 7; index++) {
+    const created = await request.post("/api/diaries", {
+      headers: account.headers,
+      multipart: {
+        diary: JSON.stringify({
+          dogId: account.dogId,
+          title: `산책 제목 ${index}`,
+          walkedOn: "2020-10-21",
+          content: `산책 기록 ${index}`,
+        }),
+      },
+    });
+    expect(created.status()).toBe(201);
+  }
+  await login(page, account);
+  await page.goto("/diaries?page=1");
+  const main = page.getByRole("main");
+  const pagination = main.getByRole("navigation", { name: "산책 일기 페이지" });
+  await expect(main.getByRole("article").getByRole("heading")).toHaveText([
+    "산책 제목 7",
+    "산책 제목 6",
+    "산책 제목 5",
+    "산책 제목 4",
+    "산책 제목 3",
+    "산책 제목 2",
+  ]);
+  await expect(pagination.getByRole("link", { name: "이전" })).toHaveCount(0);
+  await pagination.getByRole("link", { name: "다음" }).click();
+  await expect(page).toHaveURL("/diaries?page=2");
+  await expect(main.getByRole("article").getByRole("heading")).toHaveText([
+    "산책 제목 1",
+  ]);
+  await expect(pagination.getByRole("link", { name: "다음" })).toHaveCount(0);
+  await pagination.getByRole("link", { name: "이전" }).click();
+  await expect(page).toHaveURL("/diaries?page=1");
+  await expect(main.getByRole("article")).toHaveCount(6);
+
+  await page.goto(`/diaries?page=3&dogId=${account.dogId}`);
+  await expect(main.getByText("이 페이지에는 일기가 없어요.")).toBeVisible();
+  await expect(main.getByRole("article")).toHaveCount(0);
+  await main.getByRole("link", { name: "마지막 페이지로" }).click();
+  await expect(page).toHaveURL(`/diaries?page=2&dogId=${account.dogId}`);
+  await expect(main.getByRole("article")).toHaveCount(1);
+  const filters = main.getByRole("group", { name: "반려견 고르기" });
+  await expect(
+    filters.getByRole("button", { name: "두부", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await filters.getByRole("button", { name: "보리", exact: true }).click();
+  await expect(page).toHaveURL(/\/diaries\?page=1&dogId=\d+$/);
+  await expect(main.getByText("아직 일기가 없어요.")).toBeVisible();
+  await filters.getByRole("button", { name: "전체", exact: true }).click();
+  await expect(page).toHaveURL("/diaries?page=1");
+  await expect(main.getByRole("article")).toHaveCount(6);
 });

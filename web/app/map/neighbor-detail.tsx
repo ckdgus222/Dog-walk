@@ -1,21 +1,27 @@
 import type { Neighbor } from "../../lib/types";
 import { DogCard } from "../_components/dog-card";
-import sharedStyles from "../_components/shared.module.css";
+import uiStyles from "../_components/ui.module.css";
 import { SendWalkRequest } from "./send-walk-request";
 import styles from "./map.module.css";
 
+// The owner's name and distance sit beside the first dog's picture, as in the
+// mockup; any further dogs follow underneath.
 export const NeighborDetail = ({ neighbor }: { neighbor: Neighbor }) => (
   <section
-    className={styles.selected}
+    className={`${uiStyles.card} ${styles.selected}`}
     aria-label={`${neighbor.nickname}의 반려견`}
   >
     <h2>{neighbor.nickname}</h2>
-    <p>약 {neighbor.distanceM}m</p>
-    <div className={sharedStyles.cards}>
-      {neighbor.dogs.map((dog) => (
-        <DogCard key={dog.id} dog={dog} heading="h3" />
-      ))}
-    </div>
+    <p className={styles.distance}>약 {neighbor.distanceM}m</p>
+    {neighbor.dogs.map((dog) => (
+      <DogCard
+        key={dog.id}
+        dog={dog}
+        heading="h3"
+        className={styles.dog}
+        separator="|"
+      />
+    ))}
     <SendWalkRequest key={neighbor.userId} receiverId={neighbor.userId} />
   </section>
 );

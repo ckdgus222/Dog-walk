@@ -1,4 +1,377 @@
+/* List: ten short rows under a line of column names, so a full page fits
+   the window at 1440x800 (docs/screen-fit-and-features.md). */
+.columns,
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px 120px 48px 16px;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.columns {
+  height: 36px;
+  padding: 0 var(--space-5);
+  border-bottom: 1.5px solid var(--line);
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.row {
+  --row-pad-block: 0;
+  min-height: 40px;
+}
+
+.row > svg {
+  justify-self: end;
+  color: var(--ink);
+}
+
+.row h2 {
+  color: var(--ink);
+  font-size: var(--text-lg);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The title link stretches over the row, so the whole row is clickable. */
+.row h2 a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+/* A face beside a nickname, in the list, the post and its comments. */
+.author {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* A long nickname is cut with an ellipsis instead of running into the date. */
+.row .author {
+  min-width: 0;
+  font-size: var(--text-sm);
+}
+
+.row .author span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.count {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* The bubble icon only shows in the phone layout, where the count has no
+   column of its own. */
+.count svg {
+  display: none;
+}
+
+/* Detail: the post, then its comments under a line. */
+.detail {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.post {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-content: start;
+  align-items: center;
+  gap: var(--space-4) var(--space-5);
+}
+
+.post > h1 {
+  grid-column: 1 / -1;
+  overflow-wrap: anywhere;
+}
+
+.byline {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.post .author,
+.comment .author {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
 .content {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+.post > .content {
+  grid-column: 1 / -1;
+  align-self: stretch;
+  /* The body keeps its size when short, so it never looks like a comment. */
+  min-height: 200px;
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--line);
+  font-size: var(--text-lg);
+  line-height: 1.7;
+}
+
+.post > [role="alert"] {
+  grid-column: 1 / -1;
+}
+
+/* Comments: the count, the list and the form under it. */
+.comments {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
+}
+
+.comments > h2 {
+  margin-bottom: var(--space-1);
+  color: var(--ink);
+  font-size: var(--text-xl);
+  font-weight: 700;
+}
+
+.comments > h2 span {
+  color: var(--accent);
+}
+
+.comment {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+
+.comment > :is(.content, form, [role="alert"]) {
+  grid-column: 1 / -1;
+}
+
+.comment > .content {
+  line-height: 1.7;
+}
+
+.commentActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.comment > .commentActions {
+  grid-row: 1;
+  grid-column: 3;
+}
+
+.commentEdit textarea {
+  min-height: 90px;
+}
+
+.commentForm {
+  display: grid;
+  grid-template-columns: 1fr 120px;
+  align-items: start;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.commentForm textarea {
+  height: 100%;
+  min-height: 90px;
+}
+
+.commentForm > [role="alert"] {
+  grid-column: 1 / -1;
+}
+
+/* Write and edit forms */
+.fields {
+  display: grid;
+  gap: var(--space-5);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.fieldLabel {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.hint::after {
+  content: attr(data-hint);
+  color: var(--muted);
+  font-size: var(--text-sm);
+  font-weight: 400;
+}
+
+/* In the edit form the counters sit at the right end of the label row. */
+.editForm .hint:last-child {
+  margin-left: auto;
+}
+
+.fields textarea {
+  height: var(--body-height, 335px);
+  line-height: 1.7;
+  resize: none;
+}
+
+.editForm {
+  --body-height: 310px;
+}
+
+.formActions {
+  display: grid;
+  grid-template-columns: 247px 217px;
+  gap: var(--space-4);
+}
+
+/* The write form puts saving first; the edit form puts the list link first. */
+.newForm .formActions > button {
+  order: -1;
+}
+
+.editForm .formActions {
+  grid-template-columns: 340px 1fr;
+}
+
+/* In a window-high panel the list box fills the height between the title
+   and the page buttons, and the post body and the comment list scroll
+   inside their columns. */
+@media (min-width: 1280px) and (min-height: 800px) {
+  .listPage {
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  /* Ten row slots, one per post on a full page (api PAGE_SIZE), so the box
+     keeps its size on a short last page. */
+  .list {
+    display: grid;
+    grid-template-rows: auto repeat(10, minmax(40px, 1fr));
+  }
+
+  .detailPage {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  /* The post and the comments share the height half and half, however
+     short the post. Each scrolls inside when it is longer. */
+  .detail {
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .comments {
+    min-height: 0;
+  }
+
+  .post {
+    grid-template-rows: auto auto minmax(0, 1fr);
+    min-height: 0;
+  }
+
+  /* Write and edit: the body field takes the height left under the title
+     field and above the buttons. */
+  .formPage {
+    grid-template-rows: auto auto minmax(0, 1fr);
+  }
+
+  .formPage > form {
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .fields {
+    --body-height: 100%;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .bodyField {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .post > .content,
+  .commentList {
+    overflow-y: auto;
+  }
+
+  /* Here the half height keeps the body's size instead. */
+  .post > .content {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .columns {
+    display: none;
+  }
+
+  .count svg {
+    display: block;
+  }
+
+  .formActions,
+  .editForm .formActions {
+    grid-template-columns: 1fr;
+  }
+
+  .formActions > button {
+    order: -1;
+  }
+
+  .fields {
+    --body-height: 220px;
+  }
+
+  .row {
+    --row-pad-block: var(--space-3);
+    height: auto;
+    grid-template-columns: auto auto 1fr 20px;
+    gap: var(--space-1) var(--space-3);
+  }
+
+  .row h2 {
+    grid-column: 1 / 4;
+    font-size: var(--text-md);
+  }
+
+  .row > svg {
+    grid-row: 1 / span 2;
+    grid-column: 4;
+  }
+
+  /* "name · date" on the second line, then the comment count. */
+  .row .date::before {
+    content: "· ";
+  }
+
+  .row .count {
+    justify-self: end;
+  }
+
+  .row > :is(.author, .date, .count) {
+    grid-row: 2;
+  }
+
+  .post {
+    grid-template-columns: 1fr;
+  }
+
+  .commentForm {
+    grid-template-columns: 1fr;
+  }
 }

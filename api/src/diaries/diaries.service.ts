@@ -15,6 +15,7 @@ import type { DiaryDto, UpdateDiaryDto } from './dto/diary.dto.js';
 
 const diarySelect = {
   id: true,
+  title: true,
   dog: { select: { id: true, name: true } },
   walkedOn: true,
   content: true,
@@ -44,6 +45,8 @@ function diaryResponse(diary: SelectedDiary) {
   return { ...diary, walkedOn: diary.walkedOn.toISOString().slice(0, 10) };
 }
 
+const PAGE_SIZE = 6;
+
 @Injectable()
 export class DiariesService {
   private readonly photoDirectory: string;
@@ -55,13 +58,27 @@ export class DiariesService {
     this.photoDirectory = join(directory, 'diaries');
   }
 
-  async findMine(userId: number, dogId?: number) {
-    const diaries = await this.prisma.diary.findMany({
-      where: { authorId: userId, dogId },
-      orderBy: [{ walkedOn: 'desc' }, { id: 'desc' }],
-      select: diarySelect,
-    });
-    return diaries.map(diaryResponse);
+  async findMine(userId: number, dogId?: number, page = 1) {
+    const where = { authorId: userId, dogId };
+    const [diaries, total] = await this.prisma.$transaction(
+      [
+        this.prisma.diary.findMany({
+          where,
+          // The integer primary key bounds the number of possible rows.
+          skip: Math.min((page - 1) * PAGE_SIZE, 2147483647),
+          take: PAGE_SIZE,
+          orderBy: [{ walkedOn: 'desc' }, { id: 'desc' }],
+          select: diarySelect,
+        }),
+        this.prisma.diary.count({ where }),
+      ],
+      { isolationLevel: 'RepeatableRead' },
+    );
+    return {
+      diaries: diaries.map(diaryResponse),
+      page,
+      totalPages: Math.max(1, Math.ceil(total / PAGE_SIZE)),
+    };
   }
 
   async findOne(userId: number, id: number) {
@@ -103,6 +120,7 @@ export class DiariesService {
           authorId: userId,
           dogId: diary.dogId,
           walkedOn: new Date(diary.walkedOn),
+          title: diary.title,
           content: diary.content,
           images: {
             create: fileNames.map((fileName, sortOrder) => ({
@@ -173,6 +191,7 @@ export class DiariesService {
           data: {
             dogId: diary.dogId,
             walkedOn: new Date(diary.walkedOn),
+            title: diary.title,
             content: diary.content,
             images: {
               deleteMany: { id: { in: removeImageIds } },

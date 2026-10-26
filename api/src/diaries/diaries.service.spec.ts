@@ -12,7 +12,12 @@ vi.mock('node:fs/promises', () => ({
   writeFile: vi.fn(),
 }));
 
-const diary = { dogId: 2, walkedOn: '2026-10-20', content: '함께 걸었어요.' };
+const diary = {
+  title: '공원 산책',
+  dogId: 2,
+  walkedOn: '2026-10-20',
+  content: '함께 걸었어요.',
+};
 
 describe('DiariesService upload failures', () => {
   const prisma = {
@@ -136,4 +141,100 @@ describe('DiariesService upload failures', () => {
     expect(mkdir).not.toHaveBeenCalled();
     expect(writeFile).not.toHaveBeenCalled();
   });
+});
+
+describe('DiariesService pagination', () => {
+  const selected = {
+    id: 3,
+    title: diary.title,
+    dog: { id: diary.dogId, name: '보리' },
+    walkedOn: new Date(diary.walkedOn),
+    content: diary.content,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    images: [],
+  };
+  let prisma: {
+    diary: {
+      findMany: ReturnType<typeof vi.fn>;
+      count: ReturnType<typeof vi.fn>;
+    };
+    $transaction: ReturnType<typeof vi.fn>;
+  };
+  let service: DiariesService;
+
+  beforeEach(() => {
+    prisma = {
+      diary: { findMany: vi.fn(), count: vi.fn() },
+      $transaction: vi.fn((queries: Promise<unknown>[]) =>
+        Promise.all(queries),
+      ),
+    };
+    service = new DiariesService(prisma as unknown as PrismaService);
+  });
+
+  it.each([undefined, 2])(
+    'reads a page and count with the same owner and dog filter %s',
+    async (dogId) => {
+      prisma.diary.findMany.mockResolvedValue([selected]);
+      prisma.diary.count.mockResolvedValue(13);
+      await expect(service.findMine(1, dogId, 2)).resolves.toEqual({
+        diaries: [{ ...selected, walkedOn: diary.walkedOn }],
+        page: 2,
+        totalPages: 3,
+      });
+      expect(prisma.$transaction).toHaveBeenCalledExactlyOnceWith(
+        [
+          prisma.diary.findMany.mock.results[0].value,
+          prisma.diary.count.mock.results[0].value,
+        ],
+        { isolationLevel: 'RepeatableRead' },
+      );
+      expect(prisma.diary.findMany).toHaveBeenCalledExactlyOnceWith({
+        where: { authorId: 1, dogId },
+        skip: 6,
+        take: 6,
+        orderBy: [{ walkedOn: 'desc' }, { id: 'desc' }],
+        select: {
+          id: true,
+          title: true,
+          dog: { select: { id: true, name: true } },
+          walkedOn: true,
+          content: true,
+          createdAt: true,
+          updatedAt: true,
+          images: {
+            select: { id: true },
+            orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
+          },
+        },
+      });
+      expect(prisma.diary.count).toHaveBeenCalledExactlyOnceWith({
+        where: { authorId: 1, dogId },
+      });
+    },
+  );
+
+  it.each([
+    [1, 0, 1],
+    [3, 7, 2],
+    [1e30, 7, 2],
+  ])(
+    'returns empty page %s with total %s and totalPages %s',
+    async (page, total, totalPages) => {
+      prisma.diary.findMany.mockResolvedValue([]);
+      prisma.diary.count.mockResolvedValue(total);
+      await expect(service.findMine(1, undefined, page)).resolves.toEqual({
+        diaries: [],
+        page,
+        totalPages,
+      });
+      expect(prisma.diary.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          skip: Math.min((page - 1) * 6, 2147483647),
+          take: 6,
+        }),
+      );
+    },
+  );
 });

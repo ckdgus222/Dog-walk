@@ -86,6 +86,15 @@ test.beforeEach(async ({ page }) => {
   await page.clock.install();
 });
 
+// The map page has no "홈으로" link (the mockup has none); the logo goes home.
+const goHome = async (page: Page) => {
+  await page
+    .getByRole("banner")
+    .getByRole("link", { name: "강아지 산책", exact: true })
+    .click();
+  await expect(page).toHaveURL("/");
+};
+
 const login = async (page: Page, account: Account) => {
   await page.goto("/login");
   const main = page.getByRole("main");
@@ -93,7 +102,7 @@ const login = async (page: Page, account: Account) => {
   await main.getByLabel("비밀번호").fill(account.password);
   await main.getByRole("button", { name: "로그인", exact: true }).click();
   await expect(page).toHaveURL("/");
-  await main.getByRole("link", { name: "지도", exact: true }).click();
+  await main.getByRole("link", { name: "주변 친구 찾기", exact: true }).click();
 };
 const openMap = async (page: Page, accounts: Account[]) => {
   await login(page, accounts[0]);
@@ -198,10 +207,9 @@ test("동의 후 자동 공개·반려견 조회·1분 보내기·30초 주변 �
     detail.getByRole("heading", { name: "주변두부", exact: true }),
   ).toBeVisible();
   await expect(
-    detail.getByText("푸들 · 소형 · 암컷", { exact: true }),
-  ).toBeVisible();
-  await expect(
-    detail.getByText("중성화했어요 · 2021년생", { exact: true }),
+    detail.getByText("푸들 | 소형 | 암컷 | 중성화 | 2021년생", {
+      exact: true,
+    }),
   ).toBeVisible();
   expect(saves).toHaveLength(1);
   // Check the 30-second poll before the first 1-minute send: the nearby
@@ -249,10 +257,10 @@ for (const leave of ["hidden", "navigate"] as const) {
     await openMap(page, accounts);
     const main = page.getByRole("main");
     if (leave === "hidden") await setVisibility(page, "hidden");
-    else await main.getByRole("link", { name: "홈으로" }).click();
+    else await goHome(page);
     const held = await holdResponse(page, "**/api/users/nearby", "GET");
     if (leave === "hidden") await setVisibility(page, "visible");
-    else await main.getByRole("link", { name: "지도", exact: true }).click();
+    else await main.getByRole("link", { name: "주변 친구 찾기", exact: true }).click();
     await held.captured;
     await expect(
       main.getByRole("region", { name: "주변 산책 친구", exact: true }),
@@ -339,8 +347,7 @@ test("토큰 갱신을 기다리다 지도를 떠나면 저장을 재전송하�
   const held = await holdResponse(page, "**/api/auth/refresh", "POST");
   await page.getByRole("button", { name: "동의하고 위치 공개" }).click();
   await held.captured;
-  await page.getByRole("link", { name: "홈으로" }).click();
-  await expect(page).toHaveURL("/");
+  await goHome(page);
   await held.release();
   await page.clock.fastForward(60_000);
   expect(saves).toHaveLength(1);
@@ -377,8 +384,7 @@ for (const leave of ["hidden", "navigate"] as const) {
     );
     if (leave === "hidden") await setVisibility(page, "hidden");
     else {
-      await page.getByRole("link", { name: "홈으로" }).click();
-      await expect(page).toHaveURL("/");
+      await goHome(page);
     }
     await page.evaluate(() =>
       (window as unknown as { releasePosition(): void }).releasePosition(),
@@ -393,10 +399,10 @@ test("로그아웃 후 다시 지도에 들어오면 동의를 다시 받는다"
   accounts,
 }) => {
   await openMap(page, accounts);
-  await page.getByRole("link", { name: "홈으로" }).click();
+  await goHome(page);
   await page.getByRole("button", { name: "로그아웃" }).click();
   await expect(
-    page.getByRole("main").getByRole("link", { name: "로그인", exact: true }),
+    page.getByRole("main").getByRole("button", { name: "로그인", exact: true }),
   ).toBeVisible();
   await login(page, accounts[0]);
   await expect(page.getByText(consentMessage)).toBeVisible();

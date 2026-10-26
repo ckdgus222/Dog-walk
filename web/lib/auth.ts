@@ -31,7 +31,8 @@ interface SignupBody {
 }
 
 let refreshPromise: Promise<User> | null = null;
-let loginPromise: Promise<void> | null = null;
+let loginPromise: Promise<boolean> | null = null;
+const passwordChanges = new Set<Promise<unknown>>();
 let loggingOut = false;
 
 export const getAccessToken = () => useAuthStore.getState().accessToken;
@@ -89,7 +90,16 @@ export const refresh = (): Promise<User> => {
   return refreshPromise;
 };
 
-export const login = (email: string, password: string): Promise<void> => {
+export const login = (
+  email: string,
+  password: string,
+  canNavigate: () => boolean = () => true,
+): Promise<boolean> => {
+  // Logout waits only for loginPromise, so a second login would hide the
+  // first one's late response from it and let that response log back in.
+  if (loggingOut) return Promise.reject(new Error("로그아웃하고 있어요."));
+  if (loginPromise) return Promise.reject(new Error("로그인하고 있어요."));
+
   loginPromise = (async () => {
     const response = await fetch("/api/auth/login", {
       method: "POST",
@@ -98,15 +108,43 @@ export const login = (email: string, password: string): Promise<void> => {
     });
     if (!response.ok) throw await responseError(response);
     const { user, accessToken }: AuthResponse = await response.json();
+    // Saving auth remounts the forms, so check departure before saving it.
+    const shouldNavigate = canNavigate();
     useAuthStore.getState().setAuth(user, accessToken);
+    useAuthStore.setState({ welcomeNickname: user.nickname });
+    return shouldNavigate;
   })().finally(() => {
     loginPromise = null;
   });
   return loginPromise;
 };
 
+// Shows a saved nickname. A token refresh started before the save answers
+// with the old nickname and replaces the whole user, so wait for it first.
+export const applySavedUser = async (user: User) => {
+  if (refreshPromise) await refreshPromise.catch(() => {});
+  useAuthStore.getState().updateUser(user);
+};
+
 export const signup = async (body: SignupBody): Promise<void> => {
   await postJson("/api/auth/signup", body);
+};
+
+export const changePassword = (body: {
+  currentPassword: string;
+  newPassword: string;
+}): Promise<User> => {
+  if (loggingOut) return Promise.reject(new Error("로그아웃하고 있어요."));
+
+  const pending = apiRequest<User>("/api/users/me", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }).finally(() => {
+    passwordChanges.delete(pending);
+  });
+  passwordChanges.add(pending);
+  return pending;
 };
 
 export const logout = async () => {
@@ -116,6 +154,9 @@ export const logout = async () => {
     // session (or, for login, set a new cookie) after logout has finished.
     if (loginPromise) await loginPromise.catch(() => {});
     if (refreshPromise) await refreshPromise.catch(() => {});
+    // Password changes replace the refresh cookie, so logout needs their
+    // responses before it can invalidate the latest token.
+    await Promise.allSettled([...passwordChanges]);
     await postJson("/api/auth/logout");
   } finally {
     useAuthStore.getState().clearAuth();

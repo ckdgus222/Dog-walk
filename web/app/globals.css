@@ -1,12 +1,71 @@
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Colors. docs/design-system.md lists where each one goes. */
+  --paper: #f5f0db;
+  --text: #33383c;
+  --ink: #274b49;
+  /* Dark enough for white button text and orange text on cream (4.5:1). */
+  --accent: #b8492a;
+  --accent-soft: #fbe5da;
+  --sage: #d2dfca;
+  --sage-soft: #e6ebda;
+  --card: #fbf7ec;
+  --field: #fffcf5;
+  --line: #e2dcc8;
+  --muted: #5c6266;
+  --rough-line: rgb(39 75 73 / 0.55);
+
+  /* Type, spacing and corners come in fixed steps. */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-md: 16px;
+  --text-lg: 18px;
+  --text-xl: 22px;
+  --text-2xl: 28px;
+  --text-3xl: 40px;
+  --text-4xl: 56px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-full: 999px;
+
+  --shadow-card: 0 2px 0 rgb(39 75 73 / 0.06), 0 6px 18px rgb(39 75 73 / 0.07);
+  --shadow-panel: 0 18px 48px rgb(39 75 73 / 0.12);
+
+  --button-lg: 48px;
+  --button-md: 40px;
+  --button-sm: 32px;
+  --field-height: 48px;
+
+  /* Panels lie on paper. Cards are a lighter, see-through cream, so the
+     panel's grain shows through them without painting it twice. */
+  --paper-grain: url("/illustrations/walking-drawing/ui/paper.jpg");
+  --card-bg: color-mix(in srgb, var(--card) 72%, transparent);
+
+  /* Width of the header and the content panel: the window less about 5% on
+     each side, up to 1680px. Wider windows get more columns, not bigger
+     text. */
+  --page-width: min(100% - 2 * max(24px, 5%), 1680px);
+  /* The panel's inner side padding, shared with the header so the logo
+     lines up with the content. */
+  --panel-pad-x: 48px;
 }
 
-@media (prefers-color-scheme: dark) {
+/* Phones keep a thin strip of the field on each side. */
+@media (max-width: 720px) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --text-3xl: 28px;
+    --text-4xl: 32px;
+    --page-width: calc(100% - 20px);
+    --panel-pad-x: 14px;
   }
 }
 
@@ -24,9 +83,12 @@ body {
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--text);
+  background: var(--paper);
+  font-family: var(--font-sans), "Apple SD Gothic Neo", "Malgun Gothic",
+    sans-serif;
+  /* Wrap Korean text between words, not in the middle of a word. */
+  word-break: keep-all;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -35,6 +97,12 @@ body {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+  /* Thin scrollbars in the drawing's colors, on the page and on every box
+     that scrolls inside it. The width is not inherited, so it goes on
+     every element. */
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--ink) 40%, transparent)
+    transparent;
 }
 
 a {
@@ -42,8 +110,14 @@ a {
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+/* Zero specificity, so any module class can restyle an alert. */
+:where([role="alert"]) {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
 }

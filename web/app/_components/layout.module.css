@@ -1,0 +1,69 @@
+/* Each page's content sits on a cream panel over the field background. Every
+   panel is as wide as the header and at least fills the window below it
+   (the body is a column, see globals.css). */
+.main {
+  composes: panel from "./ui.module.css";
+  --panel-pad-bottom: var(--space-6);
+  flex: 1 0 auto;
+  display: grid;
+  align-content: start;
+  gap: var(--space-4);
+  width: var(--page-width);
+  margin: var(--space-4) auto;
+  padding: var(--space-6) var(--panel-pad-x) var(--panel-pad-bottom);
+  box-shadow: var(--shadow-panel);
+}
+
+/* Pages laid out to fit the window: from 1280x800 up the panel is exactly
+   the window's height and the page never scrolls. Long lists scroll inside
+   their own box; the panel scrolls only when something unplanned, such as
+   several error lines, still does not fit. Smaller windows keep the page
+   scroll, because the fields' minimum sizes would overflow a fixed panel. */
+@media (min-width: 1280px) and (min-height: 800px) {
+  :global(body):has(.fit) {
+    height: 100%;
+  }
+
+  .main.fit {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+  }
+}
+
+/* The one way back from a form or detail page: a chevron and the name of
+   the page it returns to. */
+.back {
+  display: flex;
+  align-items: center;
+  justify-self: start;
+  gap: var(--space-2);
+  color: var(--ink);
+  font-size: var(--text-md);
+}
+
+/* The title block with an optional action on the right. */
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-5);
+}
+
+/* The main action of a list page, beside its title. */
+.headAction {
+  composes: button primary from "./ui.module.css";
+}
+
+@media (max-width: 720px) {
+  .main {
+    --panel-pad-bottom: var(--space-5);
+    margin: var(--space-3) auto;
+    padding-top: var(--space-5);
+  }
+
+  .headAction {
+    width: 100%;
+  }
+}

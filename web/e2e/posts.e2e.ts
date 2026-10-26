@@ -103,7 +103,7 @@ test("게시판 작성·댓글·작성자 권한·삭제·페이지 이동", asy
           .getByRole("region", { name: "댓글", exact: true })
           .getByText(authorComment, { exact: true }),
       ).toBeVisible();
-      await main.getByRole("link", { name: "게시판 목록" }).click();
+      await main.getByRole("link", { name: "게시판", exact: true }).click();
       await expect(page).toHaveURL("/posts");
       await expect(
         main.getByRole("link", { name: `${title} [1]`, exact: true }),
@@ -112,7 +112,7 @@ test("게시판 작성·댓글·작성자 권한·삭제·페이지 이동", asy
         .getByRole("link", { name: `${title} [1]`, exact: true })
         .click();
       await expect(page).toHaveURL(postPath);
-      await article.getByRole("link", { name: "수정", exact: true }).click();
+      await article.getByRole("link", { name: "글 수정", exact: true }).click();
       await expect(page).toHaveURL(`${postPath}/edit`);
       await expect(main.getByLabel("제목", { exact: true })).toHaveValue(title);
       await main.getByLabel("제목", { exact: true }).fill(updatedTitle);
@@ -138,7 +138,7 @@ test("게시판 작성·댓글·작성자 권한·삭제·페이지 이동", asy
         comments.getByText(authorComment, { exact: true }),
       ).toBeVisible();
       await expect(
-        otherMain.getByRole("link", { name: "수정", exact: true }),
+        otherMain.getByRole("link", { name: "글 수정", exact: true }),
       ).toHaveCount(0);
       await expect(
         otherMain.getByRole("button", { name: "수정", exact: true }),

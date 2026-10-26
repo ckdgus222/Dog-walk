@@ -7,8 +7,12 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { createHash, randomUUID } from 'node:crypto';
 import * as bcrypt from 'bcrypt';
-import { Prisma } from '../generated/prisma/client.js';
+import { PASSWORD_HASH_ROUNDS } from '../common/account-rules.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import {
+  isRecordNotFoundError,
+  isUniqueConstraintError,
+} from '../prisma/prisma-errors.js';
 import { UsersService, type PublicUser } from '../users/users.service.js';
 import type { SignupDto } from './dto/signup.dto.js';
 
@@ -34,7 +38,10 @@ export class AuthService {
   }
 
   async signup(input: SignupDto): Promise<PublicUser> {
-    const passwordHash = await bcrypt.hash(input.password, 10);
+    const passwordHash = await bcrypt.hash(
+      input.password,
+      PASSWORD_HASH_ROUNDS,
+    );
     try {
       return await this.prisma.user.create({
         data: {
@@ -46,37 +53,22 @@ export class AuthService {
         select: { id: true, email: true, nickname: true },
       });
     } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2002'
-      ) {
-        // Prisma's PostgreSQL adapter reports the constraint index instead of target.
-        const adapterError = error.meta?.driverAdapterError as
-          | {
-              cause?: { constraint?: { fields?: string[]; index?: string } };
-            }
-          | undefined;
-        const constraint = adapterError?.cause?.constraint;
-        const target =
-          error.meta?.target ?? constraint?.fields ?? constraint?.index;
-        if (
-          (Array.isArray(target) && target.includes('email')) ||
-          target === 'users_email_key'
-        ) {
-          throw new ConflictException('이미 가입된 이메일입니다.');
-        }
-        if (
-          (Array.isArray(target) && target.includes('nickname')) ||
-          target === 'users_nickname_key'
-        ) {
-          throw new ConflictException('이미 사용 중인 닉네임입니다.');
-        }
+      if (isUniqueConstraintError(error, 'email', 'users_email_key')) {
+        throw new ConflictException('이미 가입된 이메일입니다.');
+      }
+      if (isUniqueConstraintError(error, 'nickname', 'users_nickname_key')) {
+        throw new ConflictException('이미 사용 중인 닉네임입니다.');
       }
       throw error;
     }
   }
 
-  async validateUser(email: string, password: string): Promise<PublicUser> {
+  // The user, and the password hash that was checked, so login can store its
+  // token only while that password is still the account's.
+  async validateUser(
+    email: string,
+    password: string,
+  ): Promise<{ user: PublicUser; passwordHash: string }> {
     const user = await this.users.findByEmail(email);
     const matches = await bcrypt.compare(
       password,
@@ -85,20 +77,50 @@ export class AuthService {
     if (!user || !matches) {
       throw new UnauthorizedException(INVALID_CREDENTIALS);
     }
-    return { id: user.id, email: user.email, nickname: user.nickname };
+    return {
+      user: { id: user.id, email: user.email, nickname: user.nickname },
+      passwordHash: user.passwordHash,
+    };
   }
 
-  async login(user: PublicUser) {
-    const tokens = await this.issueTokens(user.id);
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: {
-        refreshTokenHash: createHash('sha256')
-          .update(tokens.refreshToken)
-          .digest('hex'),
+  // Stored only if the password checked by validateUser is still the
+  // account's: a login with the old password that finishes after a password
+  // change gets no token.
+  async login(user: PublicUser, verifiedPasswordHash: string) {
+    const accessToken = await this.issueAccessToken(user.id);
+    const { refreshToken, refreshTokenHash } = await this.newRefreshToken(
+      user.id,
+    );
+    try {
+      await this.prisma.user.update({
+        where: { id: user.id, passwordHash: verifiedPasswordHash },
+        data: { refreshTokenHash },
+      });
+    } catch (error) {
+      if (isRecordNotFoundError(error)) {
+        throw new UnauthorizedException(INVALID_CREDENTIALS);
+      }
+      throw error;
+    }
+    return { accessToken, refreshToken, user };
+  }
+
+  // A refresh token and the hash to store for it. A user has one stored
+  // hash, so storing a new one ends every earlier refresh token.
+  async newRefreshToken(userId: number) {
+    const refreshToken = await this.jwt.signAsync(
+      { sub: userId },
+      {
+        secret: this.refreshSecret,
+        expiresIn: '7d',
+        jwtid: randomUUID(),
+        algorithm: 'HS256',
       },
-    });
-    return { ...tokens, user };
+    );
+    return {
+      refreshToken,
+      refreshTokenHash: createHash('sha256').update(refreshToken).digest('hex'),
+    };
   }
 
   async refresh(token: string | undefined) {
@@ -182,19 +204,5 @@ export class AuthService {
         algorithm: 'HS256',
       },
     );
-  }
-
-  private async issueTokens(userId: number) {
-    const accessToken = await this.issueAccessToken(userId);
-    const refreshToken = await this.jwt.signAsync(
-      { sub: userId },
-      {
-        secret: this.refreshSecret,
-        expiresIn: '7d',
-        jwtid: randomUUID(),
-        algorithm: 'HS256',
-      },
-    );
-    return { accessToken, refreshToken };
   }
 }

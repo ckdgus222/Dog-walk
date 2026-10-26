@@ -52,11 +52,18 @@ export type Neighbor = {
 export type Diary = {
   id: number;
   dog: { id: number; name: string };
+  title: string;
   walkedOn: string;
   content: string;
   createdAt: string;
   updatedAt: string;
   images: { id: number }[];
+};
+
+export type DiaryList = {
+  diaries: Diary[];
+  page: number;
+  totalPages: number;
 };
 
 export type Post = {

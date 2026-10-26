@@ -27,7 +27,7 @@ const commentSelect = {
   updatedAt: true,
 } satisfies Prisma.CommentSelect;
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 @Injectable()
 export class PostsService {

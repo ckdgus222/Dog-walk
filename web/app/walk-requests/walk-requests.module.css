@@ -1,0 +1,162 @@
+/* The title on the left, the crouching walker on the right. */
+.head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 440px);
+  align-items: end;
+  gap: var(--space-5);
+}
+
+.head > img {
+  width: 100%;
+  height: auto;
+}
+
+/* Received and sent requests side by side. */
+.boxes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: var(--space-5);
+}
+
+.boxes > p {
+  grid-column: 1 / -1;
+}
+
+.box {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.box > h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--sage-soft);
+  color: var(--ink);
+  font-size: var(--text-xl);
+  font-weight: 700;
+}
+
+.box > h2 span {
+  color: var(--muted);
+  font-size: var(--text-lg);
+  font-weight: 500;
+}
+
+.list {
+  display: grid;
+  align-content: start;
+  gap: var(--space-3);
+}
+
+/* The two faces beside the details, then the status and buttons on a line
+   of their own. */
+.request {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3) var(--space-4);
+  overflow-wrap: anywhere;
+}
+
+.faces {
+  composes: facePair from "../_components/ui.module.css";
+  align-self: start;
+}
+
+.info {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+}
+
+.message {
+  margin-top: var(--space-1);
+}
+
+.message::before {
+  content: "“";
+}
+
+.message::after {
+  content: "”";
+}
+
+.end {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.when {
+  composes: meta from "../_components/ui.module.css";
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.buttons {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* From 1280x800 up the two boxes take the height under the title, and each
+   box's requests scroll inside it. The drawing stays small beside the
+   title. */
+@media (min-width: 1280px) and (min-height: 800px) {
+  .page {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .head > img {
+    justify-self: end;
+    width: auto;
+    height: 120px;
+  }
+
+  .boxes {
+    align-items: stretch;
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .box {
+    grid-template-rows: auto minmax(0, 1fr);
+    min-height: 0;
+  }
+
+  .box > :last-child {
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 1023px) {
+  .boxes {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .head {
+    grid-template-columns: 1fr;
+  }
+
+  .head > img {
+    justify-self: end;
+    width: min(100%, 280px);
+  }
+
+  .wideOnly {
+    display: none;
+  }
+
+  .buttons {
+    flex: 1;
+    justify-content: flex-end;
+  }
+}

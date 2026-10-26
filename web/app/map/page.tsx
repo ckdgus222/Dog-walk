@@ -1,9 +1,15 @@
 "use client";
 
-import Link from "next/link";
+import Image from "next/image";
 import { useLayoutEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { AuthGate } from "../_components/auth-gate";
+import { dangerButton } from "../_components/buttons";
+import { PinIcon } from "../_components/icons";
+import headingStyles from "../_components/heading.module.css";
+import layoutStyles from "../_components/layout.module.css";
+import uiStyles from "../_components/ui.module.css";
+import { useMyDogs } from "../../lib/api/dogs";
 import {
   useChangeLocationConsent,
   useMyLocation,
@@ -11,22 +17,27 @@ import {
   useUpdateMyLocation,
 } from "../../lib/api/location";
 import type { MyLocation, Neighbor } from "../../lib/types";
-import styles from "../_components/shared.module.css";
 import KakaoMap from "./kakao-map";
 import { NeighborList } from "./neighbor-list";
 import { NeighborDetail } from "./neighbor-detail";
+import walkScene from "../../public/illustrations/walking-drawing/walk-scene.png";
+import styles from "./map.module.css";
 
 // Keep marker inputs stable while the nearby list is unavailable.
 const noNeighbors: Neighbor[] = [];
 
 const MapPage = () => {
   return (
-    <main className={styles.main}>
-      <h1>지도</h1>
+    <main className={`${layoutStyles.main} ${layoutStyles.fit} ${styles.page}`}>
+      <div className={styles.head}>
+        <h1 className={headingStyles.title}>내 주변 산책 친구</h1>
+        <p className={headingStyles.lead}>
+          지금 이 근처에서 함께 산책할 수 있는 이웃을 찾아보세요.
+        </p>
+      </div>
       <AuthGate>
         <LocationPanel />
       </AuthGate>
-      <Link href="/">홈으로</Link>
     </main>
   );
 };
@@ -50,6 +61,8 @@ const LocationPanel = () => {
   const error =
     consent.error?.message ?? sendError ?? locationQuery.error?.message;
   const nearbyError = nearby.error?.message;
+  // My own marker shows my first dog, as on the home page.
+  const myDog = useMyDogs().data?.[0];
 
   // A layout effect, because Next.js hides this page with Activity when
   // navigating away. Only a layout cleanup resets the list before it is
@@ -138,7 +151,7 @@ const LocationPanel = () => {
 
   if (!location.consented) {
     return (
-      <>
+      <div className={`${uiStyles.card} ${styles.consent}`}>
         {error && <p role="alert">{error}</p>}
         <p>
           지도 화면을 보고 있는 동안 내 위치를 약 200m 단위로 흐려서 1분마다
@@ -148,55 +161,89 @@ const LocationPanel = () => {
         </p>
         <button
           type="button"
+          className={`${uiStyles.button} ${uiStyles.primary}`}
           disabled={consent.isPending}
           onClick={() => changeConsent(true)}
         >
           동의하고 위치 공개
         </button>
-      </>
+      </div>
     );
   }
 
   return (
     <>
       {error && <p role="alert">{error}</p>}
-      {location.updatedAt && (
-        <p>
-          마지막 갱신:{" "}
-          <time dateTime={location.updatedAt}>
-            {new Date(location.updatedAt).toLocaleString("ko-KR")}
-          </time>
-        </p>
-      )}
-      <button
-        type="button"
-        disabled={consent.isPending}
-        onClick={() => changeConsent(false)}
-      >
-        위치 공개 끄기
-      </button>
-      {mapStarted && location.lat !== null && location.lng !== null && (
-        <KakaoMap
-          lat={location.lat}
-          lng={location.lng}
-          neighbors={neighbors ?? noNeighbors}
-          onSelect={setSelectedId}
-        />
-      )}
-      {!sentWhileVisible ? (
-        <p role="status">내 위치를 받아 오고 있어요.</p>
-      ) : nearbyError ? (
-        <p role="alert">{nearbyError}</p>
-      ) : neighbors === undefined ? (
-        <p role="status">주변 사용자를 불러오고 있어요.</p>
-      ) : (
-        <NeighborList
-          neighbors={neighbors}
-          selectedId={selectedId}
-          onSelect={setSelectedId}
-        />
-      )}
-      {selected && <NeighborDetail neighbor={selected} />}
+      <div className={styles.status}>
+        <span className={`${uiStyles.badge} ${uiStyles.accepted}`}>
+          <PinIcon size={16} />
+          위치 공개 중
+        </span>
+        <button
+          type="button"
+          className={dangerButton}
+          disabled={consent.isPending}
+          onClick={() => changeConsent(false)}
+        >
+          위치 공개 끄기
+        </button>
+        {location.updatedAt && (
+          <p className={uiStyles.meta}>
+            마지막 업데이트{" "}
+            <time dateTime={location.updatedAt}>
+              {new Date(location.updatedAt).toLocaleString("ko-KR", {
+                dateStyle: "medium",
+                timeStyle: "short",
+              })}
+            </time>
+          </p>
+        )}
+      </div>
+      {/* The map with the neighbor list and the chosen neighbor beside it. */}
+      <div className={styles.mapRow}>
+        {mapStarted && location.lat !== null && location.lng !== null ? (
+          <KakaoMap
+            lat={location.lat}
+            lng={location.lng}
+            myDog={myDog}
+            neighbors={neighbors ?? noNeighbors}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+          />
+        ) : (
+          // The map's place waits with the walk drawing instead of staying
+          // blank until the first location is saved.
+          <div className={styles.mapWaiting}>
+            <Image
+              src={walkScene}
+              alt=""
+              sizes="(max-width: 720px) 90vw, 640px"
+            />
+            <p>지도를 준비하고 있어요.</p>
+          </div>
+        )}
+        <div className={styles.columns}>
+          {!sentWhileVisible ? (
+            <p role="status">내 위치를 받아 오고 있어요.</p>
+          ) : nearbyError ? (
+            <p role="alert">{nearbyError}</p>
+          ) : neighbors === undefined ? (
+            <p role="status">주변 사용자를 불러오고 있어요.</p>
+          ) : (
+            <NeighborList
+              neighbors={neighbors}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+            />
+          )}
+          {selected && <NeighborDetail neighbor={selected} />}
+          {!selected && !!neighbors?.length && (
+            <p className={styles.pickHint}>
+              이웃을 고르면 반려견 정보와 산책 요청이 여기에 보여요.
+            </p>
+          )}
+        </div>
+      </div>
     </>
   );
 };

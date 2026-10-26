@@ -1,0 +1,167 @@
+.intro {
+  display: block;
+  margin: 0;
+  padding: 0;
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  width: 100vw;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  border: 0;
+  overflow: hidden;
+  background: var(--paper);
+  --leave: 0.8s;
+  animation: leave var(--leave) ease-in
+    calc(var(--intro-duration) - var(--leave)) forwards;
+}
+
+/* The title and skip button rise and fade in like the scene layers. */
+.reveal {
+  opacity: 0;
+  animation: reveal 0.9s ease-out var(--reveal-delay) forwards;
+}
+
+.title {
+  position: absolute;
+  top: 30vh;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: var(--ink);
+}
+.title strong {
+  display: block;
+  font-family: var(--font-display), var(--font-sans), sans-serif;
+  font-size: clamp(36px, 6vw, 72px);
+  font-weight: 400;
+  line-height: 1.2;
+  /* A white edge and a soft shadow keep the title clear over the sky. */
+  text-shadow:
+    0 3px 0 white,
+    0 6px 18px rgb(39 75 73 / 0.18);
+}
+.title strong > span {
+  display: inline-block;
+  white-space: pre;
+  animation: pop 0.55s cubic-bezier(0.3, 1.6, 0.5, 1)
+    calc(var(--reveal-delay) + var(--letter) * 0.06s) both;
+}
+.title > span {
+  display: block;
+  margin-top: 12px;
+  font-size: clamp(16px, 2vw, 22px);
+}
+
+.paws {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.paws span {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0;
+  animation: paw 2.4s ease-in-out var(--reveal-delay) infinite;
+}
+.paws span:nth-child(2) {
+  animation-delay: calc(var(--reveal-delay) + 0.3s);
+}
+.paws span:nth-child(3) {
+  animation-delay: calc(var(--reveal-delay) + 0.6s);
+}
+.paws span:nth-child(4) {
+  animation-delay: calc(var(--reveal-delay) + 0.9s);
+}
+
+.skip {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  padding: 10px 18px;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  background: rgb(255 252 245 / 0.85);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.6) rotate(-6deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes paw {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  40%,
+  60% {
+    opacity: 0.75;
+    transform: none;
+  }
+}
+@keyframes leave {
+  to {
+    opacity: 0;
+  }
+}
+.title {
+  --reveal-delay: 2s;
+}
+.skip {
+  --reveal-delay: 0.6s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title strong > span,
+  .paws span {
+    animation: none;
+  }
+  .paws span {
+    opacity: 0.75;
+  }
+}
+
+.intro::backdrop {
+  background: transparent;
+}
+
+:global(html[data-intro="done"]) .intro {
+  display: none;
+}
+:global(body):has(.intro[open]) {
+  overflow: hidden;
+}
+
+/* Start every animation with the same mounted state as the JS timer. */
+.intro,
+.intro * {
+  animation-play-state: paused;
+}
+:global(html[data-intro="playing"]) .intro,
+:global(html[data-intro="playing"]) .intro * {
+  animation-play-state: running;
+}
