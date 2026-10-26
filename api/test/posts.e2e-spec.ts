@@ -78,6 +78,24 @@ describe('Posts and comments (e2e)', () => {
       .send(body);
   }
 
+  it.each([0, -1, 2147483648])(
+    'rejects out of range post and comment ID %s',
+    async (id) => {
+      const author = await signup();
+      const post = await request(app.getHttpServer())
+        .get(`/api/posts/${id}`)
+        .set('Authorization', author.authorization)
+        .expect(400);
+      const comment = await request(app.getHttpServer())
+        .patch(`/api/comments/${id}`)
+        .set('Authorization', author.authorization)
+        .send({ content: '수정' })
+        .expect(400);
+      expect(post.body.message).toBe('잘못된 ID예요.');
+      expect(comment.body.message).toBe('잘못된 ID예요.');
+    },
+  );
+
   it('requires login for all nine APIs', async () => {
     const routes = [
       ['post', '/api/posts'],

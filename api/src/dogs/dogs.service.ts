@@ -63,7 +63,8 @@ export class DogsService {
         select: publicDogSelect,
       });
     } catch (error) {
-      if (photoUrl) await this.discardFailedPhoto(photoUrl);
+      if (photoUrl)
+        await this.removePhotoOrLog(photoUrl, 'a failed dog photo upload');
       throw error;
     }
   }
@@ -80,29 +81,38 @@ export class DogsService {
     if (!previous) throw new NotFoundException('반려견을 찾을 수 없어요.');
 
     const photoUrl = photo ? await this.savePhoto(photo.buffer) : undefined;
-    let updated;
+    let result;
     try {
-      updated = await this.prisma.dog.update({
-        where: { id },
-        data: {
-          name: dog.name,
-          breed: dog.breed,
-          size: dog.size,
-          gender: dog.gender,
-          neutered: dog.neutered,
-          birthYear: dog.birthYear,
-          personality: dog.personality,
-          photoUrl,
-        },
-        select: publicDogSelect,
+      result = await this.prisma.$transaction(async (tx) => {
+        await tx.$queryRaw`SELECT id FROM dogs WHERE id = ${id} AND owner_id = ${userId} FOR UPDATE`;
+        const current = await tx.dog.findFirst({
+          where: { id, ownerId: userId },
+        });
+        if (!current) throw new NotFoundException('반려견을 찾을 수 없어요.');
+        const updated = await tx.dog.update({
+          where: { id },
+          data: {
+            name: dog.name,
+            breed: dog.breed,
+            size: dog.size,
+            gender: dog.gender,
+            neutered: dog.neutered,
+            birthYear: dog.birthYear,
+            personality: dog.personality,
+            photoUrl,
+          },
+          select: publicDogSelect,
+        });
+        return { dog: updated, previousPhotoUrl: current.photoUrl };
       });
     } catch (error) {
-      if (photoUrl) await this.discardFailedPhoto(photoUrl);
+      if (photoUrl)
+        await this.removePhotoOrLog(photoUrl, 'a failed dog photo upload');
       throw error;
     }
-    if (photoUrl && previous.photoUrl)
-      await this.removePhoto(previous.photoUrl);
-    return updated;
+    if (photoUrl && result.previousPhotoUrl)
+      await this.removePhotoOrLog(result.previousPhotoUrl, 'an old dog photo');
+    return result.dog;
   }
 
   async remove(userId: number, id: number) {
@@ -126,7 +136,8 @@ export class DogsService {
         throw error;
       }
     });
-    if (deleted.photoUrl) await this.removePhoto(deleted.photoUrl);
+    if (deleted.photoUrl)
+      await this.removePhotoOrLog(deleted.photoUrl, 'an old dog photo');
   }
 
   private async savePhoto(buffer: Buffer) {
@@ -138,7 +149,7 @@ export class DogsService {
     try {
       await writeFile(join(this.photoDirectory, filename), converted);
     } catch (error) {
-      await this.discardFailedPhoto(photoUrl);
+      await this.removePhotoOrLog(photoUrl, 'a failed dog photo upload');
       throw error;
     }
     return photoUrl;
@@ -148,12 +159,14 @@ export class DogsService {
     return rm(join(this.photoDirectory, basename(photoUrl)), { force: true });
   }
 
-  private async discardFailedPhoto(photoUrl: string) {
-    // Cleanup failure must not replace the original disk or database error.
+  // A failed removal is only logged, with the file name so it can be removed
+  // by hand (README). It must not replace an upload or database error, nor
+  // turn an already committed change into a failed request.
+  private async removePhotoOrLog(photoUrl: string, what: string) {
     try {
       await this.removePhoto(photoUrl);
     } catch {
-      this.logger.error('Could not remove a failed dog photo upload');
+      this.logger.error(`Could not remove ${what}: ${basename(photoUrl)}`);
     }
   }
 }

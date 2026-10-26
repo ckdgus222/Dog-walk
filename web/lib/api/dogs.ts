@@ -25,7 +25,7 @@ export const useDogForEdit = (id: string) =>
     },
   });
 
-export const useSaveDog = (dogId?: number) => {
+export const useSaveDog = (dogId?: number, onSaved?: () => void) => {
   const queryClient = useQueryClient();
   const isNew = dogId === undefined;
   return useMutation({
@@ -38,6 +38,7 @@ export const useSaveDog = (dogId?: number) => {
       await queryClient.cancelQueries({ queryKey: myDogsKey });
       // Navigation must not wait for the list or refetch the mounted edit form.
       void queryClient.invalidateQueries({ queryKey: myDogsKey });
+      onSaved?.();
     },
   });
 };

@@ -7,7 +7,6 @@ import {
   HttpCode,
   Inject,
   Param,
-  ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -19,6 +18,7 @@ import {
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import type { Request } from 'express';
+import { ParseIdPipe } from '../common/db-id.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import type { PublicUser } from '../users/users.service.js';
 import { DiariesService } from './diaries.service.js';
@@ -55,7 +55,7 @@ export class DiariesController {
   @Get(':id')
   detail(
     @Req() request: Request & { user: PublicUser },
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: number,
   ) {
     return this.diaries.findOne(request.user.id, id);
   }
@@ -65,8 +65,8 @@ export class DiariesController {
   @Header('X-Content-Type-Options', 'nosniff')
   async image(
     @Req() request: Request & { user: PublicUser },
-    @Param('id', ParseIntPipe) id: number,
-    @Param('imageId', ParseIntPipe) imageId: number,
+    @Param('id', ParseIdPipe) id: number,
+    @Param('imageId', ParseIdPipe) imageId: number,
   ) {
     return new StreamableFile(
       await this.diaries.readImage(request.user.id, id, imageId),
@@ -78,7 +78,7 @@ export class DiariesController {
   @UseInterceptors(FilesInterceptor('images', 5, photoOptions))
   update(
     @Req() request: Request & { user: PublicUser },
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: number,
     @Body() body: UpdateDiaryFormDto,
     @UploadedFiles() images?: Express.Multer.File[],
   ) {
@@ -89,7 +89,7 @@ export class DiariesController {
   @HttpCode(204)
   remove(
     @Req() request: Request & { user: PublicUser },
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: number,
   ) {
     return this.diaries.remove(request.user.id, id);
   }

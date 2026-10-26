@@ -135,6 +135,37 @@ describe('Diaries (e2e)', () => {
     return call;
   }
 
+  it.each([0, -1, 2147483648])(
+    'rejects out of range diary and image ID %s',
+    async (id) => {
+      const owner = await signup();
+      const created = await create(owner).expect(201);
+      for (const path of [
+        `/api/diaries/${id}`,
+        `/api/diaries/${created.body.id}/images/${id}`,
+      ]) {
+        const response = await request(app.getHttpServer())
+          .get(path)
+          .set('Authorization', owner.authorization)
+          .expect(400);
+        expect(response.body.message).toBe('잘못된 ID예요.');
+      }
+    },
+  );
+
+  it('rejects out of range dog and removal IDs in bodies and filters', async () => {
+    const owner = await signup();
+    await create(owner, { dogId: 2147483648 }).expect(400);
+    const created = await create(owner).expect(201);
+    await update(owner, created.body.id, {
+      removeImageIds: [2147483648],
+    }).expect(400);
+    await request(app.getHttpServer())
+      .get('/api/diaries?dogId=2147483648')
+      .set('Authorization', owner.authorization)
+      .expect(400);
+  });
+
   it('requires login for all six APIs and saves nothing', async () => {
     await request(app.getHttpServer())
       .post('/api/diaries')
@@ -452,11 +483,13 @@ describe('Diaries (e2e)', () => {
     await request(app.getHttpServer())
       .get(`/api/diaries/${id}/images/${imageId}`)
       .expect(401);
-    const mismatch = await request(app.getHttpServer())
-      .get(`/api/diaries/${id}/images/${another.body.images[0].id}`)
-      .set('Authorization', owner.authorization)
-      .expect(404);
-    expect(mismatch.body.message).toBe(missingMessage);
+    for (const missingImageId of [another.body.images[0].id, 2147483647]) {
+      const missing = await request(app.getHttpServer())
+        .get(`/api/diaries/${id}/images/${missingImageId}`)
+        .set('Authorization', owner.authorization)
+        .expect(404);
+      expect(missing.body.message).toBe(missingMessage);
+    }
     await request(app.getHttpServer())
       .get('/api/diaries/not-an-id')
       .set('Authorization', owner.authorization)

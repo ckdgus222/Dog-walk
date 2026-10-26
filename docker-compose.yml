@@ -1,5 +1,12 @@
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   db:
+    logging: *logging
     restart: unless-stopped
     image: postgis/postgis:17-3.6
     platform: linux/amd64
@@ -22,6 +29,7 @@ services:
       start_period: 10s
 
   api:
+    logging: *logging
     restart: unless-stopped
     build: ./api
     environment:
@@ -40,6 +48,7 @@ services:
         condition: service_healthy
 
   web:
+    logging: *logging
     restart: unless-stopped
     build:
       context: ./web
@@ -47,6 +56,7 @@ services:
         NEXT_PUBLIC_KAKAO_MAP_KEY: ${NEXT_PUBLIC_KAKAO_MAP_KEY:-}
 
   nginx:
+    logging: *logging
     restart: unless-stopped
     image: nginx:stable-alpine
     ports:

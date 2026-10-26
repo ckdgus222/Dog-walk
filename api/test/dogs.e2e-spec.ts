@@ -113,6 +113,41 @@ describe('Dogs (e2e)', () => {
       : call;
   }
 
+  it('rejects a dog ID above the database range before saving a photo', async () => {
+    const owner = await signup();
+    const response = await request(app.getHttpServer())
+      .patch('/api/dogs/2147483648')
+      .set('Authorization', owner.authorization)
+      .field('dog', JSON.stringify(dog))
+      .attach('photo', jpeg, 'photo.jpg')
+      .expect(400);
+    expect(response.body.message).toBe('잘못된 ID예요.');
+    expect(await files()).toEqual([]);
+  });
+
+  it('keeps only the final photo after concurrent replacements', async () => {
+    const owner = await signup();
+    const created = await create(owner.authorization, jpeg).expect(201);
+    const responses = await Promise.all(
+      [1, 2].map(() =>
+        request(app.getHttpServer())
+          .patch(`/api/dogs/${created.body.id}`)
+          .set('Authorization', owner.authorization)
+          .field('dog', JSON.stringify(dog))
+          .attach('photo', jpeg, 'photo.jpg')
+          .expect(200),
+      ),
+    );
+    const current = await prisma.dog.findUniqueOrThrow({
+      where: { id: created.body.id },
+    });
+    expect(responses.map((response) => response.body.photoUrl)).toContain(
+      current.photoUrl,
+    );
+    expect(current.photoUrl).not.toBe(created.body.photoUrl);
+    expect(await files()).toEqual([basename(current.photoUrl!)]);
+  });
+
   it('rejects all four unauthenticated APIs before any record or file is saved', async () => {
     await request(app.getHttpServer()).get('/api/dogs/me').expect(401);
     await request(app.getHttpServer())

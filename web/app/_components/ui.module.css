@@ -81,16 +81,6 @@
   border-color: var(--accent);
 }
 
-/* A button that is only orange text and an arrow. */
-.textButton {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--accent);
-  font-size: var(--text-lg);
-  font-weight: 700;
-}
-
 /* A choice drawn as a pill; aria-pressed or a checked radio inside marks the
    chosen one. */
 .chip {

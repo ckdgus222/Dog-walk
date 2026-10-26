@@ -13,11 +13,11 @@ import styles from "../../posts.module.css";
 
 const EditPost = () => {
   const { id } = useParams<{ id: string }>();
-  const query = usePost(Number(id), true);
-  if (query.isFetching) return <p role="status">글을 불러오고 있어요.</p>;
-  if (query.error) return <p role="alert">{query.error.message}</p>;
-  if (query.isSuccess)
-    return <PostForm key={query.data.id} post={query.data} />;
+  const post = usePost(Number(id), true);
+  if (post.isFetching) return <p role="status">글을 불러오고 있어요.</p>;
+  if (post.error) return <p role="alert">{post.error.message}</p>;
+  if (post.isSuccess)
+    return <PostForm key={post.data.id} post={post.data} />;
   return <p role="status">글을 불러오고 있어요.</p>;
 };
 

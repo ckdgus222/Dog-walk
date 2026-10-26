@@ -113,13 +113,6 @@ export const CameraIcon = ({ size = 48 }: { size?: number }) => (
   </svg>
 );
 
-export const CalendarIcon = ({ size = 20 }: { size?: number }) => (
-  <Icon size={size}>
-    <rect x="3.5" y="5" width="17" height="15" rx="1.5" />
-    <path d="M3.5 9.5h17M8 3v4M16 3v4M8 13h2M14 13h2M8 16.5h2" />
-  </Icon>
-);
-
 export const ChatIcon = ({ size = 16 }: { size?: number }) => (
   <Icon size={size}>
     <path d="M4 5h16v11H9l-5 4V5Z" />

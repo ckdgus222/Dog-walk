@@ -80,17 +80,17 @@ const RequestLists = () => {
   const { incoming, dismissIncoming } = useNotifications();
   const received = useWalkRequests("received");
   const sent = useWalkRequests("sent");
-  const respondMutation = useRespondToWalkRequest();
+  const respondToWalkRequest = useRespondToWalkRequest();
   const requests = { received: received.data, sent: sent.data };
   const error =
-    respondMutation.error?.message ??
+    respondToWalkRequest.error?.message ??
     received.error?.message ??
     sent.error?.message;
 
   const respond = (id: number, action: "accept" | "reject" | "cancel") => {
     if (action === "cancel" && !window.confirm("산책 요청을 취소할까요?"))
       return;
-    respondMutation.mutate(
+    respondToWalkRequest.mutate(
       { id, action },
       {
         onSuccess: () => {
@@ -126,7 +126,7 @@ const RequestLists = () => {
                   key={request.id}
                   request={request}
                   box={box}
-                  busy={respondMutation.isPending}
+                  busy={respondToWalkRequest.isPending}
                   respond={respond}
                 />
               ))}

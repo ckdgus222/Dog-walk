@@ -7,12 +7,12 @@ import formStyles from "../_components/form.module.css";
 import styles from "./map.module.css";
 
 export const SendWalkRequest = ({ receiverId }: { receiverId: number }) => {
-  const request = useSendWalkRequest();
+  const sendWalkRequest = useSendWalkRequest();
   const [message, setMessage] = useState("");
 
   const send = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    request.mutate(
+    sendWalkRequest.mutate(
       { receiverId, message },
       {
         onSuccess: () => setMessage(""),
@@ -44,15 +44,15 @@ export const SendWalkRequest = ({ receiverId }: { receiverId: number }) => {
       <button
         type="submit"
         className={formStyles.submit}
-        disabled={request.isPending}
+        disabled={sendWalkRequest.isPending}
       >
         산책 요청 보내기
       </button>
-      {request.isSuccess && <p role="status">산책 요청을 보냈어요.</p>}
-      {request.error && (
+      {sendWalkRequest.isSuccess && <p role="status">산책 요청을 보냈어요.</p>}
+      {sendWalkRequest.error && (
         <p role="alert">
-          {request.error.message}{" "}
-          {request.error.code === "REVERSE_PENDING" && (
+          {sendWalkRequest.error.message}{" "}
+          {sendWalkRequest.error.code === "REVERSE_PENDING" && (
             <Link href="/walk-requests">받은 요청 보기</Link>
           )}
         </p>

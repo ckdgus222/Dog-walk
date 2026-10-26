@@ -5,6 +5,9 @@ import type { Diary, DiaryList } from "../types";
 // The api's diary PAGE_SIZE (api/src/diaries/diaries.service.ts).
 export const DIARY_PAGE_SIZE = 6;
 
+// Cover navigation after saving without keeping external edits stale for long.
+const DETAIL_STALE_TIME = 10_000;
+
 const allDiariesKey = ["diaries"];
 const diaryListKey = ["diaries", "list"];
 const diaryDetailKey = (id: number) => ["diaries", "detail", id];
@@ -24,8 +27,9 @@ export const useDiary = (id: number, forEdit = false) =>
     queryKey: diaryDetailKey(id),
     queryFn: ({ signal }) =>
       apiRequest<Diary>(`/api/diaries/${id}`, { signal }),
-    // Editing needs a fresh read; detail can use the saved response immediately.
-    refetchOnMount: forEdit ? "always" : false,
+    // Editing always reads again; detail reuses recent reads and save responses.
+    staleTime: DETAIL_STALE_TIME,
+    refetchOnMount: forEdit ? "always" : true,
   });
 
 export const useDiaryImage = (diaryId: number, imageId: number) =>
@@ -42,7 +46,7 @@ export const useDiaryImage = (diaryId: number, imageId: number) =>
     staleTime: Infinity,
   });
 
-export const useSaveDiary = (id?: number) => {
+export const useSaveDiary = (id?: number, onSaved?: () => void) => {
   const queryClient = useQueryClient();
   const isNew = id === undefined;
   return useMutation({
@@ -59,6 +63,7 @@ export const useSaveDiary = (id?: number) => {
       await queryClient.cancelQueries({ queryKey: diaryListKey });
       // Refetching the list must not delay navigation or unmount the edit form.
       void queryClient.invalidateQueries({ queryKey: diaryListKey });
+      onSaved?.();
     },
   });
 };

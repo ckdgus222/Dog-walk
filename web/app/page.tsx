@@ -190,15 +190,15 @@ const CardTitle = ({
 );
 
 const MyDogs = () => {
-  const query = useMyDogs();
-  if (query.isPending) return <p role="status">반려견을 불러오고 있어요.</p>;
-  if (query.isError) return <p role="alert">{query.error.message}</p>;
-  if (query.data.length === 0) {
+  const myDogs = useMyDogs();
+  if (myDogs.isPending) return <p role="status">반려견을 불러오고 있어요.</p>;
+  if (myDogs.isError) return <p role="alert">{myDogs.error.message}</p>;
+  if (myDogs.data.length === 0) {
     return <p className={uiStyles.meta}>아직 등록한 반려견이 없어요.</p>;
   }
   return (
     <ul className={styles.dogs}>
-      {query.data.map((dog, index) => (
+      {myDogs.data.map((dog, index) => (
         <li key={dog.id} className={styles.dog}>
           <DogFace
             dog={dog}
@@ -220,10 +220,10 @@ const MyDogs = () => {
 
 // The latest diary on the first page of the diary list (shared cache).
 const RecentDiary = () => {
-  const query = useDiaries(undefined, 1);
-  if (query.isPending) return <p role="status">일기를 불러오고 있어요.</p>;
-  if (query.isError) return <p role="alert">{query.error.message}</p>;
-  const diary = query.data.diaries[0];
+  const diaries = useDiaries(undefined, 1);
+  if (diaries.isPending) return <p role="status">일기를 불러오고 있어요.</p>;
+  if (diaries.isError) return <p role="alert">{diaries.error.message}</p>;
+  const diary = diaries.data.diaries[0];
   if (!diary) {
     return (
       <p className={uiStyles.meta}>
@@ -259,16 +259,16 @@ const RecentDiary = () => {
 
 // The three newest posts on the first page of the board (shared cache).
 const NewPosts = () => {
-  const query = usePosts(1);
-  if (query.isPending) return <p role="status">글을 불러오고 있어요.</p>;
-  if (query.isError) return <p role="alert">{query.error.message}</p>;
-  const posts = query.data.posts.slice(0, 3);
-  if (posts.length === 0) {
+  const posts = usePosts(1);
+  if (posts.isPending) return <p role="status">글을 불러오고 있어요.</p>;
+  if (posts.isError) return <p role="alert">{posts.error.message}</p>;
+  const newest = posts.data.posts.slice(0, 3);
+  if (newest.length === 0) {
     return <p className={uiStyles.meta}>아직 글이 없어요.</p>;
   }
   return (
     <ul className={styles.newPosts}>
-      {posts.map((post) => (
+      {newest.map((post) => (
         <li key={post.id}>
           <Link href={`/posts/${post.id}`} className={styles.inner}>
             {post.title}

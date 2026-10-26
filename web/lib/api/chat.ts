@@ -10,7 +10,7 @@ import type { ChatHistory, ChatMessage } from "../types";
 
 type ChatAck = { ok: true } | { ok: false; message: string };
 
-const chatKey = (walkRequestId: number) => ["chat", walkRequestId];
+export const chatKey = (walkRequestId: number) => ["chat", walkRequestId];
 
 const connectionError = "메시지를 보내지 못했어요. 연결을 확인해 주세요.";
 

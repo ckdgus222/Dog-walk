@@ -11,6 +11,8 @@ import layoutStyles from "../_components/layout.module.css";
 import uiStyles from "../_components/ui.module.css";
 import { useMyDogs } from "../../lib/api/dogs";
 import {
+  myLocationKey,
+  nearbyKey,
   useChangeLocationConsent,
   useMyLocation,
   useNearby,
@@ -44,22 +46,24 @@ const MapPage = () => {
 export default MapPage;
 
 const LocationPanel = () => {
-  const locationQuery = useMyLocation();
-  const location = locationQuery.data;
+  const myLocation = useMyLocation();
+  const location = myLocation.data;
   const queryClient = useQueryClient();
-  const consent = useChangeLocationConsent();
+  const changeLocationConsent = useChangeLocationConsent();
   const { mutateAsync: sendLocation } = useUpdateMyLocation();
   const sending = useRef<AbortController | null>(null);
   const [sentWhileVisible, setSentWhileVisible] = useState(false);
   const [mapStarted, setMapStarted] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const canSend = !!location?.consented && !consent.isPending;
+  const canSend = !!location?.consented && !changeLocationConsent.isPending;
   const nearby = useNearby(canSend && sentWhileVisible);
   const neighbors =
     canSend && sentWhileVisible && !nearby.isError ? nearby.data : undefined;
   const error =
-    consent.error?.message ?? sendError ?? locationQuery.error?.message;
+    changeLocationConsent.error?.message ??
+    sendError ??
+    myLocation.error?.message;
   const nearbyError = nearby.error?.message;
   // My own marker shows my first dog, as on the home page.
   const myDog = useMyDogs().data?.[0];
@@ -76,8 +80,8 @@ const LocationPanel = () => {
       sending.current = null;
       setSentWhileVisible(false);
       setSelectedId(null);
-      void queryClient.cancelQueries({ queryKey: ["location", "nearby"] });
-      queryClient.removeQueries({ queryKey: ["location", "nearby"] });
+      void queryClient.cancelQueries({ queryKey: nearbyKey });
+      queryClient.removeQueries({ queryKey: nearbyKey });
     };
     const send = async () => {
       if (
@@ -89,7 +93,7 @@ const LocationPanel = () => {
         return;
       const controller = new AbortController();
       sending.current = controller;
-      const previous = queryClient.getQueryData<MyLocation>(["location", "me"]);
+      const previous = queryClient.getQueryData<MyLocation>(myLocationKey);
       try {
         const saved = await sendLocation(controller.signal);
         if (!saved || controller.signal.aborted || !active) return;
@@ -135,7 +139,7 @@ const LocationPanel = () => {
     setSendError(null);
     setSentWhileVisible(false);
     setSelectedId(null);
-    consent.mutate(consented);
+    changeLocationConsent.mutate(consented);
   };
 
   const selected = neighbors?.find(
@@ -162,7 +166,7 @@ const LocationPanel = () => {
         <button
           type="button"
           className={`${uiStyles.button} ${uiStyles.primary}`}
-          disabled={consent.isPending}
+          disabled={changeLocationConsent.isPending}
           onClick={() => changeConsent(true)}
         >
           동의하고 위치 공개
@@ -182,7 +186,7 @@ const LocationPanel = () => {
         <button
           type="button"
           className={dangerButton}
-          disabled={consent.isPending}
+          disabled={changeLocationConsent.isPending}
           onClick={() => changeConsent(false)}
         >
           위치 공개 끄기

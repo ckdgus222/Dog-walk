@@ -52,7 +52,7 @@ const UserNotifications = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
   const pathname = usePathname();
   const queryClient = useQueryClient();
-  const count = usePendingCount();
+  const pendingCount = usePendingCount();
   const [incoming, setIncoming] = useState<WalkRequest | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -112,8 +112,8 @@ const UserNotifications = ({ children }: { children: React.ReactNode }) => {
   return (
     <NotificationsContext.Provider
       value={{
-        pendingCount: count.data?.count ?? 0,
-        pendingCountError: count.error?.message ?? "",
+        pendingCount: pendingCount.data?.count ?? 0,
+        pendingCountError: pendingCount.error?.message ?? "",
         incoming,
         notice,
         socket,

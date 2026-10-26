@@ -30,13 +30,13 @@ const listDate = (iso: string) =>
 const PostList = () => {
   const searchParams = useSearchParams();
   const page = Number(searchParams.get("page") ?? "1");
-  const query = usePosts(page);
+  const posts = usePosts(page);
 
   return (
     <>
-      {query.error && <p role="alert">{query.error.message}</p>}
-      {query.isPending && <p role="status">글을 불러오고 있어요.</p>}
-      {!!query.data?.posts.length && (
+      {posts.error && <p role="alert">{posts.error.message}</p>}
+      {posts.isPending && <p role="status">글을 불러오고 있어요.</p>}
+      {!!posts.data?.posts.length && (
         <div className={`${uiStyles.list} ${styles.list}`}>
           {/* Screen readers get each column's meaning from the row itself. */}
           <p className={styles.columns} aria-hidden="true">
@@ -45,7 +45,7 @@ const PostList = () => {
             <span>작성일</span>
             <span>댓글</span>
           </p>
-          {query.data.posts.map((post) => (
+          {posts.data.posts.map((post) => (
             <article
               key={post.id}
               className={`${uiStyles.listRow} ${styles.row}`}
@@ -80,7 +80,7 @@ const PostList = () => {
           ))}
         </div>
       )}
-      {query.data && page === 1 && query.data.posts.length === 0 && (
+      {posts.data && page === 1 && posts.data.posts.length === 0 && (
         <EmptyState
           image={communityChat}
           title="아직 글이 없어요."
@@ -88,11 +88,11 @@ const PostList = () => {
           action={{ href: "/posts/new", label: "첫 글 쓰기" }}
         />
       )}
-      {query.data && (
+      {posts.data && (
         <Pager
           label="게시판 페이지"
           page={page}
-          totalPages={query.data.totalPages}
+          totalPages={posts.data.totalPages}
           href={(to) => `/posts?page=${to}`}
           emptyText="이 페이지에는 글이 없어요."
         />

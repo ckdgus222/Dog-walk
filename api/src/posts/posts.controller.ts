@@ -6,7 +6,6 @@ import {
   HttpCode,
   Inject,
   Param,
-  ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -14,6 +13,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { Request } from 'express';
+import { ParseIdPipe } from '../common/db-id.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { JsonBodyGuard } from '../auth/guards/json-body.guard.js';
 import type { PublicUser } from '../users/users.service.js';
@@ -42,7 +42,7 @@ export class PostsController {
   }
 
   @Get('posts/:id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(@Param('id', ParseIdPipe) id: number) {
     return this.posts.findOne(id);
   }
 
@@ -50,7 +50,7 @@ export class PostsController {
   @UseGuards(JsonBodyGuard)
   update(
     @Req() request: Request & { user: PublicUser },
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: number,
     @Body() body: PostDto,
   ) {
     return this.posts.update(request.user.id, id, body);
@@ -60,13 +60,13 @@ export class PostsController {
   @HttpCode(204)
   remove(
     @Req() request: Request & { user: PublicUser },
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: number,
   ) {
     return this.posts.remove(request.user.id, id);
   }
 
   @Get('posts/:id/comments')
-  findComments(@Param('id', ParseIntPipe) id: number) {
+  findComments(@Param('id', ParseIdPipe) id: number) {
     return this.posts.findComments(id);
   }
 
@@ -74,7 +74,7 @@ export class PostsController {
   @UseGuards(JsonBodyGuard)
   addComment(
     @Req() request: Request & { user: PublicUser },
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: number,
     @Body() body: CommentDto,
   ) {
     return this.posts.addComment(request.user.id, id, body);
@@ -84,7 +84,7 @@ export class PostsController {
   @UseGuards(JsonBodyGuard)
   updateComment(
     @Req() request: Request & { user: PublicUser },
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: number,
     @Body() body: CommentDto,
   ) {
     return this.posts.updateComment(request.user.id, id, body);
@@ -94,7 +94,7 @@ export class PostsController {
   @HttpCode(204)
   removeComment(
     @Req() request: Request & { user: PublicUser },
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: number,
   ) {
     return this.posts.removeComment(request.user.id, id);
   }

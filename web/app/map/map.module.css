@@ -397,6 +397,12 @@
   .columns > * {
     overflow-y: auto;
   }
+
+  /* With no neighbors the list is alone in the column, so it takes the whole
+     height. The empty card is taller than the list row alone. */
+  .columns:has(> :only-child) {
+    grid-template-rows: minmax(0, 1fr);
+  }
 }
 
 /* Narrower windows put the list column under the map. */

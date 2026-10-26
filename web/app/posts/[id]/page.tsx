@@ -19,11 +19,11 @@ const PostDetail = () => {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const userId = useAuthStore((state) => state.user?.id);
-  const query = usePost(Number(id));
-  const remove = useDeletePost();
-  if (query.error) return <p role="alert">{query.error.message}</p>;
-  if (!query.data) return <p role="status">글을 불러오고 있어요.</p>;
-  const post = query.data;
+  const postQuery = usePost(Number(id));
+  const deletePost = useDeletePost();
+  if (postQuery.error) return <p role="alert">{postQuery.error.message}</p>;
+  if (!postQuery.data) return <p role="status">글을 불러오고 있어요.</p>;
+  const post = postQuery.data;
 
   // The post and its comments side by side, each scrolling in its own
   // column, so a long post or many comments never scroll the page.
@@ -47,20 +47,20 @@ const PostDetail = () => {
             </Link>
             <button
               className={dangerButton}
-              disabled={remove.isPending}
+              disabled={deletePost.isPending}
               onClick={() => {
                 if (!window.confirm("글을 삭제할까요?")) return;
-                remove.mutate(post.id, {
+                deletePost.mutate(post.id, {
                   onSuccess: () => router.push("/posts"),
                 });
               }}
             >
-              {remove.isPending ? "삭제 중…" : "삭제"}
+              {deletePost.isPending ? "삭제 중…" : "삭제"}
             </button>
           </div>
         )}
         <p className={styles.content}>{post.content}</p>
-        {remove.error && <p role="alert">{remove.error.message}</p>}
+        {deletePost.error && <p role="alert">{deletePost.error.message}</p>}
       </article>
       <Comments key={post.id} postId={post.id} />
     </div>

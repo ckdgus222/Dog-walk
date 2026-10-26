@@ -1,6 +1,7 @@
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { assertE2eDatabaseUrl } from './e2e-database.mjs';
 
 const env = {
   ...process.env,
@@ -13,6 +14,13 @@ const env = {
     process.env.DATABASE_URL ||
     'postgresql://dogwalk:dogwalk_local_only@localhost:5433/dogwalk_test',
 };
+
+try {
+  assertE2eDatabaseUrl(env.DATABASE_URL);
+} catch (error) {
+  console.error(error.message);
+  process.exit(1);
+}
 
 for (const args of [
   ['node_modules/prisma/build/index.js', 'generate'],

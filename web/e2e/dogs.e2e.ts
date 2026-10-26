@@ -1,5 +1,11 @@
 import { randomUUID } from "node:crypto";
-import { errors, expect, test } from "@playwright/test";
+import {
+  errors,
+  expect,
+  test,
+  type APIRequestContext,
+  type Page,
+} from "@playwright/test";
 
 // Two 2x2 PNGs in different colors, kept inline so no image files are committed.
 const photoA = {
@@ -19,26 +25,49 @@ const photoB = {
   ),
 };
 
+const firstDog = {
+  name: "보리",
+  breed: "푸들",
+  // Not the first option of each group, so a form that always checks the
+  // first radio fails the saved-value check below.
+  size: "MEDIUM",
+  gender: "FEMALE",
+  neutered: true,
+  birthYear: 2021,
+  personality: "친구와 걷는 걸 좋아해요.",
+};
+
+const createAccount = async (request: APIRequestContext) => {
+  const runId = `${Date.now().toString(36)}${randomUUID().slice(0, 6)}`;
+  const account = {
+    email: `browser-${runId}@example.com`,
+    nickname: `산책${runId}`,
+    password: randomUUID().slice(0, 20),
+  };
+  const signup = await request.post("/api/auth/signup", {
+    data: { ...account, dog: firstDog },
+  });
+  expect(signup.status()).toBe(201);
+  return account;
+};
+
+const login = async (
+  page: Page,
+  account: { email: string; password: string },
+) => {
+  const main = page.getByRole("main");
+  await page.goto("/login");
+  await main.getByLabel("이메일").fill(account.email);
+  await main.getByLabel("비밀번호").fill(account.password);
+  await main.getByRole("button", { name: "로그인", exact: true }).click();
+  await expect(page).toHaveURL("/");
+};
+
 test("반려견 사진 추가·교체와 마지막 한 마리 삭제 제한", async ({
   page,
   request,
 }) => {
   test.setTimeout(60_000);
-  const runId = `${Date.now().toString(36)}${randomUUID().slice(0, 6)}`;
-  const email = `browser-${runId}@example.com`;
-  const nickname = `산책${runId}`;
-  const password = randomUUID().slice(0, 20);
-  const firstDog = {
-    name: "보리",
-    breed: "푸들",
-    // Not the first option of each group, so a form that always checks the
-    // first radio fails the saved-value check below.
-    size: "MEDIUM",
-    gender: "FEMALE",
-    neutered: true,
-    birthYear: 2021,
-    personality: "친구와 걷는 걸 좋아해요.",
-  };
   const cards = page.getByRole("article");
   const firstCard = cards.filter({
     has: page.getByRole("heading", { name: firstDog.name, exact: true }),
@@ -53,20 +82,13 @@ test("반려견 사진 추가·교체와 마지막 한 마리 삭제 제한", as
   const photoInput = main.getByLabel("사진 (선택, 5MB 이하)");
   const alert = main.getByRole("alert");
 
-  await test.step("준비: 새 계정과 반려견 한 마리를 등록한다", async () => {
-    const response = await request.post("/api/auth/signup", {
-      data: { email, password, nickname, dog: firstDog },
-    });
-    expect(response.status()).toBe(201);
-  });
+  const account = await test.step("준비: 새 계정과 반려견 한 마리를 등록한다", () =>
+    createAccount(request),
+  );
 
   await test.step("로그인하고 가입 때 등록한 반려견을 확인한다", async () => {
-    await page.goto("/login");
-    await main.getByLabel("이메일").fill(email);
-    await main.getByLabel("비밀번호").fill(password);
-    await page.getByRole("button", { name: "로그인", exact: true }).click();
-    await expect(page).toHaveURL("/");
-    await expect(main.getByText(`${nickname}님, 안녕하세요`)).toBeVisible();
+    await login(page, account);
+    await expect(main.getByText(`${account.nickname}님, 안녕하세요`)).toBeVisible();
     await main.getByRole("link", { name: "내 반려견", exact: true }).click();
     await expect(page).toHaveURL("/dogs");
     await expect(cards).toHaveCount(1);
@@ -253,4 +275,44 @@ test("반려견 사진 추가·교체와 마지막 한 마리 삭제 제한", as
     await expect(cards).toHaveCount(1);
     await expect(firstCard).toBeVisible();
   });
+});
+
+test("반려견 등록 뒤 다시 추가하면 입력과 사진 미리보기를 비운다", async ({
+  page,
+  request,
+}) => {
+  const account = await createAccount(request);
+  const main = page.getByRole("main");
+  await login(page, account);
+  await page.goto("/dogs/new");
+  await main.getByLabel("이름", { exact: true }).fill("두부");
+  await main.getByLabel("견종").fill("진돗개");
+  await main.getByRole("radio", { name: "중형", exact: true }).check();
+  await main.getByRole("radio", { name: "암컷", exact: true }).check();
+  await main.getByLabel("중성화했어요").check();
+  await main.getByLabel("태어난 해").selectOption("2022");
+  await main.getByLabel("성격 소개").fill("천천히 걷는 걸 좋아해요.");
+  await main.getByLabel("사진 (선택, 5MB 이하)").setInputFiles(photoA);
+  await expect(
+    main.getByRole("img", { name: "고른 사진 미리보기" }),
+  ).toBeVisible();
+  await main.getByRole("button", { name: "저장하기", exact: true }).click();
+  await expect(page).toHaveURL("/dogs");
+  await expect(
+    main.getByRole("heading", { name: "두부", exact: true }),
+  ).toBeVisible();
+  await main.getByRole("link", { name: "반려견 추가", exact: true }).click();
+  await expect(page).toHaveURL("/dogs/new");
+  await expect(main.getByLabel("이름", { exact: true })).toHaveValue("");
+  await expect(main.getByLabel("견종")).toHaveValue("");
+  await expect(main.getByLabel("성격 소개")).toHaveValue("");
+  await expect(main.getByRole("radio", { checked: true })).toHaveCount(0);
+  await expect(main.getByLabel("중성화했어요")).not.toBeChecked();
+  await expect(main.getByLabel("태어난 해")).toHaveValue("");
+  await expect(main.locator('[data-count="0/20"]')).toHaveCount(1);
+  await expect(main.locator('[data-count="0/30"]')).toHaveCount(1);
+  await expect(main.locator('[data-count="0/100"]')).toHaveCount(1);
+  await expect(
+    main.getByRole("img", { name: "고른 사진 미리보기" }),
+  ).toHaveCount(0);
 });
