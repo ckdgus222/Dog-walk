@@ -4,7 +4,6 @@ import {
   Get,
   Inject,
   Param,
-  ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -12,6 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { Request } from 'express';
+import { ParseIdPipe } from '../common/db-id.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import type { PublicUser } from '../users/users.service.js';
 import { CreateWalkRequestDto } from './dto/create-walk-request.dto.js';
@@ -49,7 +49,7 @@ export class WalkRequestsController {
   @Patch(':id/accept')
   accept(
     @Req() request: Request & { user: PublicUser },
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: number,
   ) {
     return this.requests.changeStatus(request.user.id, id, 'ACCEPTED');
   }
@@ -57,7 +57,7 @@ export class WalkRequestsController {
   @Patch(':id/reject')
   reject(
     @Req() request: Request & { user: PublicUser },
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: number,
   ) {
     return this.requests.changeStatus(request.user.id, id, 'REJECTED');
   }
@@ -65,7 +65,7 @@ export class WalkRequestsController {
   @Patch(':id/cancel')
   cancel(
     @Req() request: Request & { user: PublicUser },
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: number,
   ) {
     return this.requests.changeStatus(request.user.id, id, 'CANCELED');
   }

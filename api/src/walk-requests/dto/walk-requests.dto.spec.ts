@@ -16,6 +16,7 @@ describe('Walk request DTO validation', () => {
     { receiverId: 0 },
     { receiverId: -1 },
     { receiverId: 1.5 },
+    { receiverId: 2147483648 },
     { receiverId: null },
     { receiverId: 2, message: null },
     { receiverId: 2, message: 10 },
@@ -26,6 +27,18 @@ describe('Walk request DTO validation', () => {
       pipe.transform(body, { type: 'body', metatype: CreateWalkRequestDto }),
     ).rejects.toMatchObject({ status: 400 });
   });
+
+  it.each([1, 2147483647])(
+    'accepts receiver ID boundary %s',
+    async (receiverId) => {
+      await expect(
+        pipe.transform(
+          { receiverId },
+          { type: 'body', metatype: CreateWalkRequestDto },
+        ),
+      ).resolves.toMatchObject({ receiverId });
+    },
+  );
 
   it.each(['', '   ', ' 같이 걸어요 ', ` ${'a'.repeat(100)} `])(
     'trims before checking the message length',

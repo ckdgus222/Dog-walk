@@ -115,6 +115,18 @@ describe('Walk requests and Socket.IO (e2e)', () => {
       .send({ receiverId, message });
   }
 
+  it.each([0, -1, 2147483648])(
+    'rejects out of range walk request ID %s',
+    async (id) => {
+      const response = await change(a, id, 'accept').expect(400);
+      expect(response.body.message).toBe('잘못된 ID예요.');
+    },
+  );
+
+  it('rejects a receiver ID above the database range', async () => {
+    await create(a, 2147483648).expect(400);
+  });
+
   function change(user: Account, id: number, action: string) {
     return request(app.getHttpServer())
       .patch(`/api/walk-requests/${id}/${action}`)

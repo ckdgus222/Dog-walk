@@ -6,7 +6,6 @@ import {
   HttpCode,
   Inject,
   Param,
-  ParseIntPipe,
   Patch,
   Post,
   Req,
@@ -16,6 +15,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Request } from 'express';
+import { ParseIdPipe } from '../common/db-id.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import type { PublicUser } from '../users/users.service.js';
 import { DogFormDto } from './dto/dog-form.dto.js';
@@ -47,7 +47,7 @@ export class DogsController {
   @UseInterceptors(FileInterceptor('photo', photoOptions))
   update(
     @Req() request: Request & { user: PublicUser },
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: number,
     @Body() body: DogFormDto,
     @UploadedFile() photo?: Express.Multer.File,
   ) {
@@ -58,7 +58,7 @@ export class DogsController {
   @HttpCode(204)
   remove(
     @Req() request: Request & { user: PublicUser },
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIdPipe) id: number,
   ) {
     return this.dogs.remove(request.user.id, id);
   }

@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import { Logger } from '@nestjs/common';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import sharp from 'sharp';
@@ -43,6 +44,73 @@ describe('DiariesService upload failures', () => {
     prisma.dog.findFirst.mockResolvedValue({ id: 2 });
     service = new DiariesService(prisma as unknown as PrismaService);
   });
+
+  afterEach(() => vi.restoreAllMocks());
+
+  it.each([
+    [
+      'update',
+      () => service.update(1, 3, { ...diary, removeImageIds: [4, 5] }),
+      { id: 3, ...diary, images: [] },
+      1,
+      [],
+    ],
+    [
+      'remove',
+      () => service.remove(1, 3),
+      undefined,
+      0,
+      [[{ where: { id: 3 } }]],
+    ],
+  ] as const)(
+    'succeeds after %s and tries every old photo even when the first removal fails',
+    async (_action, execute, expectedResult, updateCount, deleteCalls) => {
+      const images = [
+        { id: 4, fileName: 'first.webp', sortOrder: 0 },
+        { id: 5, fileName: 'second.webp', sortOrder: 1 },
+      ];
+      const previous = { id: 3, images };
+      const updated = {
+        id: 3,
+        ...diary,
+        walkedOn: new Date(diary.walkedOn),
+        images: [],
+      };
+      const tx = {
+        $queryRaw: vi.fn(),
+        diary: {
+          findFirst: vi.fn().mockResolvedValue(previous),
+          update: vi.fn().mockResolvedValue(updated),
+          delete: vi.fn(),
+        },
+      };
+      prisma.diary.findFirst.mockResolvedValue(previous);
+      prisma.$transaction.mockImplementation((callback) => callback(tx));
+      vi.mocked(rm).mockRejectedValueOnce(new Error('Private disk error'));
+      const log = vi
+        .spyOn(Logger.prototype, 'error')
+        .mockImplementation(() => {});
+
+      await expect(execute()).resolves.toEqual(expectedResult);
+      expect(tx.diary.update).toHaveBeenCalledTimes(updateCount);
+      expect(tx.diary.delete.mock.calls).toEqual(deleteCalls);
+
+      expect(rm).toHaveBeenCalledTimes(2);
+      expect(rm).toHaveBeenNthCalledWith(
+        1,
+        join(process.env.PRIVATE_UPLOAD_DIR!, 'diaries', 'first.webp'),
+        { force: true },
+      );
+      expect(rm).toHaveBeenNthCalledWith(
+        2,
+        join(process.env.PRIVATE_UPLOAD_DIR!, 'diaries', 'second.webp'),
+        { force: true },
+      );
+      expect(log).toHaveBeenCalledExactlyOnceWith(
+        'Could not remove an old diary photo: first.webp',
+      );
+    },
+  );
 
   it('requires the private upload directory at startup', () => {
     vi.stubEnv('PRIVATE_UPLOAD_DIR', '');

@@ -129,7 +129,7 @@ describe('Diary multipart validation', () => {
       '2026-1-01',
       '2026-10-21T00:00:00Z',
     ].map((walkedOn) => JSON.stringify({ ...diary, walkedOn })),
-    ...[0, -1, 1.5, '1', null].map((dogId) =>
+    ...[0, -1, 1.5, '1', null, 2147483648].map((dogId) =>
       JSON.stringify({ ...diary, dogId }),
     ),
     JSON.stringify({ ...diary, extra: true }),
@@ -146,6 +146,9 @@ describe('Diary multipart validation', () => {
   it.each([
     'a',
     null,
+    [0],
+    [-1],
+    [2147483648],
     [1, 1],
     ['1'],
     [1.5],
@@ -158,6 +161,15 @@ describe('Diary multipart validation', () => {
         { type: 'body', metatype: UpdateDiaryFormDto },
       ),
     ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it.each([[1], [2147483647]])('accepts removal ID boundary %j', async (id) => {
+    await expect(
+      pipe.transform(
+        { diary: JSON.stringify({ ...diary, removeImageIds: [id] }) },
+        { type: 'body', metatype: UpdateDiaryFormDto },
+      ),
+    ).resolves.toMatchObject({ diary: { removeImageIds: [id] } });
   });
 
   it('accepts the maximum trimmed length and unique integer removal IDs', async () => {
@@ -184,7 +196,7 @@ describe('Diary multipart validation', () => {
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
-  it.each(['abc', '', '0', '-1', '1.5', ['1', '2']])(
+  it.each(['abc', '', '0', '-1', '1.5', ['1', '2'], '2147483648'])(
     'rejects invalid dog filters %j',
     async (dogId) => {
       await expect(
@@ -192,4 +204,19 @@ describe('Diary multipart validation', () => {
       ).rejects.toBeInstanceOf(BadRequestException);
     },
   );
+
+  it('accepts the maximum dog ID in forms and filters', async () => {
+    await expect(
+      pipe.transform(
+        { diary: JSON.stringify({ ...diary, dogId: 2147483647 }) },
+        { type: 'body', metatype: DiaryFormDto },
+      ),
+    ).resolves.toMatchObject({ diary: { dogId: 2147483647 } });
+    await expect(
+      pipe.transform(
+        { dogId: '2147483647' },
+        { type: 'query', metatype: ListDiariesDto },
+      ),
+    ).resolves.toMatchObject({ dogId: 2147483647 });
+  });
 });

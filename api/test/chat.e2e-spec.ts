@@ -117,12 +117,14 @@ describe('Chat (e2e)', () => {
     for (const [user, id] of [
       [c, walk.id],
       [a, 2147483647],
-      [a, 2147483648],
     ] as const) {
       expect((await history(user, id).expect(404)).body.message).toBe(
         '산책 요청을 찾을 수 없어요.',
       );
     }
+    expect((await history(a, 2147483648).expect(400)).body.message).toBe(
+      '잘못된 ID예요.',
+    );
     await request(app.getHttpServer())
       .get('/api/walk-requests/invalid/messages')
       .set('Authorization', `Bearer ${a.token}`)

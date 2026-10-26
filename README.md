@@ -55,6 +55,8 @@ DB는 [공식 PostGIS 이미지의 PostgreSQL 17 안정 태그](https://github.c
 루트 `.env`의 DB 주소는 `db:5432`, `api/.env`는 `localhost:5433`이다.
 예제 계정은 로컬용 가짜 값이다. 계정을 바꿀 때 두 파일의 값도 맞추고, URL의 비밀번호에 특수문자가 있으면 URL 인코딩한다. `.env`는 커밋하지 않는다.
 
+api 로그에 `Could not remove ... dog photo...: <파일 이름>`이나 `Could not remove ... diary photo...: <파일 이름>`이 보이면 `docker compose exec api rm /app/uploads/dogs/<파일 이름>`으로 남은 반려견 사진을 지운다(일기는 `docker compose exec api rm /app/private-uploads/diaries/<파일 이름>`). 파일 이름은 새 업로드와 겹치지 않는 UUID라 업로드를 멈출 필요가 없다. 이 명령도 실패하면 폴더 소유권·권한이나 저장장치 문제를 먼저 고친 뒤 다시 지운다.
+
 ## 서버 업데이트
 
 서버에 올리기 전에 `feature/demo-account`의 부팅 시 백업 변경(`deploy/on-boot.sh`)도 합치고, 서버 crontab의 매일 04시 백업을 `@reboot` 실행으로 바꾼다(`docs/demo-4-on-boot.md`, `docs/phase-8-deploy.md`의 서버 작업 12번).

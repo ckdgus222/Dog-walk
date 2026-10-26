@@ -133,7 +133,7 @@ export class DiariesService {
       });
       return diaryResponse(created);
     } catch (error) {
-      await this.discardFailedPhotos(fileNames);
+      await this.removePhotosOrLog(fileNames, 'a failed diary photo upload');
       throw error;
     }
   }
@@ -211,13 +211,12 @@ export class DiariesService {
         };
       });
     } catch (error) {
-      await this.discardFailedPhotos(fileNames);
+      await this.removePhotosOrLog(fileNames, 'a failed diary photo upload');
       throw error;
     }
-    await Promise.all(
-      result.removed.map((image) =>
-        rm(join(this.photoDirectory, image.fileName), { force: true }),
-      ),
+    await this.removePhotosOrLog(
+      result.removed.map((image) => image.fileName),
+      'an old diary photo',
     );
     return diaryResponse(result.diary);
   }
@@ -233,10 +232,9 @@ export class DiariesService {
       await tx.diary.delete({ where: { id } });
       return diary.images;
     });
-    await Promise.all(
-      images.map((image) =>
-        rm(join(this.photoDirectory, image.fileName), { force: true }),
-      ),
+    await this.removePhotosOrLog(
+      images.map((image) => image.fileName),
+      'an old diary photo',
     );
   }
 
@@ -267,18 +265,20 @@ export class DiariesService {
       }
       return fileNames;
     } catch (error) {
-      await this.discardFailedPhotos(fileNames);
+      await this.removePhotosOrLog(fileNames, 'a failed diary photo upload');
       throw error;
     }
   }
 
-  private async discardFailedPhotos(fileNames: string[]) {
+  // Tries every file. A failed removal is only logged, with the file name so
+  // it can be removed by hand (README). It must not replace an upload or
+  // database error, nor turn an already committed change into a failed request.
+  private async removePhotosOrLog(fileNames: string[], what: string) {
     for (const fileName of fileNames) {
       try {
         await rm(join(this.photoDirectory, fileName), { force: true });
       } catch {
-        // Attempt every file and preserve the original upload or database error.
-        this.logger.error('Could not remove a failed diary photo upload');
+        this.logger.error(`Could not remove ${what}: ${fileName}`);
       }
     }
   }

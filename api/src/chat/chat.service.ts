@@ -5,6 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { MAX_DB_ID } from '../common/db-id.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 const messageSelect = {
@@ -22,7 +23,7 @@ export class ChatService {
 
   private async findAcceptedRequest(userId: number, id: number) {
     // PostgreSQL integer IDs cannot contain values outside this range.
-    if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
+    if (!Number.isSafeInteger(id) || id < 1 || id > MAX_DB_ID) {
       throw new NotFoundException('산책 요청을 찾을 수 없어요.');
     }
     const request = await this.prisma.walkRequest.findUnique({

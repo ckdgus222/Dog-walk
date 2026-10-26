@@ -1,9 +1,18 @@
 import { Transform } from 'class-transformer';
-import { IsInt, IsString, MaxLength, Min, ValidateIf } from 'class-validator';
+import {
+  IsInt,
+  IsString,
+  Max,
+  MaxLength,
+  Min,
+  ValidateIf,
+} from 'class-validator';
+import { MAX_DB_ID } from '../../common/db-id.js';
 
 export class CreateWalkRequestDto {
   @IsInt()
   @Min(1)
+  @Max(MAX_DB_ID)
   receiverId: number;
 
   @Transform(({ value }: { value: unknown }) =>

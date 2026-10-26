@@ -5,10 +5,12 @@ import {
   IsInt,
   IsString,
   Length,
+  Max,
   Min,
   ValidateBy,
   ValidateIf,
 } from 'class-validator';
+import { MAX_DB_ID } from '../../common/db-id.js';
 
 export class DiaryDto {
   @Transform(({ value }: { value: unknown }) =>
@@ -20,6 +22,7 @@ export class DiaryDto {
 
   @IsInt()
   @Min(1)
+  @Max(MAX_DB_ID)
   dogId: number;
 
   @IsString()
@@ -64,5 +67,7 @@ export class UpdateDiaryDto extends DiaryDto {
     },
   })
   @IsInt({ each: true })
+  @Min(1, { each: true })
+  @Max(MAX_DB_ID, { each: true })
   removeImageIds?: number[];
 }
