@@ -8,6 +8,8 @@
   "type": "module",
   "scripts": {
     "build": "nest build",
+    "demo:reset": "node --env-file-if-exists=.env dist/demo/reset-demo.main.js",
+    "predemo:reset": "npm run build",
     "deploy": "nest deploy",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "node --env-file-if-exists=.env node_modules/@nestjs/cli/bin/nest.js start",
