@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import * as bcrypt from 'bcrypt';
 import { PASSWORD_HASH_ROUNDS } from '../common/account-rules.js';
+import { DEMO_EMAIL } from './demo.constants.js';
 import {
   Prisma,
   type PrismaClient,
@@ -12,7 +13,7 @@ import {
 // Coordinates are already on LocationService's 0.002 storage grid.
 const accounts = [
   {
-    email: 'demo@dogwalk.invalid',
+    email: DEMO_EMAIL,
     nickname: '둘러보기',
     lat: 37.528,
     lng: 126.932,

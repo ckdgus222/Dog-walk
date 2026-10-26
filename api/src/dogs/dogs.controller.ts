@@ -17,11 +17,15 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { rejectDemoUploads } from '../auth/guards/not-demo.guard.js';
 import type { PublicUser } from '../users/users.service.js';
 import { DogFormDto } from './dto/dog-form.dto.js';
 import { DogsService } from './dogs.service.js';
 
-const photoOptions = { limits: { fileSize: 5 * 1024 * 1024, files: 1 } };
+const photoOptions = {
+  limits: { fileSize: 5 * 1024 * 1024, files: 1 },
+  fileFilter: rejectDemoUploads,
+};
 
 @Controller('dogs')
 @UseGuards(JwtAuthGuard)

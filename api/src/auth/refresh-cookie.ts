@@ -12,3 +12,6 @@ export const refreshCookieOptions = (): CookieOptions => ({
 });
 
 export const REFRESH_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+
+// A demo session is fixed at two hours: refreshing does not extend it.
+export const DEMO_REFRESH_COOKIE_MAX_AGE = 2 * 60 * 60 * 1000;

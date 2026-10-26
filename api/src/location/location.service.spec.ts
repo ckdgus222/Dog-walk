@@ -51,7 +51,13 @@ describe('LocationService', () => {
 
   it.each([
     [
-      { consented: false, lat: null, lng: null, updatedAt: null },
+      {
+        usable: false,
+        consented: false,
+        lat: null,
+        lng: null,
+        updatedAt: null,
+      },
       '먼저 내 위치를 저장해 주세요.',
     ],
     [
@@ -60,6 +66,7 @@ describe('LocationService', () => {
         lat: 37.566,
         lng: 126.978,
         updatedAt: sixMinutesAgo(),
+        usable: false,
       },
       '내 위치가 5분 넘게 갱신되지 않았어요. 브라우저 위치 권한을 확인해 주세요.',
     ],
@@ -91,7 +98,13 @@ describe('LocationService', () => {
     ];
     query
       .mockResolvedValueOnce([
-        { consented: true, lat: 37.566, lng: 126.978, updatedAt: new Date() },
+        {
+          usable: true,
+          consented: true,
+          lat: 37.566,
+          lng: 126.978,
+          updatedAt: new Date(),
+        },
       ])
       .mockResolvedValueOnce(users);
     findMany.mockResolvedValue([

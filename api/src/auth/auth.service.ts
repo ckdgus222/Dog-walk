@@ -2,18 +2,25 @@ import {
   ConflictException,
   Inject,
   Injectable,
+  ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { createHash, randomUUID } from 'node:crypto';
 import * as bcrypt from 'bcrypt';
 import { PASSWORD_HASH_ROUNDS } from '../common/account-rules.js';
+import { DEMO_EMAIL } from '../demo/demo.constants.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { DEMO_REFRESH_COOKIE_MAX_AGE } from './refresh-cookie.js';
 import {
   isRecordNotFoundError,
   isUniqueConstraintError,
 } from '../prisma/prisma-errors.js';
-import { UsersService, type PublicUser } from '../users/users.service.js';
+import {
+  UsersService,
+  publicUserSelect,
+  type PublicUser,
+} from '../users/users.service.js';
 import type { SignupDto } from './dto/signup.dto.js';
 
 const INVALID_CREDENTIALS = '이메일 또는 비밀번호가 올바르지 않습니다.';
@@ -50,7 +57,7 @@ export class AuthService {
           nickname: input.nickname,
           dogs: { create: input.dog },
         },
-        select: { id: true, email: true, nickname: true },
+        select: publicUserSelect,
       });
     } catch (error) {
       if (isUniqueConstraintError(error, 'email', 'users_email_key')) {
@@ -78,7 +85,12 @@ export class AuthService {
       throw new UnauthorizedException(INVALID_CREDENTIALS);
     }
     return {
-      user: { id: user.id, email: user.email, nickname: user.nickname },
+      user: {
+        id: user.id,
+        email: user.email,
+        nickname: user.nickname,
+        isDemo: user.isDemo,
+      },
       passwordHash: user.passwordHash,
     };
   }
@@ -102,6 +114,30 @@ export class AuthService {
       }
       throw error;
     }
+    return { accessToken, refreshToken, user };
+  }
+
+  async demo() {
+    const user = await this.prisma.user.findUnique({
+      where: { email: DEMO_EMAIL, isDemo: true },
+      select: publicUserSelect,
+    });
+    if (!user) {
+      throw new ServiceUnavailableException(
+        '데모 계정을 준비하고 있어요. 잠시 뒤에 다시 시도해 주세요.',
+      );
+    }
+    const accessToken = await this.issueAccessToken(user.id);
+    // Each visitor keeps an independent, fixed two-hour session without DB writes.
+    const refreshToken = await this.jwt.signAsync(
+      { sub: user.id },
+      {
+        secret: this.refreshSecret,
+        expiresIn: DEMO_REFRESH_COOKIE_MAX_AGE / 1000,
+        jwtid: randomUUID(),
+        algorithm: 'HS256',
+      },
+    );
     return { accessToken, refreshToken, user };
   }
 
@@ -145,9 +181,14 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({
       where: {
         id: payload.sub,
-        refreshTokenHash: createHash('sha256').update(token).digest('hex'),
+        OR: [
+          {
+            refreshTokenHash: createHash('sha256').update(token).digest('hex'),
+          },
+          { isDemo: true },
+        ],
       },
-      select: { id: true, email: true, nickname: true },
+      select: publicUserSelect,
     });
     if (!user) throw new UnauthorizedException();
     const accessToken = await this.issueAccessToken(user.id);
@@ -176,7 +217,7 @@ export class AuthService {
     }
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
-      select: { id: true, email: true, nickname: true },
+      select: publicUserSelect,
     });
     if (!user) throw new UnauthorizedException();
     return { user, exp: payload.exp };

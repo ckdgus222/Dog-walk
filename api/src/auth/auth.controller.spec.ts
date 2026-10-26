@@ -6,7 +6,12 @@ import { AuthService } from './auth.service.js';
 import { LoginLimiter } from './login-limiter.js';
 
 const credentials = { email: 'owner@example.com', password: 'password123' };
-const user = { id: 1, email: credentials.email, nickname: '보호자' };
+const user = {
+  id: 1,
+  email: credentials.email,
+  nickname: '보호자',
+  isDemo: false,
+};
 const verified = { user, passwordHash: 'stored-hash' };
 const request = { ip: '203.0.113.1' } as Request;
 
