@@ -24,9 +24,18 @@ const jua = Jua({
   variable: "--font-display",
 });
 
+const title = "강아지 산책";
+const description = "함께 산책할 반려인을 찾는 서비스";
+
 export const metadata: Metadata = {
-  title: "강아지 산책",
-  description: "함께 산책할 반려인을 찾는 서비스",
+  // Link previews (KakaoTalk) need the image as a full URL. Without this,
+  // Next.js would write a localhost address.
+  metadataBase: process.env.SITE_URL
+    ? new URL(process.env.SITE_URL)
+    : undefined,
+  title,
+  description,
+  openGraph: { title, description, type: "website", locale: "ko_KR" },
 };
 
 const RootLayout = ({ children, modal }: LayoutProps<"/">) => {

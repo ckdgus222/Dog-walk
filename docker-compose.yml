@@ -54,6 +54,7 @@ services:
       context: ./web
       args:
         NEXT_PUBLIC_KAKAO_MAP_KEY: ${NEXT_PUBLIC_KAKAO_MAP_KEY:-}
+        SITE_URL: ${SITE_URL:-}
 
   nginx:
     logging: *logging
