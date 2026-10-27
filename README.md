@@ -1,102 +1,136 @@
 # 강아지 산책
 
-강아지 산책 매칭 서비스. 포트폴리오·학습용 MVP이며 Docker로 운영한다.
-Node.js 24와 Docker Compose가 필요하다. 처음 한 번 `npm --prefix api ci`와 `npm --prefix web ci`로 각 앱의 패키지를 설치한다.
+**동네 반려인과 산책 친구를 이어 주는 서비스.**
+지도에서 1km 안의 이웃을 찾아 산책을 요청하고, 수락되면 실시간으로 대화합니다. 산책한 날은 사진과 함께 일기로 남기고, 게시판에서 이웃과 이야기를 나눕니다.
 
-## 로컬 개발
+기획부터 디자인, 프론트엔드·백엔드 개발, 테스트, **집 데스크톱을 서버로 쓰는 온프레미스 배포와 운영**까지 혼자 진행한 개인 프로젝트입니다.
 
-지도 사용을 위해 `web/.env.local`에 `NEXT_PUBLIC_KAKAO_MAP_KEY`를 설정한다. Docker는 루트 `.env`의 같은 이름 값을 빌드 인자로 사용한다.
+![첫 화면](.github/assets/guest-home.jpg)
 
-저장소 루트에서 처음 한 번 실행한다.
+> 로그인 화면의 **가입 없이 둘러보기** 버튼으로 미리 채워진 데모 계정에 바로 들어가 볼 수 있습니다.
 
-```sh
-cp .env.example .env
-cp api/.env.example api/.env
-docker compose up -d --wait db
-npm --prefix api run prisma:migrate
+## 화면
+
+| 주변 산책 친구 | 실시간 채팅 |
+|---|---|
+| ![주변 산책 친구 지도](.github/assets/map.jpg) | ![산책 채팅](.github/assets/chat.jpg) |
+| **산책 일기** | **홈** |
+| ![산책 일기](.github/assets/diary.jpg) | ![홈](.github/assets/home.jpg) |
+
+## 주요 기능
+
+- **주변 산책 친구**: 위치 공개에 동의한 이웃 중 1km 안에 있고 최근 5분 안에 위치를 보낸 사람을 지도와 목록으로 보여 줍니다(데모 지도는 미리 저장한 위치를 써서 5분 제한이 없습니다).
+- **산책 요청**: 이웃과 반려견 정보를 보고 산책을 요청하면, 받은 사람은 실시간 알림을 받아 수락하거나 거절합니다.
+- **채팅**: 수락된 요청의 두 사람만 Socket.IO로 대화합니다. 연결이 끊겼다 이어지면 최근 50개 메시지를 다시 불러옵니다.
+- **산책 일기**: 반려견별로 사진(최대 5장)과 글을 남기는 나만 보는 기록입니다.
+- **게시판**: 이웃과 글과 댓글을 나눕니다.
+- **둘러보기(데모 계정)**: 가입 없이 데모 계정으로 주요 기능을 써 볼 수 있습니다. 닉네임·비밀번호·위치 변경과 사진 업로드는 막혀 있습니다. 방문자 모두가 같은 데모 계정을 함께 쓰므로 데모 일기도 공유되고, 데모 사용자와 실제 사용자는 서로 지도에 보이지 않습니다. 운영 서버에서는 데모 데이터가 서버가 켜질 때마다 처음 상태로 돌아가며, 이때 데모 글에 달린 댓글도 함께 지워집니다.
+
+## 기술 스택
+
+| 영역 | 사용 기술 |
+|---|---|
+| 프론트엔드 | Next.js 16 (App Router), React 19, TanStack Query, Zustand, CSS Modules, Kakao 지도 |
+| 백엔드 | NestJS 12, Prisma 7, Socket.IO, Passport JWT, sharp |
+| 데이터베이스 | PostgreSQL 17 + PostGIS (위치 검색) |
+| 인프라 | Docker Compose, nginx, Let's Encrypt, Ubuntu Server (집 데스크톱) |
+| 테스트 | Vitest, Supertest, Playwright |
+
+## 구조
+
+```mermaid
+flowchart LR
+    B[브라우저] -->|HTTPS| N[nginx]
+    N -->|/| W[web<br/>Next.js]
+    N -->|/api, /socket.io| A[api<br/>NestJS]
+    N -->|/uploads| U[(공개 사진)]
+    A --> D[(PostgreSQL<br/>+ PostGIS)]
+    A --> P[(비공개 일기 사진)]
 ```
 
-터미널 두 개에서 각각 실행한다. API는 `api/.env`를 읽으며, Prisma 클라이언트는 시작 전에 자동 생성한다.
+앱의 요청은 nginx 한 곳으로만 갑니다(지도는 카카오에서 직접 받습니다). 화면과 API가 같은 출처라서 CORS 설정이 없고, DB와 앱 컨테이너는 바깥에 포트를 열지 않습니다.
+
+## 온프레미스 홈 서버 배포
+
+클라우드 대신 **집 데스크톱 한 대에 Ubuntu Server를 설치해 직접 배포하고 운영**합니다.
+
+- **컨테이너 구성**: Docker Compose로 nginx, web, api, db 네 개를 띄웁니다. 재부팅이나 정전 뒤에도 스스로 다시 켜지도록 BIOS 전원 복구와 `restart: unless-stopped`를 함께 씁니다(백업하느라 멈춰 둔 api는 예외라 직접 켭니다).
+- **HTTPS**: 공유기 DDNS와 포트포워딩으로 도메인을 연결하고, certbot(webroot 방식)으로 Let's Encrypt 인증서를 받습니다. 인증서가 갱신되면 nginx를 자동으로 다시 읽힙니다. HTTP 요청은 HTTPS로 넘기고, 리프레시 쿠키는 HTTPS 전용으로 바뀝니다.
+- **백업과 복원**: 서버 부팅 때 실행되도록 등록한 `deploy/on-boot.sh`가 앱 준비를 기다린 뒤 DB 덤프와 사진을 USB로 백업하고(14일이 지난 백업은 삭제), 이어서 데모 데이터를 초기화합니다. 백업에 실패해도 초기화는 계속합니다. DB와 사진이 같은 시점이 되도록 백업하는 동안 api를 잠깐 멈춥니다. 복원 스크립트는 백업이 온전한지 먼저 확인하고, 복원 뒤 로그인 서명 키를 바꿔 이전 세션을 끊습니다.
+- **업데이트 스크립트**: `deploy/update.sh` 하나로 코드를 받아 다시 빌드하고 nginx를 새로 띄운 뒤, API와 화면이 모두 응답하는지 확인합니다. 백업·복원과 같은 잠금 파일을 써서 서로 겹치지 않고, 복원에 실패해 일부러 꺼 둔 앱은 다시 켜지 않습니다.
+- **운영 안정성**: api가 종료 신호를 바로 받아 정상 종료되게 하고, 컨테이너 로그 크기를 제한했습니다. 방화벽은 SSH만 허용하고, DB 포트는 서버 안(`127.0.0.1`)에만 엽니다.
+
+## 신경 쓴 점
+
+**동시 요청과 데이터 일관성**
+- 같은 두 사람 사이의 대기 중인 산책 요청은 DB의 부분 유니크 인덱스로 하나만 허용합니다. 요청을 동시에 보내도 코드 분기가 아니라 DB 제약이 막습니다.
+- 반려견 삭제(최소 한 마리 유지)와 사진 교체는 행 잠금(`SELECT ... FOR UPDATE`)으로 순서를 정해, 동시에 실행돼도 규칙이 깨지거나 교체된 사진이 주인 없이 남지 않게 했습니다. 디스크 오류로 파일 삭제가 실패하면 요청은 성공으로 끝내고 파일 이름을 로그에 남겨 직접 정리합니다.
+- 로그인은 같은 IP에서 최근 15분 안에 실패가 5번 쌓이면 15분 동안 막습니다. 비밀번호 확인 **전에** 진행 중인 시도까지 함께 세어, 동시에 보낸 여러 요청이 제한을 넘지 못합니다.
+
+**개인정보와 위치**
+- 위치는 약 200m 단위로 흐려서 저장하고, 화면에도 그 단위로만 보여 줍니다.
+- 올린 사진은 회전을 바로잡고 크기를 줄여 webp로 다시 저장하면서 촬영 위치 같은 메타데이터를 지웁니다.
+- 일기 사진은 공개 폴더가 아닌 곳에 두고, 작성자 인증을 거친 API로만 내려줍니다.
+
+**인증**
+- 접속 토큰은 브라우저 메모리에만 두고, 리프레시 토큰은 `HttpOnly`·`SameSite=Strict` 쿠키에 담아 인증 경로로만 보냅니다.
+- 일반 계정은 리프레시 토큰의 해시만 DB에 저장하고, 로그인과 비밀번호 변경 때 새로 발급해 이전 리프레시 토큰을 무효로 만듭니다. 데모 계정은 방문자마다 DB에 저장하지 않는 별도 토큰을 씁니다. 현재 비밀번호 확인에도 계정별 시도 제한을 둡니다.
+
+**화면 경험**
+- 손그림풍 일러스트와 종이 질감의 디자인 시스템을 직접 정리해 모든 화면에 적용했습니다.
+- 일기·게시글 상세는 저장 직후 다시 요청하지 않고 저장 응답으로 바로 보여 주고, 새 작성 화면은 저장 뒤 깨끗하게 비웁니다.
+
+## 테스트
+
+| 종류 | 도구 | 규모 |
+|---|---|---|
+| API 단위 테스트 | Vitest | 약 490개 |
+| API e2e (실제 DB) | Vitest + Supertest | 약 290개 |
+| 웹 단위 테스트 | Vitest | 약 60개 |
+| 브라우저 테스트 | Playwright | 약 100개 |
+
+동시성·권한·입력 검증 같은 규칙은 그 조건을 지우면 실패하는 테스트로 지킵니다. 배포 스크립트도 docker·curl 같은 명령을 가짜로 바꿔 실패 경로까지 테스트합니다.
+
+## 로컬에서 실행하기
+
+Node.js 24와 Docker Compose가 필요합니다. 지도를 보려면 Kakao JavaScript 키를 `web/.env.local`과 루트 `.env`의 `NEXT_PUBLIC_KAKAO_MAP_KEY`에 넣고, 카카오 개발자 콘솔의 Web 플랫폼 도메인에 `http://localhost`와 `http://localhost:3001`을 등록합니다.
 
 ```sh
-npm --prefix api run start:dev
+npm --prefix api ci
+npm --prefix web ci
+[ -e .env ] || cp .env.example .env
+[ -e api/.env ] || cp api/.env.example api/.env
 ```
 
-```sh
-npm --prefix web run dev
-```
-
-화면은 <http://localhost:3001>, API는 <http://localhost:4000/api/health>에서 확인한다.
-개발 화면의 `/api/*` 요청은 API로 전달한다. 대상은 `API_URL` 환경 변수이며 기본값은 `http://localhost:4000`이다.
-로컬 개발 서버에는 `/uploads/` 제공 경로가 없으므로, 반려견 사진 화면은 Docker 실행 후 <http://localhost>에서 확인한다.
-로컬 개발 서버는 `/socket.io/`를 전달하지 않으므로 실시간 산책 요청 알림은 Docker의 <http://localhost>에서 확인한다. 받은 요청 수 배지는 로컬에서도 API로 불러온다.
-
-```sh
-curl http://localhost:3001/api/health
-```
-
-정상 응답은 `{"status":"ok","db":"up"}`이다. DB 쿼리가 실패하면 503과 `{"status":"error","db":"down"}`을 반환한다.
-
-## Docker 실행
-
-루트 `.env`를 `.env.example`에서 복사한 뒤 실행한다.
+**Docker로 한 번에 실행** (<http://localhost>)
 
 ```sh
 docker compose up --build -d
-curl http://localhost/api/health
-curl http://localhost
+curl -s -o /dev/null -w '%{http_code}\n' http://localhost/api/health   # 200이 나올 때까지 다시 확인
+docker compose exec api node dist/demo/reset-demo.main.js   # 둘러보기용 데모 데이터
 ```
 
-API는 시작할 때 마이그레이션을 적용한다. 이미지 빌드에는 Node 이미지와 npm 패키지를 받을 네트워크 또는 캐시가 필요하다.
-nginx만 80번 포트를 공개하고, DB는 `127.0.0.1:5433`에만 연결한다. API와 web 컨테이너는 호스트 포트를 열지 않는다.
-DB는 [공식 PostGIS 이미지의 PostgreSQL 17 안정 태그](https://github.com/postgis/docker-postgis)를 사용한다. 이 이미지가 amd64만 지원하므로 Apple Silicon에서는 Docker의 amd64 에뮬레이션이 필요하다.
+api는 시작할 때 DB 마이그레이션을 적용하므로, 응답이 200이 된 뒤 데모 데이터를 만듭니다. 이 명령은 다시 실행하면 데모 데이터를 처음 상태로 되돌립니다. DB 이미지(PostGIS)는 amd64만 지원해서 Apple Silicon에서는 Docker의 amd64 에뮬레이션을 씁니다.
 
-루트 `.env`의 DB 주소는 `db:5432`, `api/.env`는 `localhost:5433`이다.
-예제 계정은 로컬용 가짜 값이다. 계정을 바꿀 때 두 파일의 값도 맞추고, URL의 비밀번호에 특수문자가 있으면 URL 인코딩한다. `.env`는 커밋하지 않는다.
+**개발 서버로 실행** (화면 <http://localhost:3001>, API <http://localhost:4000>)
 
-## 검사
+```sh
+docker compose up -d --wait db
+npm --prefix api run prisma:migrate
+npm --prefix api run demo:reset     # 둘러보기용 데모 데이터
+npm --prefix api run start:dev   # 터미널 1
+npm --prefix web run dev         # 터미널 2
+```
 
-DB를 실행한 상태에서 저장소 루트에서 실행한다.
+개발 서버는 `/uploads/`와 `/socket.io/`를 전달하지 않으므로, 반려견 사진과 실시간 알림·채팅은 Docker 실행(<http://localhost>)에서 확인합니다.
+
+**테스트**
 
 ```sh
 npm --prefix api test
-npm --prefix api run test:e2e
-npm --prefix api run lint
-npm --prefix api run build
-npm --prefix web run lint
+npm --prefix api run test:e2e      # DB 실행 필요, 이름이 _test로 끝나는 DB에서만 실행
 npm --prefix web test
-npm --prefix web run build
+npm --prefix web run test:browser  # Docker 실행 필요, 처음엔 npx --prefix web playwright install chromium
 ```
 
-브라우저 테스트는 화면을 바꾼 단계가 끝날 때 직접 실행한다. 처음 한 번은 Chromium을 설치한다.
-
-```sh
-npx --prefix web playwright install chromium
-```
-
-Docker를 최신 코드로 다시 빌드하고, nginx를 거친 API와 로그인 화면의 응답 코드가 모두 `200`인지 확인한다.
-API는 시작할 때 마이그레이션을 적용하므로 준비될 때까지 기다린 뒤 다시 확인한다.
-
-```sh
-docker compose up --build -d
-curl -s -o /dev/null -w '%{http_code}\n' http://localhost/api/health
-curl -s -o /dev/null -w '%{http_code}\n' http://localhost/login
-npm --prefix web run test:browser
-```
-
-기본 주소는 `http://localhost`이며, 다른 nginx 주소는 `BROWSER_TEST_URL`로 지정한다.
-사진은 nginx가 제공하므로 로컬 개발 서버(3001)에서는 이 테스트를 실행하지 않는다.
-매 실행마다 새 계정과 반려견을 등록하며 개발 DB에 남는다. 실패 시 스크린샷과 trace는 `web/test-results/`에 저장된다.
-
-API e2e 실행은 `DATABASE_URL`을 한 번 정하고 같은 주소로 마이그레이션과 테스트를 실행한다.
-DB 이름이 `_test`로 끝나지 않으면 실행하지 않는다.
-환경 변수가 없으면 예제 계정으로 `localhost:5433/dogwalk_test`를 사용하며, `api/.env`나 `.env.test`의 주소로 바꾸지 않는다.
-계정을 변경했다면 테스트 DB를 가리키는 `DATABASE_URL`을 명시해서 실행한다.
-
-`dogwalk_test`는 빈 DB 볼륨의 첫 초기화 때만 생성된다. 기존 볼륨에 테스트 DB가 없다면 데이터를 지우지 말고 다음 명령으로 생성한다.
-
-```sh
-docker compose exec db sh -c 'createdb -U "$POSTGRES_USER" dogwalk_test'
-```
-
-`docker compose down`으로 종료해도 `db-data`의 데이터는 유지된다.
+API e2e는 모든 테이블을 비우므로 `DATABASE_URL`의 DB 이름이 `_test`로 끝나지 않으면 시작하지 않습니다. 브라우저 테스트는 Docker 앱(개발 DB)에 실행할 때마다 새 테스트 계정을 남깁니다. API e2e의 기본 DB 주소는 `localhost:5433/dogwalk_test`이고, 테스트 DB가 없으면 `docker compose exec db sh -c 'createdb -U "$POSTGRES_USER" dogwalk_test'`로 만듭니다.
