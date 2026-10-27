@@ -7,6 +7,7 @@ export default defineConfig({
   resolve: { tsconfigPaths: true },
   test: {
     globals: true,
+    env: { LOG_LEVEL: 'silent' },
     fileParallelism: false,
     root: './',
     include: ['**/*.e2e-spec.ts'],

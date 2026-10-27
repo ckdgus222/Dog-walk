@@ -8,6 +8,7 @@ export default defineConfig({
   test: {
     globals: true,
     env: {
+      LOG_LEVEL: 'silent',
       JWT_ACCESS_SECRET: 'test-only-access-secret',
       JWT_REFRESH_SECRET: 'test-only-refresh-secret',
       COOKIE_SECURE: 'false',

@@ -3,7 +3,7 @@ import { setupApp } from './app-setup.js';
 import { AppModule } from './app.module.js';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
   setupApp(app);
   app.enableShutdownHooks();
   await app.listen(process.env.PORT ?? 4000);
