@@ -1,0 +1,9 @@
+apiVersion: 1
+
+providers:
+  - name: Dog Walk API
+    orgId: 1
+    type: file
+    allowUiUpdates: false
+    options:
+      path: /etc/grafana/dashboards
