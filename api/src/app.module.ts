@@ -1,5 +1,7 @@
 import { DiariesModule } from './diaries/diaries.module.js';
 import { Module } from '@nestjs/common';
+import { LoggerModule } from 'nestjs-pino';
+import { pinoHttpOptions } from './logging/pino-http-options.js';
 import { AuthModule } from './auth/auth.module.js';
 import { UsersModule } from './users/users.module.js';
 import { HealthModule } from './health/health.module.js';
@@ -12,6 +14,7 @@ import { PostsModule } from './posts/posts.module.js';
 
 @Module({
   imports: [
+    LoggerModule.forRoot({ pinoHttp: pinoHttpOptions(), useExisting: true }),
     HealthModule,
     AuthModule,
     UsersModule,
