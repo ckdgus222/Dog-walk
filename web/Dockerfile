@@ -16,6 +16,10 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
+# Link preview bots (KakaoTalk, Facebook) get pages rendered on request, so
+# the server needs the site address at run time as well as at build time.
+ARG SITE_URL
+ENV SITE_URL=$SITE_URL
 COPY --from=build --chown=node:node /app/.next/standalone ./
 COPY --from=build --chown=node:node /app/.next/static ./.next/static
 COPY --from=build --chown=node:node /app/public ./public
