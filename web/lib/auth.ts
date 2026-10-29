@@ -82,7 +82,10 @@ export const refresh = (): Promise<User> => {
       useAuthStore.getState().setAuth(user, accessToken);
       return user;
     } catch (error) {
-      useAuthStore.getState().clearAuth();
+      // Only a server 401 ends the session. Other failures may leave the
+      // refresh cookie intact, so clearing auth would log back in on reload.
+      if ((error as ApiError).status === 401) useAuthStore.getState().clearAuth();
+      else useAuthStore.setState({ loading: false });
       throw error;
     }
   })().finally(() => {
@@ -168,8 +171,10 @@ export const logout = async () => {
     // responses before it can invalidate the latest token.
     await Promise.allSettled([...passwordChanges]);
     await postJson("/api/auth/logout");
-  } finally {
+    // A failed request may leave the refresh cookie intact; clearing auth
+    // then would show a guest screen that logs back in on reload.
     useAuthStore.getState().clearAuth();
+  } finally {
     loggingOut = false;
   }
 };

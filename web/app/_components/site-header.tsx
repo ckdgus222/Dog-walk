@@ -25,9 +25,9 @@ export const SiteHeader = () => {
     setLoggingOut(true);
     try {
       await logout();
-    } catch (error) {
+    } catch {
       setLogoutError(
-        error instanceof Error ? error.message : "로그아웃하지 못했습니다.",
+        "로그아웃하지 못했어요. 잠시 뒤 다시 시도해 주세요.",
       );
     } finally {
       setLoggingOut(false);

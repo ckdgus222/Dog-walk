@@ -1,7 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { io } from "socket.io-client";
 import { getAccessToken, refresh } from "./auth";
 import { connectSocket } from "./socket";
+import { useAuthStore } from "./auth-store";
 
 vi.mock("socket.io-client", () => ({ io: vi.fn() }));
 vi.mock("./auth", () => ({ getAccessToken: vi.fn(), refresh: vi.fn() }));
@@ -9,6 +10,7 @@ vi.mock("./auth", () => ({ getAccessToken: vi.fn(), refresh: vi.fn() }));
 describe("Socket authentication and reconnection", () => {
   const handlers = new Map<string, (...args: unknown[]) => void>();
   const socket = {
+    connected: false,
     active: false,
     on: vi.fn((event: string, handler: (...args: unknown[]) => void) => {
       handlers.set(event, handler);
@@ -21,7 +23,10 @@ describe("Socket authentication and reconnection", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     handlers.clear();
+    socket.connected = false;
     socket.active = false;
+    socket.connect.mockReset();
+    useAuthStore.setState({ accessToken: null });
     vi.mocked(io).mockReturnValue(socket as unknown as ReturnType<typeof io>);
     vi.mocked(refresh).mockResolvedValue({
       id: 1,
@@ -31,6 +36,10 @@ describe("Socket authentication and reconnection", () => {
     });
     controller = new AbortController();
     connectSocket(controller.signal);
+  });
+
+  afterEach(() => {
+    controller.abort();
   });
 
   it("reads the current access token on every handshake", () => {
@@ -95,6 +104,56 @@ describe("Socket authentication and reconnection", () => {
     handlers.get("connect_error")!();
     expect(refresh).not.toHaveBeenCalled();
     expect(socket.connect).not.toHaveBeenCalled();
+  });
+
+  it("reconnects on a new token after refresh is rejected during logout", async () => {
+    vi.mocked(refresh).mockRejectedValueOnce(new Error("로그아웃하고 있어요."));
+    handlers.get("disconnect")!("io server disconnect");
+    await Promise.resolve();
+    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(socket.connect).not.toHaveBeenCalled();
+
+    useAuthStore.setState({ accessToken: "new-token" });
+    expect(socket.connect).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(["connected", "active"] as const)(
+    "ignores a new token when the socket is %s",
+    (state) => {
+      socket[state] = true;
+      useAuthStore.setState({ accessToken: "new-token" });
+      expect(socket.connect).not.toHaveBeenCalled();
+    },
+  );
+
+  it("ignores an unchanged token or a null token", () => {
+    useAuthStore.setState({ accessToken: "new-token" });
+    socket.connect.mockClear();
+
+    useAuthStore.setState({ accessToken: "new-token" });
+    useAuthStore.setState({ accessToken: null });
+    expect(socket.connect).not.toHaveBeenCalled();
+  });
+
+  it("ignores a new token after the signal is aborted", () => {
+    controller.abort();
+    useAuthStore.setState({ accessToken: "new-token" });
+    expect(socket.disconnect).toHaveBeenCalledTimes(1);
+    expect(socket.connect).not.toHaveBeenCalled();
+  });
+
+  it("connects only once when the token subscription and refresh both reconnect", async () => {
+    socket.connect.mockImplementation(() => {
+      socket.active = true;
+    });
+    vi.mocked(refresh).mockImplementationOnce(async () => {
+      useAuthStore.setState({ accessToken: "new-token" });
+      return { id: 1, email: "a@example.com", nickname: "보호자", isDemo: false };
+    });
+    handlers.get("disconnect")!("io server disconnect");
+    await Promise.resolve();
+    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(socket.connect).toHaveBeenCalledTimes(1);
   });
 
   it("does not revive a socket if the user leaves while refresh is pending", async () => {

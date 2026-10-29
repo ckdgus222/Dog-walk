@@ -379,6 +379,131 @@ describe("Browser auth client", () => {
     },
   );
 
+  it.each(["network", 502, 500] as const)(
+    "preserves auth after logout fails (%s) and allows refresh and logout retries",
+    async (failure) => {
+      fetchMock.mockResolvedValueOnce(authResponse());
+      await client.login(accountA.email, "password123");
+      if (failure === "network") {
+        fetchMock.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+      } else {
+        fetchMock.mockResolvedValueOnce(
+          new Response(null, { status: failure }),
+        );
+      }
+
+      await expect(client.logout()).rejects.toThrow();
+      expect(useAuthStore.getState()).toMatchObject({
+        user: accountA,
+        accessToken: "access-token",
+        loading: false,
+      });
+
+      fetchMock.mockResolvedValueOnce(authResponse());
+      await expect(client.refresh()).resolves.toEqual(accountA);
+      fetchMock.mockResolvedValueOnce(new Response(null, { status: 204 }));
+      await client.logout();
+      expect(useAuthStore.getState()).toMatchObject({
+        user: null,
+        accessToken: null,
+        loading: false,
+      });
+      expect(fetchMock.mock.calls.map(([path]) => path)).toEqual([
+        "/api/auth/login",
+        "/api/auth/logout",
+        "/api/auth/refresh",
+        "/api/auth/logout",
+      ]);
+    },
+  );
+
+  it("preserves auth when an in-flight refresh and the waiting logout both fail", async () => {
+    fetchMock.mockResolvedValueOnce(authResponse());
+    await client.login(accountA.email, "password123");
+    let rejectRefresh!: (error: Error) => void;
+    fetchMock.mockImplementationOnce(
+      () =>
+        new Promise((_, reject) => {
+          rejectRefresh = reject;
+        }),
+    );
+    fetchMock.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+    const refreshing = client.refresh();
+    const loggingOut = client.logout();
+    const refreshAssertion = expect(refreshing).rejects.toThrow("Failed to fetch");
+    const logoutAssertion = expect(loggingOut).rejects.toThrow("Failed to fetch");
+    await Promise.resolve();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    rejectRefresh(new TypeError("Failed to fetch"));
+    await Promise.all([refreshAssertion, logoutAssertion]);
+    expect(useAuthStore.getState()).toMatchObject({
+      user: accountA,
+      accessToken: "access-token",
+      loading: false,
+    });
+
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 204 }));
+    await client.logout();
+    expect(useAuthStore.getState().user).toBeNull();
+    expect(client.getAccessToken()).toBeNull();
+    expect(fetchMock.mock.calls.map(([path]) => path)).toEqual([
+      "/api/auth/login",
+      "/api/auth/refresh",
+      "/api/auth/logout",
+      "/api/auth/logout",
+    ]);
+  });
+
+  it("preserves auth when a late API 401 triggers a failed refresh after logout fails", async () => {
+    fetchMock.mockResolvedValueOnce(authResponse());
+    await client.login(accountA.email, "password123");
+    let releaseRequest!: (response: Response) => void;
+    fetchMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          releaseRequest = resolve;
+        }),
+    );
+    const request = client.apiFetch("/api/users/me");
+    fetchMock.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+    await expect(client.logout()).rejects.toThrow("Failed to fetch");
+
+    fetchMock.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+    const requestAssertion = expect(request).rejects.toThrow("Failed to fetch");
+    releaseRequest(new Response(null, { status: 401 }));
+    await requestAssertion;
+    expect(useAuthStore.getState()).toMatchObject({
+      user: accountA,
+      accessToken: "access-token",
+      loading: false,
+    });
+    expect(fetchMock.mock.calls.map(([path]) => path)).toEqual([
+      "/api/auth/login",
+      "/api/users/me",
+      "/api/auth/logout",
+      "/api/auth/refresh",
+    ]);
+  });
+
+  it.each(["network", 502] as const)(
+    "finishes loading when startup refresh fails (%s)",
+    async (failure) => {
+      if (failure === "network") {
+        fetchMock.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+      } else {
+        fetchMock.mockResolvedValueOnce(
+          new Response(null, { status: failure }),
+        );
+      }
+      await expect(client.refresh()).rejects.toThrow();
+      expect(useAuthStore.getState()).toMatchObject({
+        user: null,
+        accessToken: null,
+        loading: false,
+      });
+    },
+  );
+
   it("waits for an in-flight login before logout so the late login cannot revive the session", async () => {
     let releaseLogin!: (response: Response) => void;
     fetchMock.mockImplementationOnce(
