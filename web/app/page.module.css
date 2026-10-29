@@ -232,7 +232,6 @@
 /* The title shrinks with the window so it stays on two lines above the
    field beside the card. */
 .welcome .title {
-  font-family: var(--font-display), var(--font-sans), sans-serif;
   font-size: clamp(32px, 2.8vw, 42px);
   font-weight: 400;
   letter-spacing: 0;

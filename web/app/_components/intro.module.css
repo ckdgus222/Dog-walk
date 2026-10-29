@@ -33,7 +33,6 @@
 }
 .title strong {
   display: block;
-  font-family: var(--font-display), var(--font-sans), sans-serif;
   font-size: clamp(36px, 6vw, 72px);
   font-weight: 400;
   line-height: 1.2;

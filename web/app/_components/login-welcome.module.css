@@ -19,7 +19,6 @@
   background: var(--accent-soft);
   box-shadow: var(--shadow-card);
   color: var(--ink);
-  font-family: var(--font-display), var(--font-sans), sans-serif;
   font-size: var(--text-xl);
   text-align: center;
   overflow-wrap: anywhere;
