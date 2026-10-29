@@ -132,7 +132,7 @@ test("본 뒤 다른 화면에서 로고로 홈에 돌아와도 다시 보이지
   await page.goto("/dogs");
   await page
     .getByRole("banner")
-    .getByRole("link", { name: "강아지 산책", exact: true })
+    .getByRole("link", { name: "옆집 강아지", exact: true })
     .click();
   await expect(page).toHaveURL("/");
   await expect(page.locator('dialog[aria-label="인트로"]')).toHaveCount(0);
@@ -150,7 +150,7 @@ test("가입 화면으로 처음 와서 로고로 홈에 오면 없고 홈을 �
   ).toBeNull();
   await page
     .getByRole("banner")
-    .getByRole("link", { name: "강아지 산책", exact: true })
+    .getByRole("link", { name: "옆집 강아지", exact: true })
     .click();
   await expect(page).toHaveURL("/");
   await expect(page.locator('dialog[aria-label="인트로"]')).toHaveCount(0);

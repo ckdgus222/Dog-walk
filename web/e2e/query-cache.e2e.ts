@@ -135,7 +135,7 @@ test("계정 전환 중 이전 계정의 반려견 캐시를 보여 주지 않�
   ).toBeVisible();
   await page
     .getByRole("banner")
-    .getByRole("link", { name: "강아지 산책", exact: true })
+    .getByRole("link", { name: "옆집 강아지", exact: true })
     .click();
   await expect(page).toHaveURL("/");
   await page
@@ -328,7 +328,7 @@ test("위치 동의를 철회한 뒤 늦은 조회가 공개 상태를 되살리
     ).toBeVisible();
     await page
       .getByRole("banner")
-      .getByRole("link", { name: "강아지 산책", exact: true })
+      .getByRole("link", { name: "옆집 강아지", exact: true })
       .click();
     await expect(page).toHaveURL("/");
     const held = await holdNextResponse(page, "**/api/users/me/location");

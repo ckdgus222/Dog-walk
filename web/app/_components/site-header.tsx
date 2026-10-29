@@ -38,7 +38,7 @@ export const SiteHeader = () => {
     <header className={styles.header}>
       <div className={styles.bar}>
         <Link href="/" className={styles.logo}>
-          강아지 산책
+          옆집 강아지
         </Link>
         <MainMenu pendingCount={pendingCount} />
         <div className={styles.account}>
@@ -146,7 +146,7 @@ const GuestHeaderContent = () => {
     <header className={styles.header}>
       <div className={styles.bar}>
         <Link href="/" className={styles.logo}>
-          강아지 산책
+          옆집 강아지
         </Link>
         <MainMenu pendingCount={0} onLockedClick={() => setLoginOpen(true)} />
         <div className={`${styles.account} ${styles.guestLinks}`}>

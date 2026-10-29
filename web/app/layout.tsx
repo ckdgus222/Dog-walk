@@ -24,7 +24,7 @@ const jua = Jua({
   variable: "--font-display",
 });
 
-const title = "강아지 산책";
+const title = "옆집 강아지";
 const description = "함께 산책할 반려인을 찾는 서비스";
 
 export const metadata: Metadata = {
