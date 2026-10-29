@@ -41,16 +41,23 @@
     0 3px 0 white,
     0 6px 18px rgb(39 75 73 / 0.18);
 }
-.title strong > span {
+/* A word wraps as a whole; its letters still pop one by one. */
+.word {
   display: inline-block;
-  white-space: pre;
+  white-space: nowrap;
+}
+.word > span {
+  display: inline-block;
   animation: pop 0.55s cubic-bezier(0.3, 1.6, 0.5, 1)
     calc(var(--reveal-delay) + var(--letter) * 0.06s) both;
 }
+/* The subtitle follows once the title's letters are nearly all up. */
 .title > span {
   display: block;
   margin-top: 12px;
   font-size: clamp(16px, 2vw, 22px);
+  opacity: 0;
+  animation: reveal 0.6s ease-out 4.8s forwards;
 }
 
 .paws {
@@ -128,14 +135,14 @@
   }
 }
 .title {
-  --reveal-delay: 2s;
+  --reveal-delay: 3.4s;
 }
 .skip {
   --reveal-delay: 0.6s;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .title strong > span,
+  .word > span,
   .paws span {
     animation: none;
   }
@@ -155,12 +162,11 @@
   overflow: hidden;
 }
 
-/* Start every animation with the same mounted state as the JS timer. */
-.intro,
-.intro * {
-  animation-play-state: paused;
-}
-:global(html[data-intro="playing"]) .intro,
-:global(html[data-intro="playing"]) .intro * {
-  animation-play-state: running;
+/* Hold every animation until the intro plays, so the scene starts with the
+   JS timer. Each animation shorthand in field-scene.module.css resets the
+   play state to running, and some of those rules (.intro .bami .stand1) are
+   more specific than this one, so it needs !important. */
+:global(html:not([data-intro="playing"])) .intro,
+:global(html:not([data-intro="playing"])) .intro * {
+  animation-play-state: paused !important;
 }

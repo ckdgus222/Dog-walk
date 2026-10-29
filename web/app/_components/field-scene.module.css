@@ -3,6 +3,9 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
+  /* Keep in step with the dog sizes in field-scene.tsx. */
+  --dubu-width: clamp(130px, 15vw, 220px);
+  --bami-width: clamp(120px, 13.5vw, 200px);
 }
 
 .sky {
@@ -68,18 +71,17 @@
   --drift-delay: -8s;
 }
 
-/* Keep in step with the dog sizes in field-scene.tsx. */
 .dog {
   position: absolute;
   left: 0;
   bottom: 9vh;
-  width: clamp(130px, 15vw, 220px);
+  width: var(--dubu-width);
   transform: translateX(-120%);
 }
 
 .dog.bami {
   bottom: 12vh;
-  width: clamp(120px, 13.5vw, 200px);
+  width: var(--bami-width);
 }
 
 .body {
@@ -99,51 +101,115 @@
   animation-delay: -0.15s;
 }
 
-/* Intro: each layer rises a little and fades in at its own time, and the
-   dogs run across once. The intro holds every animation until it plays. */
+/* Intro, 8 seconds (INTRO_DURATION_MS in intro.tsx). The camera tilts down
+   from the sky: nearer layers start lower, so they rise further, and all land
+   at 1.8s. The dogs run in from both sides (1.6-3.1s), meet in the middle and
+   run off to the right together (5-6.5s). The intro holds every animation
+   until it plays. */
 .intro .layer {
-  opacity: 0;
-  animation: reveal 0.9s ease-out var(--reveal-delay) forwards;
+  animation: camera 1.8s cubic-bezier(0.45, 0, 0.25, 1) both;
 }
 
-.intro .sky {
-  --reveal-delay: 0s;
+.intro .cloud {
+  --from: 14vh;
 }
 
 .intro .hills {
-  --reveal-delay: 0.4s;
+  --from: 20vh;
 }
 
 .intro .field {
-  --reveal-delay: 0.8s;
-}
-
-.intro .cloud1 {
-  --reveal-delay: 1.2s;
-}
-
-.intro .cloud2 {
-  --reveal-delay: 1.3s;
-}
-
-.intro .cloud3 {
-  --reveal-delay: 1.4s;
+  --from: 34vh;
 }
 
 .intro .grass {
-  --reveal-delay: 1.6s;
+  --from: 48vh;
 }
 
-.intro .dog {
-  animation: run 2.8s linear var(--run-delay) forwards;
-}
-
-.intro .dubu {
-  --run-delay: 2.4s;
-}
-
+/* Each dog stops 0.5vw from the middle, so their noses all but touch as
+   they sniff at any width, and its run-off takes over from its run-in as it
+   starts. Bami still stands a little behind Dubu, but low enough that their
+   noses meet: on the sniff drawings the nose tips sit 0.355 (Dubu) and
+   0.308 (Bami) of the dog's width above the bottom of its box. */
 .intro .bami {
-  --run-delay: 2.7s;
+  bottom: calc(9vh + 0.355 * var(--dubu-width) - 0.308 * var(--bami-width));
+  animation:
+    bami-in 1.5s cubic-bezier(0.3, 0.6, 0.5, 1) 1.6s both,
+    bami-off 1.5s ease-in 5s forwards;
+}
+
+/* Dubu comes from the right, so the drawing is flipped until it runs off;
+   the flip ends as the turn pose gives way to the run frames, so it never
+   shows. */
+.intro .dubu {
+  animation:
+    dubu-in 1.5s cubic-bezier(0.3, 0.6, 0.5, 1) 1.6s both,
+    dubu-off 1.5s ease-in 5s forwards;
+}
+
+/* They bounce only while running in and out; through the meeting they
+   stand. */
+.intro .body {
+  animation:
+    bounce 0.3s ease-in-out 1.6s 5,
+    bounce 0.3s ease-in-out 5s 6;
+}
+
+/* Every drawing shows only while one of its animations says so. The run
+   frames take turns while running in and out. */
+.intro .body img {
+  opacity: 0;
+}
+
+.intro .run {
+  animation:
+    frame 0.3s steps(1) 1.6s 5,
+    frame 0.3s steps(1) 5s 6;
+}
+
+/* The tucked pose shows whenever the stretched one is hidden. */
+.intro .run + .run {
+  animation-name: frame-alt, frame-alt;
+}
+
+/* The meeting, one pose at a time: they stop (3.1s), touch noses
+   (3.4-4s), wag their tails (4-4.8s), and Dubu turns to go (4.8-5s) while
+   Bami waits. The tail swings back on stand1 and forward on stand2; frame
+   and frame-alt are opposites, so only one of the two shows at a time. */
+.intro .stand1 {
+  animation:
+    shown 0.3s 3.1s,
+    frame-alt 0.4s steps(1) 4s 2;
+}
+
+.intro .bami .stand1 {
+  animation:
+    shown 0.3s 3.1s,
+    frame-alt 0.4s steps(1) 4s 2,
+    shown 0.2s 4.8s;
+}
+
+.intro .stand2 {
+  animation: frame 0.4s steps(1) 4s 2;
+}
+
+.intro .sniff {
+  animation: shown 0.6s 3.4s;
+}
+
+.intro .turn {
+  animation: shown 0.2s 4.8s;
+}
+
+/* Sits over the gap between the two dogs. */
+.heart {
+  --size: clamp(28px, 3vw, 44px);
+  position: absolute;
+  left: calc(50% - var(--size) / 2);
+  bottom: calc(9vh + 0.8 * var(--dubu-width));
+  width: var(--size);
+  height: var(--size);
+  animation: heart 1.2s ease-out 4s both;
 }
 
 /* The background sits behind the whole window, header included, and keeps
@@ -225,10 +291,14 @@
   }
 }
 
-@keyframes reveal {
+@keyframes camera {
   from {
     opacity: 0;
-    transform: translateY(16px);
+    transform: translateY(var(--from));
+  }
+
+  30% {
+    opacity: 1;
   }
 
   to {
@@ -257,13 +327,43 @@
   }
 }
 
-@keyframes run {
+@keyframes bami-in {
   from {
     transform: translateX(-120%);
   }
 
   to {
+    transform: translateX(calc(50vw - 100% - 0.5vw));
+  }
+}
+
+@keyframes bami-off {
+  from {
+    transform: translateX(calc(50vw - 100% - 0.5vw));
+  }
+
+  to {
     transform: translateX(110vw);
+  }
+}
+
+@keyframes dubu-in {
+  from {
+    transform: translateX(110vw) scaleX(-1);
+  }
+
+  to {
+    transform: translateX(calc(50vw + 0.5vw)) scaleX(-1);
+  }
+}
+
+@keyframes dubu-off {
+  from {
+    transform: translateX(calc(50vw + 0.5vw));
+  }
+
+  to {
+    transform: translateX(calc(110vw + 100%));
   }
 }
 
@@ -298,5 +398,52 @@
 
   75% {
     opacity: 0;
+  }
+}
+
+/* The tucked pose: shown whenever frame hides the stretched one. */
+@keyframes frame-alt {
+  0% {
+    opacity: 1;
+  }
+
+  25% {
+    opacity: 0;
+  }
+
+  75% {
+    opacity: 1;
+  }
+}
+
+@keyframes shown {
+  from,
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes heart {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.4);
+  }
+
+  25% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+
+  40% {
+    transform: scale(1);
+  }
+
+  80% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-36px);
   }
 }
