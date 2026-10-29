@@ -1,4 +1,4 @@
-import { HttpException, Inject } from '@nestjs/common';
+import { HttpException, Inject, Logger } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -14,6 +14,8 @@ import { ChatService } from '../chat/chat.service.js';
 
 @WebSocketGateway()
 export class EventsGateway implements OnGatewayInit, OnGatewayConnection {
+  private readonly logger = new Logger(EventsGateway.name);
+
   @WebSocketServer()
   private server!: Server;
 
@@ -68,12 +70,14 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection {
         .emit('chat:message', message);
       return { ok: true };
     } catch (error) {
+      if (error instanceof HttpException && error.getStatus() < 500) {
+        return { ok: false, message: error.message };
+      }
+
+      this.logger.error(error);
       return {
         ok: false,
-        message:
-          error instanceof HttpException && error.getStatus() < 500
-            ? error.message
-            : '메시지를 보내지 못했어요.',
+        message: '메시지를 보내지 못했어요.',
       };
     }
   }
