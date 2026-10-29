@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Fragment,
   useCallback,
   useEffect,
   useRef,
@@ -11,8 +12,18 @@ import { FieldScene } from "./field-scene";
 import styles from "./intro.module.css";
 import { INTRO_SEEN_KEY } from "./intro-seen";
 
-const INTRO_DURATION_MS = 6000;
+// The scene's timeline in intro.module.css and field-scene.module.css is
+// written for this length.
+const INTRO_DURATION_MS = 8000;
 const INTRO_TITLE = "옆집 강아지에 오신 걸 환영해요";
+// Narrow screens wrap the title between words only. Letters keep counting
+// across words, spaces included, so they still pop in turn.
+const INTRO_WORDS = INTRO_TITLE.split(" ").map((word, index, words) => ({
+  letters: [...word],
+  start: words
+    .slice(0, index)
+    .reduce((count, earlier) => count + [...earlier].length + 1, 0),
+}));
 
 export const Intro = () => {
   const [dismissed, setDismissed] = useState(false);
@@ -78,10 +89,20 @@ export const Intro = () => {
         </div>
         {/* Each letter pops up in turn. */}
         <strong>
-          {[...INTRO_TITLE].map((letter, index) => (
-            <span key={index} style={{ "--letter": index } as CSSProperties}>
-              {letter}
-            </span>
+          {INTRO_WORDS.map(({ letters, start }, wordIndex) => (
+            <Fragment key={wordIndex}>
+              {wordIndex > 0 && " "}
+              <span className={styles.word}>
+                {letters.map((letter, offset) => (
+                  <span
+                    key={offset}
+                    style={{ "--letter": start + offset } as CSSProperties}
+                  >
+                    {letter}
+                  </span>
+                ))}
+              </span>
+            </Fragment>
           ))}
         </strong>
         <span>가까운 이웃과 우리 아이의 산책 친구를 만나 보세요</span>

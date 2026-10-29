@@ -4,13 +4,21 @@ import Image from "next/image";
 import { useLayoutEffect } from "react";
 import bamiRun1 from "../../public/illustrations/walking-drawing/intro/bami-run-1.png";
 import bamiRun2 from "../../public/illustrations/walking-drawing/intro/bami-run-2.png";
+import bamiSniff from "../../public/illustrations/walking-drawing/intro/bami-sniff.png";
+import bamiStand1 from "../../public/illustrations/walking-drawing/intro/bami-stand-1.png";
+import bamiStand2 from "../../public/illustrations/walking-drawing/intro/bami-stand-2.png";
 import cloud1 from "../../public/illustrations/walking-drawing/intro/cloud-1.png";
 import cloud2 from "../../public/illustrations/walking-drawing/intro/cloud-2.png";
 import cloud3 from "../../public/illustrations/walking-drawing/intro/cloud-3.png";
 import dubuRun1 from "../../public/illustrations/walking-drawing/intro/dubu-run-1.png";
 import dubuRun2 from "../../public/illustrations/walking-drawing/intro/dubu-run-2.png";
+import dubuSniff from "../../public/illustrations/walking-drawing/intro/dubu-sniff.png";
+import dubuStand1 from "../../public/illustrations/walking-drawing/intro/dubu-stand-1.png";
+import dubuStand2 from "../../public/illustrations/walking-drawing/intro/dubu-stand-2.png";
+import dubuTurn from "../../public/illustrations/walking-drawing/intro/dubu-turn.png";
 import field from "../../public/illustrations/walking-drawing/intro/field.png";
 import grassFront from "../../public/illustrations/walking-drawing/intro/grass-front.png";
+import heart from "../../public/illustrations/walking-drawing/intro/heart.png";
 import hills from "../../public/illustrations/walking-drawing/intro/hills.png";
 import styles from "./field-scene.module.css";
 
@@ -21,9 +29,26 @@ const groundLayers = [
   { image: field, className: styles.field },
   { image: grassFront, className: styles.grass },
 ];
+// Follows the .dog widths in field-scene.module.css.
+const dogSizes = "(max-width: 867px) 130px, (max-width: 1467px) 15vw, 220px";
+// The poses play the intro's meeting; each key is its class in
+// field-scene.module.css.
 const dogs = [
-  { name: "bami", frames: [bamiRun1, bamiRun2] },
-  { name: "dubu", frames: [dubuRun1, dubuRun2] },
+  {
+    name: "bami",
+    frames: [bamiRun1, bamiRun2],
+    poses: { stand1: bamiStand1, stand2: bamiStand2, sniff: bamiSniff },
+  },
+  {
+    name: "dubu",
+    frames: [dubuRun1, dubuRun2],
+    poses: {
+      stand1: dubuStand1,
+      stand2: dubuStand2,
+      sniff: dubuSniff,
+      turn: dubuTurn,
+    },
+  },
 ];
 
 // The sky, clouds, field and running dogs behind the first-visit intro and
@@ -32,7 +57,7 @@ const dogs = [
 // differently.
 export const FieldScene = ({ variant }: { variant: "intro" | "home" }) => (
   <div aria-hidden="true" className={`${styles.scene} ${styles[variant]}`}>
-    <div className={`${styles.sky} ${styles.layer}`} />
+    <div className={styles.sky} />
     {clouds.map((cloud, index) => (
       <div
         key={cloud.src}
@@ -65,7 +90,7 @@ export const FieldScene = ({ variant }: { variant: "intro" | "home" }) => (
         </div>
       ))}
     </div>
-    {dogs.map(({ name, frames }) => (
+    {dogs.map(({ name, frames, poses }) => (
       <div
         key={name}
         className={`${styles.dog} ${styles[name]}`}
@@ -73,18 +98,39 @@ export const FieldScene = ({ variant }: { variant: "intro" | "home" }) => (
       >
         <div className={styles.body}>
           {frames.map((frame) => (
-            // sizes follows the .dog widths in field-scene.module.css.
             <Image
               key={frame.src}
               src={frame}
               alt=""
               fill
-              sizes="(max-width: 867px) 130px, (max-width: 1467px) 15vw, 220px"
+              sizes={dogSizes}
+              className={styles.run}
             />
           ))}
+          {variant === "intro" &&
+            Object.entries(poses).map(([pose, image]) => (
+              <Image
+                key={pose}
+                src={image}
+                alt=""
+                fill
+                sizes={dogSizes}
+                className={styles[pose]}
+              />
+            ))}
         </div>
       </div>
     ))}
+    {variant === "intro" && (
+      // Floats up between the two dogs as they wag their tails.
+      <Image
+        src={heart}
+        alt=""
+        width={44}
+        height={44}
+        className={styles.heart}
+      />
+    )}
   </div>
 );
 

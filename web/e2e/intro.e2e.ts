@@ -3,6 +3,8 @@ import {
   expect,
   test,
   type APIRequestContext,
+  type Locator,
+  type Page,
   type Route,
 } from "@playwright/test";
 
@@ -36,7 +38,7 @@ const createAccount = async (request: APIRequestContext) => {
   return account;
 };
 
-test("첫 방문은 모달로 홈을 막고 건너뛰기에 초점을 두며 6초에 제거된다", async ({
+test("첫 방문은 모달로 홈을 막고 건너뛰기에 초점을 두며 8초에 제거된다", async ({
   page,
 }) => {
   await page.clock.install({ time: new Date("2026-10-23T00:00:00Z") });
@@ -56,7 +58,7 @@ test("첫 방문은 모달로 홈을 막고 건너뛰기에 초점을 두며 6�
       .locator("body")
       .evaluate((node) => getComputedStyle(node).overflowY),
   ).toBe("hidden");
-  await expect(intro.locator('[aria-hidden="true"] img')).toHaveCount(10);
+  await expect(intro.locator('[aria-hidden="true"] img')).toHaveCount(18);
   await expect(
     skip.locator('xpath=ancestor::*[@aria-hidden="true"]'),
   ).toHaveCount(0);
@@ -75,7 +77,7 @@ test("첫 방문은 모달로 홈을 막고 건너뛰기에 초점을 두며 6�
       document.querySelector("main")?.contains(document.activeElement),
     ),
   ).toBe(false);
-  await page.clock.runFor(5999);
+  await page.clock.runFor(7999);
   await expect(intro).toHaveCount(1);
   await expect(page.locator("html")).toHaveAttribute("data-intro", "playing");
   await page.clock.runFor(1);
@@ -246,6 +248,19 @@ for (const entry of [
     if (entry === "첫 방문") {
       await expect(intro).toBeVisible();
       await expect(page.locator("html")).not.toHaveAttribute("data-intro");
+      // The scene must wait for the JS timer, or the two would drift apart.
+      const animations = await intro.evaluate((node) =>
+        node
+          .getAnimations({ subtree: true })
+          .map(({ playState, currentTime }) => ({ playState, currentTime })),
+      );
+      expect(animations.length).toBeGreaterThan(0);
+      expect(
+        animations.filter(
+          ({ playState, currentTime }) =>
+            playState !== "paused" || currentTime !== 0,
+        ),
+      ).toEqual([]);
       return;
     }
     await expect(intro).toBeHidden();
@@ -276,13 +291,13 @@ test("첫 방문과 재방문 모두 수화 경고나 실행 오류가 없다", 
   expect(errors).toEqual([]);
 });
 
-test("그림 응답이 오지 않아도 6초 뒤 제거된다", async ({ page }) => {
+test("그림 응답이 오지 않아도 8초 뒤 제거된다", async ({ page }) => {
   const heldImages: Route[] = [];
   await page.route("**/_next/image?*", (route) => {
     const source = new URL(route.request().url()).searchParams.get("url");
     // Static imports serve the intro drawings from /_next/static/media/.
     const introImage =
-      /\/_next\/static\/media\/(cloud-\d|hills|field|grass-front|(dubu|bami)-run-\d)\./;
+      /\/_next\/static\/media\/(cloud-\d|hills|field|grass-front|heart|(dubu|bami)-(run-\d|stand-\d|sniff|turn))\./;
     if (source && introImage.test(source)) {
       heldImages.push(route);
       return;
@@ -294,7 +309,7 @@ test("그림 응답이 오지 않아도 6초 뒤 제거된다", async ({ page })
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await expect(page.locator("html")).toHaveAttribute("data-intro", "playing");
   await expect.poll(() => heldImages.length).toBeGreaterThan(0);
-  await page.clock.runFor(6000);
+  await page.clock.runFor(8000);
   await expect(page.locator('dialog[aria-label="인트로"]')).toHaveCount(0);
   await expect(page.locator("html")).toHaveAttribute("data-intro", "done");
 });
@@ -332,7 +347,7 @@ test("로그인 쿠키 복원이 재생 중 끝나도 같은 인트로가 원래
   ).toBe(true);
   await expect(page.locator("html")).toHaveAttribute("data-intro", "playing");
   await expect(page.getByRole("button", { name: "건너뛰기" })).toBeFocused();
-  await page.clock.runFor(2999);
+  await page.clock.runFor(4999);
   await expect(intro).toHaveCount(1);
   await page.clock.runFor(1);
   await expect(intro).toHaveCount(0);
@@ -361,4 +376,157 @@ test("본 뒤 로그인과 로그아웃으로 상태가 바뀌어도 다시 보�
   ).toBeVisible();
   await expect(page.locator('dialog[aria-label="인트로"]')).toHaveCount(0);
   await expect(page.locator("html")).toHaveAttribute("data-intro", "done");
+});
+
+// CSS animations ignore page.clock, so these hold every intro animation at
+// one moment of its timeline and measure the scene there.
+const holdIntroAt = (page: Page, time: number) =>
+  page.evaluate((at) => {
+    const intro = document.querySelector('dialog[aria-label="인트로"]');
+    for (const animation of intro!.getAnimations({ subtree: true })) {
+      animation.pause();
+      animation.currentTime = at;
+    }
+  }, time);
+
+const startIntro = async (page: Page) => {
+  await page.clock.install({ time: new Date("2026-10-23T00:00:00Z") });
+  await page.clock.pauseAt(new Date("2026-10-23T00:00:01Z"));
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("data-intro", "playing");
+};
+
+// A dog of the intro scene: the box that moves and flips, found through its
+// run frame.
+const introDog = (page: Page, name: "bami" | "dubu") =>
+  page
+    .locator(`dialog img[src*="${name}-run"]`)
+    .first()
+    .locator("xpath=ancestor::div[contains(@style, 'aspect-ratio')]");
+
+// Above 0 while the dog faces right, below 0 while its drawing is flipped.
+const facing = (dog: Locator) =>
+  dog.evaluate((node) => new DOMMatrix(getComputedStyle(node).transform).a);
+
+test("3.8초에 두 강아지가 가운데 양쪽에서 마주 본다", async ({ page }) => {
+  await startIntro(page);
+  await holdIntroAt(page, 3800);
+  const width = page.viewportSize()!.width;
+  const bami = (await introDog(page, "bami").boundingBox())!;
+  const dubu = (await introDog(page, "dubu").boundingBox())!;
+  expect(bami.x).toBeGreaterThanOrEqual(0);
+  expect(bami.x + bami.width).toBeLessThanOrEqual(width / 2);
+  expect(dubu.x).toBeGreaterThanOrEqual(width / 2);
+  expect(dubu.x + dubu.width).toBeLessThanOrEqual(width);
+  expect(await facing(introDog(page, "bami"))).toBeGreaterThan(0);
+  expect(await facing(introDog(page, "dubu"))).toBeLessThan(0);
+});
+
+// Where each nose tip sits on its 1448 x 1086 sniff drawing. Dubu's drawing
+// is flipped on screen, so its x counts from the right edge.
+const SNIFF_NOSES = { bami: { x: 1443, y: 640 }, dubu: { x: 1445, y: 572 } };
+
+for (const viewport of [
+  { width: 1280, height: 720 },
+  { width: 390, height: 844 },
+  { width: 768, height: 1024 },
+]) {
+  test(`${viewport.width}px 화면에서 코 인사 때 두 코끝이 맞닿을 듯 가깝다`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await startIntro(page);
+    await holdIntroAt(page, 3700);
+    const nose = async (name: "bami" | "dubu") => {
+      const box = (await page
+        .locator(`dialog img[src*="${name}-sniff"]`)
+        .boundingBox())!;
+      const fromLeft = (SNIFF_NOSES[name].x / 1448) * box.width;
+      return {
+        x: name === "dubu" ? box.x + box.width - fromLeft : box.x + fromLeft,
+        y: box.y + (SNIFF_NOSES[name].y / 1086) * box.height,
+      };
+    };
+    const bami = await nose("bami");
+    const dubu = await nose("dubu");
+    expect(dubu.x - bami.x).toBeGreaterThan(0);
+    expect(dubu.x - bami.x).toBeLessThan(24);
+    expect(Math.abs(dubu.y - bami.y)).toBeLessThan(6);
+  });
+}
+
+test("만나는 동안 박자마다 강아지별로 한 자세만 보인다", async ({ page }) => {
+  await startIntro(page);
+  const shownPoses = (name: "bami" | "dubu") =>
+    introDog(page, name).evaluate((dog) =>
+      [...dog.querySelectorAll("img")]
+        .filter((image) => Number(getComputedStyle(image).opacity) > 0.5)
+        .map(
+          (image) =>
+            decodeURIComponent(image.src).match(
+              /(run-\d|stand-\d|sniff|turn)\./,
+            )![1],
+        ),
+    );
+  // Each moment sits inside a beat, away from the switches.
+  const beats = [
+    { at: 3250, bami: "stand-1", dubu: "stand-1" },
+    { at: 3700, bami: "sniff", dubu: "sniff" },
+    { at: 4050, bami: "stand-1", dubu: "stand-1" },
+    { at: 4200, bami: "stand-2", dubu: "stand-2" },
+    { at: 4400, bami: "stand-1", dubu: "stand-1" },
+    { at: 4600, bami: "stand-2", dubu: "stand-2" },
+    { at: 4900, bami: "stand-1", dubu: "turn" },
+  ];
+  for (const { at, bami, dubu } of beats) {
+    await holdIntroAt(page, at);
+    expect(
+      [await shownPoses("bami"), await shownPoses("dubu")],
+      `${at}ms`,
+    ).toEqual([[bami], [dubu]]);
+  }
+
+  await holdIntroAt(page, 5600);
+  const running = [expect.stringMatching(/^run-\d$/)];
+  expect(await shownPoses("bami")).toEqual(running);
+  expect(await shownPoses("dubu")).toEqual(running);
+  expect(await facing(introDog(page, "dubu"))).toBeGreaterThan(0);
+});
+
+test("카메라가 하늘에서 내려와 1.8초에 앞풀이 제자리에 온다", async ({
+  page,
+}) => {
+  await startIntro(page);
+  const grassTop = () =>
+    page.evaluate(
+      () =>
+        document
+          .querySelector('dialog img[src*="grass-front"]')!
+          .parentElement!.getBoundingClientRect().top,
+    );
+  await holdIntroAt(page, 0);
+  const start = await grassTop();
+  await holdIntroAt(page, 1800);
+  const landed = await grassTop();
+  await holdIntroAt(page, 7000);
+  expect(await grassTop()).toBeCloseTo(landed, 0);
+  expect(start - landed).toBeGreaterThan(
+    (page.viewportSize()?.height ?? 0) * 0.3,
+  );
+});
+
+test("좁은 화면에서 제목은 단어 사이에서만 줄이 바뀐다", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await startIntro(page);
+  // The top of every letter, word by word.
+  const words = await page
+    .locator("dialog strong > span")
+    .evaluateAll((spans) =>
+      spans.map((word) =>
+        [...word.children].map((letter) => (letter as HTMLElement).offsetTop),
+      ),
+    );
+  // The title does wrap at this width, so the check below means something.
+  expect(new Set(words.map((tops) => tops[0])).size).toBeGreaterThan(1);
+  for (const tops of words) expect(new Set(tops).size).toBe(1);
 });
