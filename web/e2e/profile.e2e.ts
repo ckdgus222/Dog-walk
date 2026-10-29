@@ -114,6 +114,51 @@ test("비밀번호 변경 응답을 기다려 로그아웃하고 새로고침해
   }
 });
 
+test("로그아웃 요청이 실패하면 로그인 상태와 안내가 남고, 다시 누르면 로그아웃된다", async ({
+  page,
+  context,
+}) => {
+  const account = await loggedInAccount(context);
+  await page.goto("/me");
+  await expect(greeting(page, account.nickname)).toBeVisible();
+  await page.route("**/api/auth/logout", (route) => route.abort("failed"));
+  const header = page.getByRole("banner");
+  const logout = header.getByRole("button", { name: "로그아웃", exact: true });
+  await logout.click();
+  await expect(header.getByRole("alert")).toHaveText(
+    "로그아웃하지 못했어요. 잠시 뒤 다시 시도해 주세요.",
+  );
+  await expect(greeting(page, account.nickname)).toBeVisible();
+  await expect(logout).toBeEnabled();
+
+  const refreshed = page.waitForResponse(
+    (response) => new URL(response.url()).pathname === "/api/auth/refresh",
+  );
+  await page.reload();
+  expect((await refreshed).status()).toBe(200);
+  await expect(greeting(page, account.nickname)).toBeVisible();
+
+  await page.unroute("**/api/auth/logout");
+  const loggedOut = page.waitForResponse(
+    (response) => new URL(response.url()).pathname === "/api/auth/logout",
+  );
+  await logout.click();
+  expect((await loggedOut).status()).toBe(204);
+  await expect(
+    page.getByRole("main").getByRole("link", { name: "로그인", exact: true }),
+  ).toBeVisible();
+
+  const refreshRejected = page.waitForResponse(
+    (response) => new URL(response.url()).pathname === "/api/auth/refresh",
+  );
+  await page.reload();
+  expect((await refreshRejected).status()).toBe(401);
+  await expect(
+    page.getByRole("main").getByRole("link", { name: "로그인", exact: true }),
+  ).toBeVisible();
+  await expect(greeting(page, account.nickname)).toHaveCount(0);
+});
+
 test("헤더의 내 정보에서 닉네임을 바꾸면 헤더 인사가 바로 바뀌고 새로고침해도 남는다", async ({
   page,
   context,

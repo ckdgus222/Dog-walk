@@ -1,5 +1,6 @@
 import { io } from "socket.io-client";
 import { getAccessToken, refresh } from "./auth";
+import { useAuthStore } from "./auth-store";
 
 export const connectSocket = (signal: AbortSignal) => {
   const socket = io({
@@ -7,14 +8,20 @@ export const connectSocket = (signal: AbortSignal) => {
   });
   let retried = false;
 
+  const connectIfIdle = () => {
+    if (signal.aborted || socket.connected || socket.active) return;
+    socket.connect();
+  };
+
   const reconnect = async () => {
     if (retried || signal.aborted) return;
     retried = true;
     try {
       await refresh();
-      if (!signal.aborted) socket.connect();
+      connectIfIdle();
     } catch {
-      // refresh clears the login session on failure.
+      // A 401 clears auth and tears down this connection. Other failures
+      // (logout in progress or network errors) wait for a new token to reconnect.
     }
   };
 
@@ -27,7 +34,16 @@ export const connectSocket = (signal: AbortSignal) => {
   socket.on("connect_error", () => {
     if (!socket.active) void reconnect();
   });
-  signal.addEventListener("abort", () => socket.disconnect(), { once: true });
-  if (signal.aborted) socket.disconnect();
+  const unsubscribe = useAuthStore.subscribe((state, previous) => {
+    if (state.accessToken && state.accessToken !== previous.accessToken) {
+      connectIfIdle();
+    }
+  });
+  const close = () => {
+    unsubscribe();
+    socket.disconnect();
+  };
+  signal.addEventListener("abort", close, { once: true });
+  if (signal.aborted) close();
   return socket;
 };
