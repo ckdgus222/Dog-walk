@@ -12,7 +12,7 @@ import styles from "./intro.module.css";
 import { INTRO_SEEN_KEY } from "./intro-seen";
 
 const INTRO_DURATION_MS = 6000;
-const INTRO_TITLE = "강아지 산책에 오신 걸 환영해요";
+const INTRO_TITLE = "옆집 강아지에 오신 걸 환영해요";
 
 export const Intro = () => {
   const [dismissed, setDismissed] = useState(false);

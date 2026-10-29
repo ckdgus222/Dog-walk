@@ -243,7 +243,7 @@ test("산책 요청 실시간 알림·재접속 동기화·로그아웃 정리",
     await test.step("모달이 열린 상태의 로그아웃은 알림을 모두 비우고, 재로그인하면 대기 수를 읽는다", async () => {
       await a
         .getByRole("banner")
-        .getByRole("link", { name: "강아지 산책", exact: true })
+        .getByRole("link", { name: "옆집 강아지", exact: true })
         .click();
       const headersB = { Authorization: authorizations[1] };
       // Leave a notice as well as a pending modal to check that both are removed.

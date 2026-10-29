@@ -90,7 +90,7 @@ test.beforeEach(async ({ page }) => {
 const goHome = async (page: Page) => {
   await page
     .getByRole("banner")
-    .getByRole("link", { name: "강아지 산책", exact: true })
+    .getByRole("link", { name: "옆집 강아지", exact: true })
     .click();
   await expect(page).toHaveURL("/");
 };
