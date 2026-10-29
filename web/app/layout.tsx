@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Jua, Noto_Sans_KR } from "next/font/google";
+import { Gowun_Dodum } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./_components/auth-provider";
 import { FieldScene } from "./_components/field-scene";
@@ -12,16 +12,10 @@ import { Intro } from "./_components/intro";
 import { introHeadScript } from "./_components/intro-seen";
 
 // Korean glyphs load on demand by unicode range, so only latin is preloaded.
-const notoSansKr = Noto_Sans_KR({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
-
-// The round title font of the intro and the guest welcome.
-const jua = Jua({
+const gowunDodum = Gowun_Dodum({
   weight: "400",
   subsets: ["latin"],
-  variable: "--font-display",
+  variable: "--font-sans",
 });
 
 const title = "옆집 강아지";
@@ -42,7 +36,7 @@ const RootLayout = ({ children, modal }: LayoutProps<"/">) => {
   return (
     <html
       lang="ko"
-      className={`${notoSansKr.variable} ${jua.variable}`}
+      className={gowunDodum.variable}
       suppressHydrationWarning
     >
       <head>
