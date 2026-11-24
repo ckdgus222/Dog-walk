@@ -79,7 +79,7 @@ flowchart LR
 
 ## 온프레미스 홈 서버 배포
 
-클라우드 대신 **집 데스크톱 한 대에 Ubuntu Server를 설치해 직접 배포하고 운영**합니다.
+클라우드 대신 **집 데스크톱 한 대에 Ubuntu Server를 설치해 직접 배포하고 운영**합니다. 호스트 nginx로 전환할 때는 [공용 nginx 연결·원복 절차](nginx/host/README.md)를 따릅니다.
 
 - Docker Compose로 nginx, web, api, db 네 컨테이너를 띄우고, 재부팅이나 정전 뒤에도 스스로 다시 켜지게 했습니다.
 - DuckDNS와 공유기 포트포워딩으로 도메인을 연결하고, Let's Encrypt 인증서로 HTTPS를 적용했습니다.
