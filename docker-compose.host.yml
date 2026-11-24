@@ -1,0 +1,16 @@
+# Set COMPOSE_FILE=docker-compose.yml:docker-compose.host.yml for the host nginx deployment.
+services:
+  api:
+    labels:
+      io.dogwalk.ingress-origin: ${SITE_URL:?Set SITE_URL to this site's HTTPS origin}
+    environment:
+      COOKIE_SECURE: "true"
+    ports:
+      - "127.0.0.1:${DOGWALK_API_PORT:-14000}:4000"
+
+  web:
+    ports:
+      - "127.0.0.1:${DOGWALK_WEB_PORT:-13000}:3000"
+
+  nginx:
+    profiles: ["legacy-ingress"]
