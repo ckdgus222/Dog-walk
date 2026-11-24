@@ -69,6 +69,7 @@ api.on('upgrade', (req, socket) => {
     assert.equal(res.code, 301);
     assert.equal(res.headers.location, 'https://' + host + ':18443/login');
     assert.equal((await request('/.well-known/acme-challenge/probe', false)).body, 'challenge');
+    assert.ok((await request('/.well-known/acme-challenge/linked', false)).code >= 400);
     assert.equal((await request('/login')).body, '<title>옆집 강아지</title>');
     res = await request('/api/health', true, {'X-Forwarded-For': '192.0.2.25'});
     assert.deepEqual(JSON.parse(res.body), [host, '127.0.0.1', 'https']);
@@ -141,6 +142,7 @@ def main():
         challenge=fixture/'acme/.well-known/acme-challenge'
         challenge.mkdir(parents=True)
         (challenge/'probe').write_text('challenge')
+        (challenge/'linked').symlink_to('/srv/test/photos/example.jpg')
         photos=fixture/'photos'
         photos.mkdir()
         private = fixture/'private-uploads'
