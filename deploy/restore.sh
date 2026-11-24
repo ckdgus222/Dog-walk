@@ -18,6 +18,8 @@ if ! flock -n 9; then
     echo "다른 백업이나 복원이 진행 중이에요" >&2
     exit 1
 fi
+source deploy/ingress.sh
+load_ingress
 
 report_failure() {
     local status=$?
@@ -61,9 +63,9 @@ awk -v access="$(openssl rand -hex 32)" -v refresh="$(openssl rand -hex 32)" '
 mv .env.new .env
 # up -d recreates api so it reads the new keys; start would keep the old ones.
 docker compose up -d api web
-deploy/reload-nginx.sh
+reload_app_proxy
 for ((attempt = 1; attempt <= 12; attempt++)); do
-    if curl -fsSLk --max-time 5 http://localhost/api/health; then
+    if check_restored_service; then
         exit 0
     fi
     sleep 2
