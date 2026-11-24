@@ -20,6 +20,8 @@ if ! flock -n 9; then
     echo "다른 백업이나 복원이 진행 중이에요" >&2
     exit 1
 fi
+source deploy/ingress.sh
+load_ingress
 if ! docker compose ps --status running --services | grep -qx api; then
     echo "api가 꺼져 있어 백업하지 않아요" >&2
     exit 1
@@ -27,12 +29,12 @@ fi
 
 restart_api() {
     local status=$?
-    if ! docker compose start api || ! deploy/reload-nginx.sh; then
+    if ! docker compose start api || ! reload_app_proxy; then
         echo "api를 다시 켜지 못했어요" >&2
         exit 1
     fi
     for ((attempt = 1; attempt <= 12; attempt++)); do
-        if curl -fsSLk --max-time 5 http://localhost/api/health; then
+        if check_restored_service; then
             exit "$status"
         fi
         sleep 2

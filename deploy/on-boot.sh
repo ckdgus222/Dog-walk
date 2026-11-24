@@ -14,9 +14,12 @@ fi
 script=$(readlink -f "$0")
 cd "$(dirname "$script")/.."
 
+source deploy/ingress.sh
+load_ingress
+
 echo "앱 준비 확인 시작"
 for ((attempt = 1; attempt <= 60; attempt++)); do
-    if curl -fsSLk --max-time 5 http://localhost/api/health; then
+    if check_boot_service; then
         break
     fi
     if [ "$attempt" -lt 60 ]; then

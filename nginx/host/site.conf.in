@@ -1,0 +1,58 @@
+# Install this rendered site at http scope. The host owns its default (unmatched) site.
+server {
+    @HTTP_LISTEN@
+    server_name @DOMAIN@;
+    if ($host != @DOMAIN@) { return 444; }
+
+    location ^~ /.well-known/acme-challenge/ {
+        root @ACME_ROOT@;
+        disable_symlinks on;
+        try_files $uri =404;
+    }
+
+    location / {
+        return 301 https://@REDIRECT_HOST@$request_uri;
+    }
+}
+
+server {
+    @HTTPS_LISTEN@
+    server_name @DOMAIN@;
+    if ($host != @DOMAIN@) { return 444; }
+    if ($ssl_server_name != @DOMAIN@) { return 421; }
+    ssl_certificate /etc/letsencrypt/live/@CERT_NAME@/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/@CERT_NAME@/privkey.pem;
+
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_hide_header X-Powered-By;
+
+    location /api/ {
+        client_max_body_size 30m;
+        proxy_pass http://127.0.0.1:@API_PORT@;
+    }
+
+    location /socket.io/ {
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        # A location with proxy_set_header must repeat the server's header settings.
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_pass http://127.0.0.1:@API_PORT@;
+    }
+
+    location ^~ /uploads/ {
+        alias @UPLOADS_ROOT@/;
+        disable_symlinks on;
+        add_header X-Content-Type-Options nosniff always;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:@WEB_PORT@;
+    }
+}
