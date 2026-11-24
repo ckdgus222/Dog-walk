@@ -13,6 +13,14 @@
    ```
 
    root가 원본을 전용 디렉터리(예: `/srv/dog/photos`)에 bind mount한 뒤 `remount,bind,ro,nosuid,nodev,noexec`로 다시 마운트한다. `findmnt --mountpoint /srv/dog/photos -o SOURCE,TARGET,OPTIONS`에서 원본과 `ro`를 확인한다. nginx 작업자 계정으로 실제 공개 사진 하나를 읽어 본다. Docker 데이터 디렉터리의 권한을 넓히지 않는다. `/app/private-uploads`는 연결하지 않는다. 재부팅에도 같은 볼륨이 마운트되도록 영구 설정하고, Dogwalk 부팅 점검에서 실제 사진을 조회한다. ACME용 디렉터리(예: `/srv/dog/acme`)는 기존 Certbot이 챌린지를 **쓰는 바로 그 webroot**를 읽기 전용 bind mount하여 제공한다.
+   공개 볼륨 원본에 저장소의 1픽셀 PNG를 한 번 설치한다. 다음 명령은 실행 중인 API의 기존 공개 볼륨에만 파일을 복사한다. 호스트의 마운트 대상 디렉터리에 직접 복사하면 마운트가 빠져도 점검이 성공할 수 있다.
+
+   ```sh
+   docker compose cp deploy/dogwalk-volume-v1.png api:/app/uploads/dogwalk-volume-v1.png
+   ```
+
+   호스트 모드의 부팅 작업은 Dogwalk 도메인의 HTTPS `/uploads/dogwalk-volume-v1.png` 응답을 원본과 바이트 단위로 대조한다. 사진이나 API·로그인을 확인하지 못하면 재시도 후 백업과 데모 초기화를 중단한다. 파일에는 사용자 사진이나 인증 정보가 없다. 마운트 상태를 복구한 뒤 다시 실행한다. 이 점검 파일을 도입하기 전의 백업을 복원했으면 같은 명령으로 공개 볼륨에 다시 설치한다.
+
 4. 기존 Compose 프로젝트 이름과 볼륨을 유지한다. 운영 모드의 조합은 `COMPOSE_FILE=docker-compose.yml:docker-compose.host.yml`이다. `SITE_URL`을 실제 HTTPS 주소로 설정한다. `DOGWALK_WEB_PORT`, `DOGWALK_API_PORT`의 기본값은 13000, 14000이다. 활성 프로필에는 `legacy-ingress`를 넣지 않는다. `docker compose config --services`에 web·api·db가 있고 nginx가 빠졌는지 확인한다. 전체 config에는 비밀값이 있어 출력 공유를 피한다.
 5. 아래처럼 일반 사용자로 설정을 생성한다. 후보용 HTTP·HTTPS 포트는 공용 기본 사이트와 두 앱에 동일하게 지정한다. 실행 전 `ss -ltn`으로 후보와 앱 포트 충돌을 확인한다.
 

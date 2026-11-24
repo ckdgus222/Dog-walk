@@ -19,7 +19,7 @@ load_ingress
 
 echo "앱 준비 확인 시작"
 for ((attempt = 1; attempt <= 60; attempt++)); do
-    if check_restored_service; then
+    if check_boot_service; then
         break
     fi
     if [ "$attempt" -lt 60 ]; then

@@ -30,9 +30,12 @@ function request(path, secure = true, headers = {}, servername = host) {
     const options = { hostname: '127.0.0.1', servername, ca, port: secure ? 18443 : 18080,
       path, headers: { host, ...headers }, timeout: 4000 };
     const req = (secure ? https : http).get(options, response => {
-      let body = '';
-      response.on('data', chunk => { body += chunk; });
-      response.on('end', () => resolve({ body, code: response.statusCode, headers: response.headers }));
+      const chunks = [];
+      response.on('data', chunk => chunks.push(chunk));
+      response.on('end', () => {
+        const bytes = Buffer.concat(chunks);
+        resolve({ bytes, body: bytes.toString(), code: response.statusCode, headers: response.headers });
+      });
     });
     req.on('upgrade', (res, socket) => { socket.destroy(); resolve({code: res.statusCode, headers: res.headers}); });
     req.on('error', reject);
@@ -81,6 +84,10 @@ api.on('upgrade', (req, socket) => {
     assert.equal(res.code, 101);
     assert.equal(res.headers['sec-websocket-accept'], websocketAccept(key));
     assert.equal((await request('/api/upload', true, { 'content-length': 30 * 1024 * 1024 + 1 })).code, 413);
+    res = await request('/uploads/dogwalk-volume-v1.png');
+    assert.equal(res.code, 200);
+    assert.equal(res.headers['content-type'], 'image/png');
+    assert.deepEqual(res.bytes, readFileSync('/fixture-probe.png'));
     res = await request('/uploads/example.jpg');
     assert.equal(res.body, 'public');
     assert.equal(res.headers['x-content-type-options'], 'nosniff');
@@ -148,6 +155,8 @@ def main():
         private = fixture/'private-uploads'
         private.mkdir()
         (private/'private.jpg').write_text('private fixture')
+        probe_png = ROOT / 'deploy/dogwalk-volume-v1.png'
+        (photos/probe_png.name).write_bytes(probe_png.read_bytes())
         (photos/'example.jpg').write_text('public')
         (photos/'linked.jpg').symlink_to('/srv/test/acme/.well-known/acme-challenge/probe')
         conf=d/'site.conf'
@@ -158,6 +167,7 @@ def main():
         try:
             command('docker','exec',name,'nginx','-t')
             command('docker','run','--rm','-i','--network','container:'+name,'-v',str(cert)+':/fixture-ca.pem:ro',
+                    '-v',str(probe_png)+':/fixture-probe.png:ro',
                     'node:24-bookworm-slim','node','-',input=PROBE.encode(),timeout=30)
         finally:
             command('docker','rm','-f',name,stdout=subprocess.DEVNULL)

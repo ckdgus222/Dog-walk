@@ -64,3 +64,10 @@ check_restored_service() {
         check_site
     fi
 }
+
+check_boot_service() {
+    if [[ "$INGRESS_HOST" != container ]]; then
+        host_get /uploads/dogwalk-volume-v1.png | cmp -s deploy/dogwalk-volume-v1.png - || return 1
+    fi
+    check_restored_service
+}

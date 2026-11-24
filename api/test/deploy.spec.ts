@@ -43,6 +43,9 @@ case "$command" in
     case "$SCENARIO:$*" in
       host-wrong-health:*api/health) echo '{"status":"ok"}'; exit 0 ;;
       host-*:*/api/health) echo '{"status":"ok","db":"up"}'; exit 0 ;;
+      host-photo-missing:*/uploads/dogwalk-volume-v1.png) exit 22 ;;
+      host-photo-wrong:*/uploads/dogwalk-volume-v1.png) echo '<html>Wrong site</html>'; exit 0 ;;
+      host-*:*/uploads/dogwalk-volume-v1.png) cat deploy/dogwalk-volume-v1.png; exit 0 ;;
       host-wrong-site:*/login) echo '<title>Other</title>'; exit 0 ;;
       host-*:*/login) echo '<html><title>옆집 강아지</title></html>'; exit 0 ;;
       unhealthy:*|update-health-failed:*api/health|update-login-failed:*login) exit 1 ;;
@@ -150,6 +153,7 @@ describe('deployment scripts', () => {
       'restore.sh',
       'reload-nginx.sh',
       'ingress.sh',
+      'dogwalk-volume-v1.png',
       'update.sh',
       'on-boot.sh',
     ]) {
@@ -226,10 +230,13 @@ describe('deployment scripts', () => {
       writeFileSync(join(repo, 'deploy', 'backup.sh'), fakeCommand);
     });
 
-    it('checks the Dogwalk login before backing up and resetting the host deployment', () => {
+    it('checks the Dogwalk public volume and login before backing up and resetting the host deployment', () => {
       const result = run('on-boot.sh', 'host-success', [dirname(backup)]);
       expect(result.status, result.stderr).toBe(0);
       const log = commands();
+      expect(
+        log.indexOf('https://dog.example.test/uploads/dogwalk-volume-v1.png'),
+      ).toBeGreaterThan(0);
       expect(log.indexOf('https://dog.example.test/login')).toBeGreaterThan(0);
       expect(log.indexOf('|backup.sh|')).toBeGreaterThan(
         log.indexOf('https://dog.example.test/login'),
@@ -238,6 +245,23 @@ describe('deployment scripts', () => {
         log.indexOf('api node dist/demo/reset-demo.main.js'),
       ).toBeGreaterThan(log.indexOf('|backup.sh|'));
     });
+
+    it.each(['host-photo-missing', 'host-photo-wrong'])(
+      'stops host boot before backup and reset when the public photo check fails (%s)',
+      (scenario) => {
+        const result = run('on-boot.sh', scenario, [dirname(backup)]);
+        expect(result.status, result.stderr).toBe(1);
+        const log = commands();
+        expect(
+          log.split('https://dog.example.test/uploads/dogwalk-volume-v1.png')
+            .length - 1,
+        ).toBe(60);
+        expect(log).not.toMatch(
+          /\|backup.sh\||reset-demo\.main|private-uploads/,
+        );
+        expect(result.stdout).not.toContain('앱 준비 확인 성공');
+      },
+    );
 
     it('checks health, backs up, then locks and resets from the repository', () => {
       const result = run('on-boot.sh', 'success', [dirname(backup)]);
