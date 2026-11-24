@@ -25,9 +25,9 @@ const { readFileSync } = require('node:fs');
 const ca = readFileSync('/fixture-ca.pem');
 const host = 'dog.example.test';
 
-function request(path, secure = true, headers = {}) {
+function request(path, secure = true, headers = {}, servername = host) {
   return new Promise((resolve, reject) => {
-    const options = { hostname: '127.0.0.1', servername: host, ca, port: secure ? 18443 : 18080,
+    const options = { hostname: '127.0.0.1', servername, ca, port: secure ? 18443 : 18080,
       path, headers: { host, ...headers }, timeout: 4000 };
     const req = (secure ? https : http).get(options, response => {
       let body = '';
@@ -87,6 +87,7 @@ api.on('upgrade', (req, socket) => {
     assert.equal((await request('/private-uploads/private.jpg')).code, 404);
     assert.equal((await request('/uploads/linked.jpg')).code >= 400, true);
     await assert.rejects(request('/api/health', true, {host: 'unknown.example.test'}));
+    assert.equal((await request('/api/health', true, {}, 'second.example.test')).code, 421);
     console.log('Dogwalk candidate: TLS, redirect, ACME, pages, API, headers, WebSocket 101 and public-only photos passed');
   } finally {
     web.close(); api.close();
@@ -133,7 +134,7 @@ def main():
         key = certs/'privkey.pem'
         cfg = d/'cert.cfg'
         cfg.write_text('[req]\nprompt=no\ndistinguished_name=dn\nx509_extensions=ext\n[dn]\nCN='
-                       +DOMAIN+'\n[ext]\nsubjectAltName=DNS:'+DOMAIN+'\n')
+                       +DOMAIN+'\n[ext]\nsubjectAltName=DNS:'+DOMAIN+',DNS:second.example.test\n')
         command('openssl','req','-new','-x509','-newkey','rsa:2048','-nodes','-config',str(cfg),
                 '-days','1','-keyout',str(key),'-out',str(cert),stderr=subprocess.DEVNULL)
         fixture=d/'public'
@@ -142,6 +143,9 @@ def main():
         (challenge/'probe').write_text('challenge')
         photos=fixture/'photos'
         photos.mkdir()
+        private = fixture/'private-uploads'
+        private.mkdir()
+        (private/'private.jpg').write_text('private fixture')
         (photos/'example.jpg').write_text('public')
         (photos/'linked.jpg').symlink_to('/srv/test/acme/.well-known/acme-challenge/probe')
         conf=d/'site.conf'

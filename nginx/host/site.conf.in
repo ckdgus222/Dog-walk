@@ -18,6 +18,7 @@ server {
     @HTTPS_LISTEN@
     server_name @DOMAIN@;
     if ($host != @DOMAIN@) { return 444; }
+    if ($ssl_server_name != @DOMAIN@) { return 421; }
     ssl_certificate /etc/letsencrypt/live/@CERT_NAME@/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/@CERT_NAME@/privkey.pem;
 
